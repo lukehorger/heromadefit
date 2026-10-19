@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero Made Fit: every workout clears a gate</title>
+<meta name="description" content="A fitness app that turns your real training into a dungeon crawl. Your rank only goes up when you actually get stronger.">
+<meta property="og:title" content="Hero Made Fit: every workout clears a gate">
+<meta property="og:description" content="Heroes are made, not born. Your rank only goes up when you actually get stronger. Join the waitlist.">
+<meta property="og:image" content="https://heromadefit.com/img/avatar.jpg">
+<meta property="og:url" content="https://heromadefit.com/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #03050b; --deep: #07101f; --glass: rgba(10, 23, 46, .72); --frame: #4dbaff;
+    --frame-dim: rgba(77, 186, 255, .3); --ice: #b2e3ff; --text: #e1edff; --muted: #7e94b7;
+    --gold: #ffca57; --epic: #bf80ff; --done: #5fedbb; --ember: #ff6a3d;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--void); }
+  body {
+    margin: 0; color: var(--text); font: 16px/1.55 Inter, system-ui, sans-serif;
+    background: radial-gradient(ellipse at top, rgba(77, 186, 255, .14), transparent 60%), var(--void);
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  .display { font-family: Archivo, Inter, sans-serif; font-stretch: 125%; letter-spacing: .02em; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; }
+  .logo { font-weight: 900; font-size: 18px; letter-spacing: .18em; color: var(--ice); }
+  .logo .fit { color: var(--ember); }
+  .tagline { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--ember); margin: 0 0 10px; }
+  .pill { font-size: 12px; color: var(--gold); border: 1px solid rgba(255, 202, 87, .5); padding: 4px 10px; }
+  .hero { display: grid; gap: 28px; align-items: center; padding: 28px 0 40px; grid-template-columns: 1.1fr .9fr; }
+  h1 { font-size: clamp(34px, 6vw, 60px); line-height: 1.02; margin: 0 0 16px; font-weight: 900;
+       text-shadow: 0 0 24px rgba(77, 186, 255, .45); }
+  .lead { font-size: 18px; color: var(--ice); max-width: 34em; }
+  .cta { display: inline-block; margin-top: 22px; padding: 14px 22px; font-weight: 700; letter-spacing: .14em;
+         color: var(--frame); border: 1px solid var(--frame); background: rgba(77, 186, 255, .12); text-decoration: none; }
+  .window { position: relative; background: var(--glass); border: 1px solid var(--frame-dim); padding: 18px; }
+  .window::before, .window::after { content: ""; position: absolute; width: 16px; height: 16px; border: 2px solid var(--frame); }
+  .window::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+  .window::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+  .hero-art { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hero-art img { width: 100%; display: block; border: 1px solid var(--frame-dim); }
+  .hero-art .tall { grid-row: span 2; height: 100%; object-fit: cover; }
+  .rank { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .rank b { font-size: 26px; color: var(--done); }
+  section { padding: 34px 0; }
+  h2 { font-size: clamp(22px, 3.4vw, 30px); margin: 0 0 18px; font-weight: 900; }
+  .grid3 { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+  .grid3 h3 { margin: 0 0 6px; font-size: 13px; letter-spacing: .14em; color: var(--frame); text-transform: uppercase; }
+  .grid3 p { margin: 0; color: var(--text); }
+  .story { color: var(--ice); font-size: 17px; max-width: 46em; }
+  .bosses { display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); }
+  .bosses figure { margin: 0; }
+  .bosses img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid var(--frame-dim); display: block; }
+  .bosses figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  form { display: grid; gap: 14px; max-width: 560px; }
+  label { font-size: 13px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; display: grid; gap: 6px; }
+  input, select { font: inherit; color: var(--text); background: var(--deep); border: 1px solid var(--frame-dim);
+                  padding: 12px; width: 100%; }
+  input:focus, select:focus { outline: 1px solid var(--frame); }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choices label { text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--text);
+                   display: flex; gap: 8px; align-items: center; border: 1px solid var(--frame-dim); padding: 8px 12px; }
+  .choices input { width: auto; }
+  button { font: inherit; font-weight: 700; letter-spacing: .14em; padding: 14px; cursor: pointer;
+           color: var(--void); background: var(--frame); border: 0; }
+  .note { font-size: 13px; color: var(--muted); }
+  .thanks { display: none; color: var(--done); font-weight: 600; }
+  .oops { display: none; color: var(--gold); font-weight: 600; }
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  footer { padding: 30px 0 40px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--frame-dim); margin-top: 20px; }
+  .logo { white-space: nowrap; }
+  @media (max-width: 760px) {
+    .logo { font-size: 14px; letter-spacing: .14em; }
+    .pill { font-size: 11px; }
+    .hero, .grid3 { grid-template-columns: 1fr; }
+    .bosses { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo display">HERO MADE <span class="fit">FIT</span></span>
+    <span class="pill">Waitlist open · iPhone</span>
+  </header>
+
+  <div class="hero">
+    <div>
+      <p class="tagline display">Heroes are made, not born</p>
+      <h1 class="display">Every workout clears a gate.</h1>
+      <p class="lead">Your runs, lifts and martial arts become dungeons full of monsters and bosses. Your rank only goes up
+        when you actually get stronger, measured against real people your age.</p>
+      <a class="cta display" href="#waitlist">JOIN THE WAITLIST</a>
+    </div>
+    <div class="window hero-art">
+      <img class="tall" src="img/avatar.jpg" alt="The founder's hunter avatar">
+      <img src="img/mirewyrm.jpg" alt="The Mirewyrm, a giant marsh serpent boss">
+      <img src="img/ashfang-alpha.jpg" alt="The Ashfang Alpha, a burning wolf">
+      <div class="rank" style="grid-column: 1 / -1">RANK <b>C</b> · 1 gate cleared · finale: Mirewyrm</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="grid3">
+      <div class="window"><h3>Honest ranks</h3><p>E to S, set by real fitness percentiles and a rank trial every four weeks. No points for just opening the app.</p></div>
+      <div class="window"><h3>Gates from real training</h3><p>Effort sets the gate's rank. Real PRs summon bosses. Story arcs pace the climb over months, not days.</p></div>
+      <div class="window"><h3>You, levelled up</h3><p>An anime-style avatar of you that wears the gear you earn, plus a surprise boss-fight video after your biggest breakthroughs.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="display">Built by a white belt training for his first marathon</h2>
+    <p class="story">"I wanted my training to feel like the leveling stories I love, but every app gave out levels for
+      nothing. So I built one where my rank only moves when I really get stronger."
+      <br><span class="note">Luke, founder</span></p>
+  </section>
+
+  <section>
+    <h2 class="display">What's waiting behind the gates</h2>
+    <div class="bosses">
+      <figure><img src="img/mirewyrm.jpg" alt=""><figcaption>Mirewyrm · C-rank finale</figcaption></figure>
+      <figure><img src="img/ashfang-alpha.jpg" alt=""><figcaption>Ashfang Alpha · mid-boss</figcaption></figure>
+      <figure><img src="img/gloomstalker.jpg" alt=""><figcaption>Gloomstalker</figcaption></figure>
+      <figure><img src="img/rift-warden.jpg" alt=""><figcaption>Rift Warden · the Ashen Keep</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="waitlist">
+    <h2 class="display">Get in early</h2>
+    <form id="form" class="window">
+      <label>Email <input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label>
+      <label>How do you train?
+        <div class="choices">
+          <label><input type="checkbox" name="training" value="lifting"> Lifting</label>
+          <label><input type="checkbox" name="training" value="running"> Running</label>
+          <label><input type="checkbox" name="training" value="martial arts"> Martial arts</label>
+          <label><input type="checkbox" name="training" value="other"> Other</label>
+        </div>
+      </label>
+      <label>What do you use today? <input type="text" name="current_apps" placeholder="Hevy, Strava, Apple Fitness, nothing..."></label>
+      <label>What would you pay for it?
+        <select name="price" required>
+          <option value="">Choose one</option>
+          <option>Only if it's free</option>
+          <option>$5 a month</option>
+          <option>$10 a month</option>
+          <option>$15+ a month</option>
+        </select>
+      </label>
+      <input type="hidden" name="source" id="source" value="direct">
+        <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <button type="submit" class="display">JOIN THE WAITLIST</button>
+      <p class="thanks" id="thanks">You're on the list. We'll email you when the first gates open.</p>
+      <p class="oops" id="oops">That didn't go through. Check your connection and try again.</p>
+      <p class="note">One email when it launches, nothing else. Unsubscribe anytime.</p>
+    </form>
+  </section>
+
+  <footer>Hero Made Fit is an original world and isn't affiliated with any anime, manhwa or game. © 2026 Hero Made Labs</footer>
+</div>
+<script>
+  // Waitlist form endpoint.
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyX83Ryu58CiiIqLsA4dRBuer61dut4snrgFtH9TzAk1MEh_GkYId4fkrXN_4Pn4cGW/exec';
+  // Where the visitor came from (?ref=...), so each channel's signups are counted apart.
+  const ref = new URLSearchParams(location.search).get('ref');
+  if (ref && /^[a-z0-9-]{1,32}$/i.test(ref)) document.getElementById('source').value = ref.toLowerCase();
+  document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target, button = form.querySelector('button');
+    const thanks = document.getElementById('thanks'), oops = document.getElementById('oops');
+    oops.style.display = 'none';
+    button.disabled = true;
+    try {
+      if (ENDPOINT) {
+        // A form-encoded body is a "simple" request, so the browser sends it without a CORS preflight.
+        // Apps Script answers with a redirect the page can't read (an opaque response), so a request that
+        // doesn't throw counts as sent; the script itself validates and stores the row.
+        await fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: new URLSearchParams(new FormData(form)) });
+      }
+      thanks.style.display = 'block';
+    } catch (_) {
+      oops.style.display = 'block';
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
