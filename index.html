@@ -71,6 +71,7 @@
   button { font: inherit; font-weight: 700; letter-spacing: .14em; padding: 14px; cursor: pointer;
            color: var(--void); background: var(--frame); border: 0; }
   .note { font-size: 13px; color: var(--muted); }
+  .note a, footer a { color: var(--muted); }
   .thanks { display: none; color: var(--done); font-weight: 600; }
   .oops { display: none; color: var(--gold); font-weight: 600; }
   .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
@@ -168,11 +169,11 @@
       <button type="submit" class="display">JOIN THE WAITLIST</button>
       <p class="thanks" id="thanks">You're on the list. We'll email you when the first gates open.</p>
       <p class="oops" id="oops">That didn't go through. Check your connection and try again.</p>
-      <p class="note">One email when it launches, nothing else. Unsubscribe anytime.</p>
+      <p class="note">One email when it launches, and maybe an invite to a short chat. Nothing else. Unsubscribe anytime. <a href="privacy.html">Privacy</a></p>
     </form>
   </section>
 
-  <footer>Hero Made Fit is an original world and isn't affiliated with any anime, manhwa or game. © 2026 Hero Made Labs</footer>
+  <footer>Hero Made Fit is an original world and isn't affiliated with any anime, manhwa or game. © 2026 Hero Made Labs · <a href="privacy.html">Privacy</a></footer>
 </div>
 <script>
   // Waitlist form endpoint.
@@ -180,6 +181,13 @@
   // Where the visitor came from (?ref=...), so each channel's signups are counted apart.
   const ref = new URLSearchParams(location.search).get('ref');
   if (ref && /^[a-z0-9-]{1,32}$/i.test(ref)) document.getElementById('source').value = ref.toLowerCase();
+  // Count this visit once per browser per day, by source only; the date of the last count stays on this device.
+  (() => {
+    const today = new Date().toLocaleDateString('en-CA');  // the visitor's own date, YYYY-MM-DD
+    try { if (localStorage.getItem('hmf-counted') === today) return; localStorage.setItem('hmf-counted', today); } catch (_) {}
+    const body = new URLSearchParams({ visit: '1', source: document.getElementById('source').value });
+    fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body, keepalive: true }).catch(() => {});
+  })();
   document.getElementById('form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.target, button = form.querySelector('button');
