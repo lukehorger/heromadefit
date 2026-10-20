@@ -78,7 +78,8 @@
   .logo { white-space: nowrap; }
   @media (max-width: 760px) {
     .logo { font-size: 14px; letter-spacing: .14em; }
-    .pill { font-size: 11px; }
+    .pill { font-size: 11px; white-space: nowrap; padding: 4px 8px; }
+    .pill .wide { display: none; }
     .hero, .grid3 { grid-template-columns: 1fr; }
     .bosses { grid-template-columns: repeat(2, 1fr); }
   }
@@ -88,7 +89,7 @@
 <div class="wrap">
   <header>
     <span class="logo display">HERO MADE <span class="fit">FIT</span></span>
-    <span class="pill">Waitlist open · iPhone</span>
+    <span class="pill"><span class="wide">Waitlist open · </span>iPhone first, Android next</span>
   </header>
 
   <div class="hero">
@@ -144,6 +145,12 @@
           <label><input type="checkbox" name="training" value="running"> Running</label>
           <label><input type="checkbox" name="training" value="martial arts"> Martial arts</label>
           <label><input type="checkbox" name="training" value="other"> Other</label>
+        </div>
+      </label>
+      <label>What phone do you use?
+        <div class="choices">
+          <label><input type="radio" name="phone" value="iPhone" required> iPhone</label>
+          <label><input type="radio" name="phone" value="Android"> Android</label>
         </div>
       </label>
       <label>What do you use today? <input type="text" name="current_apps" placeholder="Hevy, Strava, Apple Fitness, nothing..."></label>
