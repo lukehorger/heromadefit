@@ -52,6 +52,8 @@
   .grid3 h3 { margin: 0 0 6px; font-size: 13px; letter-spacing: .14em; color: var(--frame); text-transform: uppercase; }
   .grid3 p { margin: 0; color: var(--text); }
   .story { color: var(--ice); font-size: 17px; max-width: 46em; }
+  .closer { margin: 18px 0 0; font-size: 20px; font-weight: 900; color: var(--text); }
+  .closer em { color: var(--ember); font-style: normal; }
   .bio { margin: -8px 0 14px; font-size: 15px; letter-spacing: .04em; color: var(--gold); }
   .bosses { display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); }
   .bosses figure { margin: 0; }
@@ -92,7 +94,7 @@
   <div class="hero">
     <div>
       <p class="tagline display">Heroes are made, not born</p>
-      <h1 class="display">Every workout clears a gate.</h1>
+      <h1 class="display">Every workout you finish clears a gate.</h1>
       <p class="lead">Your runs, lifts and martial arts become dungeons full of monsters and bosses. Your rank only goes up
         when you actually get stronger, measured against real people your age.</p>
       <a class="cta display" href="#waitlist">JOIN THE WAITLIST</a>
@@ -107,8 +109,8 @@
 
   <section>
     <div class="grid3">
-      <div class="window"><h3>Honest ranks</h3><p>E to S, set by real fitness percentiles and a rank trial every four weeks. No points for just opening the app.</p></div>
-      <div class="window"><h3>Gates from real training</h3><p>Effort sets the gate's rank. Real PRs summon bosses. Story arcs pace the climb over months, not days.</p></div>
+      <div class="window"><h3>Your honest rank</h3><p>E to S, set by how you compare to real people your age, plus a rank trial every four weeks. You don't level up for opening the app.</p></div>
+      <div class="window"><h3>Your training opens the gates</h3><p>The harder you push, the higher the gate's rank. Your real PRs summon bosses. You climb over months, not days.</p></div>
       <div class="window"><h3>You, levelled up</h3><p>An anime-style avatar of you that wears the gear you earn, plus a surprise boss-fight video after your biggest breakthroughs.</p></div>
     </div>
   </section>
@@ -119,10 +121,11 @@
     <p class="story">"I wanted my training to feel like the leveling stories I love, but every app gave out levels for
       nothing. So I built one where my rank only moves when I really get stronger."
       <br><span class="note">Luke, founder</span></p>
+    <p class="closer display">I started at D-rank. Where would <em>you</em> start?</p>
   </section>
 
   <section>
-    <h2 class="display">What's waiting behind the gates</h2>
+    <h2 class="display">What's waiting behind your gates</h2>
     <div class="bosses">
       <figure><img src="img/mirewyrm.jpg" alt=""><figcaption>Mirewyrm · C-rank finale</figcaption></figure>
       <figure><img src="img/ashfang-alpha.jpg" alt=""><figcaption>Ashfang Alpha · mid-boss</figcaption></figure>
@@ -132,7 +135,7 @@
   </section>
 
   <section id="waitlist">
-    <h2 class="display">Get in early</h2>
+    <h2 class="display">Find your rank first</h2>
     <form id="form" class="window">
       <label>Email <input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label>
       <label>How do you train?
