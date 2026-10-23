@@ -412,6 +412,13 @@ body.kb nav.actions { padding-top: 14px; }
     }).catch(function () { f.sending = false; s.error = "That didn't send. Check your connection and try again."; render(); });
   }
 
+  // Google's web app sometimes loses a reply with a picture in it (23 Oct 2026), so try a few times.
+  function loadAvatar(n) {
+    post({ action: "avatar" }).then(function (a) {
+      if (a && a.ok && a.jpeg) { s.avatar = a.jpeg; render(); } else if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000);
+    }).catch(function () { if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000); });
+  }
+
   // A used link becomes the person's results page: check for a result now, and every 30 s while they wait.
   function checkResult() {
     if (preview) return;
@@ -422,7 +429,7 @@ body.kb nav.actions { padding-top: 14px; }
       // A "held" result is in but not shown yet (Luke, 23 Oct 2026: results wait until next-point targets are ready).
       if (reply.result && !reply.result.held) {
         var first = !s.result; s.result = reply.result; s.done = true;
-        if (reply.has_avatar && !s.avatar) post({ action: "avatar" }).then(function (a) { if (a && a.ok) { s.avatar = a.jpeg; render(); } });
+        if (reply.has_avatar && !s.avatar) loadAvatar(0);
         if (first) render();
         if (!reply.has_avatar) setTimeout(checkResult, 30000);
       } else if (reply.submitted || reply.result) { s.done = true; render(); setTimeout(checkResult, 30000); }
