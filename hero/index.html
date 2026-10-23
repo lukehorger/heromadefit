@@ -285,8 +285,8 @@ body.kb nav.actions { padding-top: 14px; }
         return [head("How tall are you?", "This helps us draw your hero at the right height."),
           h("div", { class: "pair" }, [num("hFt", "Feet", "ft", { max: 1, onfill: function () { var n = document.querySelectorAll(".pair input")[1]; if (s.hFt && n) n.focus(); } }),
             num("hIn", "Inches", "in", { max: 2 })])];
-      case "pushups": return [head("Max push-ups", "Full push-ups in a row, chest to the floor, without stopping."), num("pushups", "Push-ups", "reps", { max: 3 })];
-      case "pullups": return [head("Max pull-ups", "Strict, from a dead hang, chin over the bar."), num("pullups", "Pull-ups", "reps", { max: 3 })];
+      case "pushups": return [head("Max push-ups", "Your most full push-ups in one set: in a row, chest to the floor, without stopping. Not a total across sets."), num("pushups", "Push-ups", "reps", { max: 3 })];
+      case "pullups": return [head("Max pull-ups", "Your most strict pull-ups in one set: in a row from a dead hang, chin over the bar. Not a total across sets."), num("pullups", "Pull-ups", "reps", { max: 3 })];
       case "run":
         return [head("How fast could you run today?", "A mile or a 5K: your fastest in the past year, or your best guess for today, not a time from years ago. An estimate is fine. Skip it if you don't know."),
           seg(c.runs, function () { return s.runDist; }, function (v) { s.runDist = v; }),
@@ -297,12 +297,12 @@ body.kb nav.actions { padding-top: 14px; }
             enterkeyhint: "next", onkeydown: onEnter,
             oninput: function () { s.lifts[l.key] = inp.value.replace(/[^0-9.]/g, "").slice(0, 5); bar(); } });
           inp.style.font = "700 26px var(--mono)";
-          var reps = s.reps[l.key] || 1, count = h("span", { text: reps + (reps === 1 ? " rep" : " reps") });
+          var reps = s.reps[l.key] || 1, count = h("span", { text: reps + (reps === 1 ? " rep" : " reps") + " in one set" });
           function step(dv) { return function () { s.reps[l.key] = Math.max(1, Math.min(30, (s.reps[l.key] || 1) + dv)); render(); }; }
           return h("div", {}, [field(l.name, inp, "lb"), h("div", { class: "stepper" }, [count, h("div", {}, [h("button", { type: "button", text: "−", onclick: step(-1), "aria-label": "Fewer reps" }),
             h("button", { type: "button", text: "+", onclick: step(1), "aria-label": "More reps" })])])]);
         });
-        return [head("Your best lifts", "The heaviest you've lifted with good form. Fill in any you know and leave the rest blank.")].concat(rows,
+        return [head("Your best lifts", "Your heaviest set with good form: the weight, and how many reps you did in that one set (not a total across sets). For example, 95 lb for 10 reps. Fill in any you know and leave the rest blank.")].concat(rows,
           [liftList().length && weightLb() == null ? h("p", { class: "note gold", text: "Lifts are measured for your size, so go back and add your bodyweight, or skip the lifts." }) : null]);
       case "jump":
         return [head("Standing broad jump", "Your longest jump from standing still, both feet. Skip it if you don't know."),
