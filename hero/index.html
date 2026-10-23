@@ -408,12 +408,13 @@ body.kb nav.actions { padding-top: 14px; }
       var wasChecking = s.checking; s.checking = false;
       if (reply && reply.error && !reply.ok) { s.closed = reply.error; render(); return; }
       if (!reply || !reply.ok) { if (wasChecking) render(); return; }
-      if (reply.result) {
+      // A "held" result is in but not shown yet (Luke, 23 Oct 2026: results wait until next-point targets are ready).
+      if (reply.result && !reply.result.held) {
         var first = !s.result; s.result = reply.result; s.done = true;
         if (reply.has_avatar && !s.avatar) post({ action: "avatar" }).then(function (a) { if (a && a.ok) { s.avatar = a.jpeg; render(); } });
         if (first) render();
         if (!reply.has_avatar) setTimeout(checkResult, 30000);
-      } else if (reply.submitted) { s.done = true; render(); setTimeout(checkResult, 30000); }
+      } else if (reply.submitted || reply.result) { s.done = true; render(); setTimeout(checkResult, 30000); }
       else if (wasChecking) render();
     }).catch(function () { if (s.checking) { s.checking = false; render(); } });
   }
