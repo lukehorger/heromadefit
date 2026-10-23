@@ -318,9 +318,9 @@ body.kb nav.actions { padding-top: 14px; }
       case "skill":
         var ta = h("textarea", { placeholder: "Tell us in your own words", maxlength: c.skill_text_max || 300, oninput: function () { s.skill = ta.value; } });
         ta.value = s.skill;
-        return [head("Your best physical skill", "What are you good at, and how good are you? Skip it if nothing comes to mind."),
+        return [head("Your best physical skill", "What are you good at, and how good are you? Numbers help most: how long you've done it, how often, and a level, rating or result. Skip it if nothing comes to mind."),
           h("div", {}, [h("div", { class: "label", text: "Your skill" }), h("div", { class: "field" }, [ta])]),
-          h("p", { class: "note", text: "For example: \"BJJ blue belt\", \"I play in a weekly tennis league\", \"I climb V3 at the gym\", or \"I swim laps three times a week\". An AI reads it and scores it." })];
+          h("p", { class: "note", text: "For example: \"BJJ blue belt, 4 years\", \"Tennis league every week for 3 years, I win about half my matches\", \"I climb V4 at the gym\", or \"I swim 1 mile in 40 minutes\". An AI reads it and scores it." })];
       case "review":
         var lifts = liftList(), hi = heightIn(), j = jumpIn(), r = runSecs(), runName = (c.runs.filter(function (x) { return x.key === s.runDist; })[0] || {}).name;
         function row(k, v) { return [h("dt", { text: k }), h("dd", { text: v })]; }
