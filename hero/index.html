@@ -113,6 +113,8 @@ body.kb h1 { font-size: 18px; margin-top: 0; }
 body.kb .sub { font-size: 14px; margin-top: 4px; }
 body.kb main { gap: 12px; padding-top: 8px; }
 body.kb nav.actions { padding-top: 14px; }
+.next { grid-column: 1 / -1; font: 500 13px/1.45 var(--body); color: var(--gold); border-left: 2px solid var(--gold); padding: 2px 0 2px 8px; margin-top: 2px; }
+.next b { font: 700 11px var(--mono); letter-spacing: .06em; margin-right: 6px; }
 .rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 </style>
 </head>
@@ -136,7 +138,7 @@ body.kb nav.actions { padding-top: 14px; }
   var STEPS = ["start", "way", "consent", "capture", "body", "age", "weight", "height", "pushups", "pullups", "run", "lifts", "jump", "skill", "review"];
   var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, lifts: 1, jump: 1, skill: 1 };
   var s = { step: 0, name: "", adult: false, way: null, agreed: false, selfie: null, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
-    age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", lifts: {}, reps: {}, jFt: "", jIn: "",
+    age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", lifts: {}, reps: {}, db: {}, jFt: "", jIn: "",
     skill: "", skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
 
   // A few slow motes, like the app's star field.
@@ -206,7 +208,9 @@ body.kb nav.actions { padding-top: 14px; }
 
   function heightIn() { var f = parseInt(s.hFt, 10); if (s.skipped.height || !(f >= 4 && f <= 7)) return null; return f * 12 + Math.min(parseInt(s.hIn || "0", 10), 11); }
   function runSecs() { if (s.skipped.run) return null; var m = parseInt(s.runMin, 10); if (isNaN(m)) return null; var t = m * 60 + (parseInt(s.runSec || "0", 10) || 0); return t > 0 ? t : null; }
-  function liftList() { if (s.skipped.lifts) return []; return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); return w > 0 ? { exercise: l.key, weight_lb: w, reps: s.reps[l.key] || 1 } : null; }).filter(Boolean); }
+  // With dumbbells the box takes one dumbbell's weight, and both are counted (Kasia, 23 Oct 2026).
+  function liftList() { if (s.skipped.lifts) return []; return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); if (!(w > 0)) return null;
+    var lift = { exercise: l.key, weight_lb: s.db[l.key] ? w * 2 : w, reps: s.reps[l.key] || 1 }; if (s.db[l.key]) lift.dumbbells = true; return lift; }).filter(Boolean); }
   function jumpIn() { if (s.skipped.jump) return null; var f = parseInt(s.jFt, 10); if (isNaN(f)) return null; var t = f * 12 + (parseInt(s.jIn || "0", 10) || 0); return t > 0 ? t : null; }
   function weightLb() { var w = parseFloat(s.weight); return s.skipped.weight || !(w >= 70) ? null : w; }
   function lookDone() { return ["hair_style", "hair_colour", "skin_tone", "eye_colour", "facial_hair", "glasses"].every(function (k) { return !!s.look[k]; }); }
@@ -299,10 +303,13 @@ body.kb nav.actions { padding-top: 14px; }
           inp.style.font = "700 26px var(--mono)";
           var reps = s.reps[l.key] || 1, count = h("span", { text: reps + (reps === 1 ? " rep" : " reps") + " in one set" });
           function step(dv) { return function () { s.reps[l.key] = Math.max(1, Math.min(30, (s.reps[l.key] || 1) + dv)); render(); }; }
-          return h("div", {}, [field(l.name, inp, "lb"), h("div", { class: "stepper" }, [count, h("div", {}, [h("button", { type: "button", text: "−", onclick: step(-1), "aria-label": "Fewer reps" }),
+          var kit = seg([{ key: "bar", name: "Barbell" }, { key: "db", name: "Dumbbells" }], function () { return s.db[l.key] ? "db" : "bar"; },
+            function (v) { s.db[l.key] = v === "db"; });
+          return h("div", {}, [h("div", { class: "label", text: l.name }), kit, h("div", { style: "height:8px" }),
+            h("div", { class: "field" }, [inp, h("span", { class: "unit", text: s.db[l.key] ? "lb each dumbbell" : "lb" })]), h("div", { class: "stepper" }, [count, h("div", {}, [h("button", { type: "button", text: "−", onclick: step(-1), "aria-label": "Fewer reps" }),
             h("button", { type: "button", text: "+", onclick: step(1), "aria-label": "More reps" })])])]);
         });
-        return [head("Your best lifts", "Your heaviest set with good form: the weight, and how many reps you did in that one set (not a total across sets). For example, 95 lb for 10 reps. Fill in any you know and leave the rest blank.")].concat(rows,
+        return [head("Your best lifts", "Your heaviest set with good form: the weight, and how many reps you did in that one set (not a total across sets). For example, 95 lb for 10 reps. For dumbbells, tap Dumbbells and enter the weight of one. Fill in any you know and leave the rest blank.")].concat(rows,
           [liftList().length && weightLb() == null ? h("p", { class: "note gold", text: "Lifts are measured for your size, so go back and add your bodyweight, or skip the lifts." }) : null]);
       case "jump":
         return [head("Standing broad jump", "Your longest jump from standing still, both feet. Skip it if you don't know."),
@@ -325,7 +332,7 @@ body.kb nav.actions { padding-top: 14px; }
           row("Height", hi ? Math.floor(hi / 12) + " ft " + (hi % 12) + " in" : "skipped"),
           row("Push-ups", s.skipped.pushups || s.pushups === "" ? "skipped" : s.pushups), row("Pull-ups", s.skipped.pullups || s.pullups === "" ? "skipped" : s.pullups),
           row("Run", r ? runName + " in " + Math.floor(r / 60) + ":" + ("0" + (r % 60)).slice(-2) : "skipped"),
-          row("Lifts", lifts.length ? lifts.map(function (l) { return (c.lifts.filter(function (x) { return x.key === l.exercise; })[0] || {}).name + " " + l.weight_lb + " lb × " + l.reps; }).join("\n") : "skipped"),
+          row("Lifts", lifts.length ? lifts.map(function (l) { return (c.lifts.filter(function (x) { return x.key === l.exercise; })[0] || {}).name + " " + (l.dumbbells ? "2 × " + l.weight_lb / 2 + " lb dumbbells" : l.weight_lb + " lb") + " × " + l.reps; }).join("\n") : "skipped"),
           row("Broad jump", j ? Math.floor(j / 12) + " ft " + (j % 12) + " in" : "skipped"),
           row("Skill", !s.skipped.skill && s.skill.trim() ? s.skill.trim() : "skipped")));
         return [head("Ready, " + s.name.trim() + "?", "The System will now measure you."), h("div", { class: "win" }, [h("h2", { text: "SUMMARY" }), dl]),
@@ -352,21 +359,25 @@ body.kb nav.actions { padding-top: 14px; }
 
   function resultScreen() {
     var r = s.result, kids = [];
-    kids.push(head(r.first_name + ", here's your hero", "Your evaluation from the System."));
+    kids.push(head(r.first_name + ", here's your hero", "Where you are now, and your next step up for each stat."));
     var rows = r.stats.filter(function (x) { return x.key !== "VIT"; }).map(function (x) {
       var na = !x.in_rank, part = (x.parts || [])[0];
       var els = [h("b", { text: x.key }), h("span", { class: "nm", text: x.name.toUpperCase() }), h("span", { class: "rk", text: na ? "" : x.rank }),
         h("span", { class: "val" + (na ? " na" : ""), text: na ? "N/A" : String(x.value) })];
       if (!na) { var bar = h("div", { class: "bar" }, [h("div")]); bar.firstChild.style.width = Math.min(100, x.value) + "%"; els.push(bar); }
-      els.push(h("div", { class: "why", text: na ? "No answers for this one, so it doesn't count toward your rank." :
+      els.push(h("div", { class: "why", text: na ? (x.unlock || "No answers for this one, so it doesn't count toward your rank.") :
         x.key === "SKL" && part ? part.name + ": " + part.percentile + " (estimated by AI from your description)" :
         (x.parts || []).map(function (q) { return q.name + ": " + q.measured + (q.percentile ? " · " + q.percentile : ""); }).join("\n") }));
+      // Next-point targets (Luke, 23 Oct 2026): the smallest trainable step that adds a point to this stat.
+      if (!na && x.next && x.next.length) els.push(h("div", { class: "next" }, [h("b", { text: "▲ NEXT POINT" }), x.next.join(", or ")]));
       return h("div", { class: "stat" }, els);
     });
     kids.push(h("div", { class: "win" }, [h("h2", { text: "HERO ASSESSMENT" })].concat(rows, [
       h("div", { class: "hex done", text: r.rank === "National Level" ? "N" : r.rank }),
       h("div", { class: "rankline", text: r.rank === "National Level" ? "NATIONAL LEVEL HERO" : r.rank + "-RANK HERO" }),
-      h("p", { class: "note", style: "text-align:center", text: "POWER " + r.power + " · 100 = world class for your sex and age" })])));
+      h("p", { class: "note", style: "text-align:center", text: "POWER " + r.power + " · 100 = world class for your sex and age" }),
+      r.next_rank ? h("p", { class: "note gold", style: "text-align:center", text: "NEXT RANK: " + (r.next_rank.rank === "National Level" ? "National Level" : r.next_rank.rank + "-rank") +
+        " at power " + r.next_rank.power + "." }) : null])));
     if (s.avatar) kids.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("img", { class: "hero-img", src: "data:image/jpeg;base64," + s.avatar, alt: "Your anime hero" }),
       h("p", { class: "note", text: "Press and hold the picture to save it." })]));
     else kids.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: "Your hero art is being drawn. It shows up here when it's ready." })]));
