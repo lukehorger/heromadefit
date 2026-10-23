@@ -251,10 +251,15 @@ body.kb nav.actions { padding-top: 14px; }
           h("label", { class: "toggle" }, ["I agree", h("input", { type: "checkbox", checked: s.agreed, onchange: function (e) { s.agreed = e.target.checked; bar(); } })])];
       case "capture":
         if (s.way === "selfie") {
-          var pick = h("label", { class: "btn-file" }, [s.selfie ? "Choose a different photo" : "Take or choose a selfie",
-            h("input", { type: "file", accept: "image/*", capture: "user", onchange: function (e) { var f = e.target.files[0]; if (f) toJpeg(f); } })]);
+          // Two buttons: with `capture` an iPhone opens the camera only and never offers the photo library
+          // (Kasia, 23 Oct 2026: "I'm not seeing an upload option").
+          function pick(label, camera) {
+            return h("label", { class: "btn-file" }, [label, h("input", { type: "file", accept: "image/*", capture: camera ? "user" : null,
+              onchange: function (e) { var f = e.target.files[0]; if (f) toJpeg(f); } })]);
+          }
           return [head("Your selfie", "Face the camera in good light. Just you in the photo."),
-            s.selfie ? h("img", { class: "photo", src: s.selfie.url, alt: "Your selfie" }) : null, pick,
+            s.selfie ? h("img", { class: "photo", src: s.selfie.url, alt: "Your selfie" }) : null,
+            h("div", { class: "pair" }, [pick(s.selfie ? "Take another" : "Take a selfie", true), pick("Choose a photo", false)]),
             h("p", { class: "note", text: "The photo is resized on your phone first, and its location data is removed." }),
             s.error ? h("div", { class: "err", text: s.error }) : null];
         }
