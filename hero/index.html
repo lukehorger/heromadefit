@@ -241,7 +241,7 @@ body.kb nav.actions { padding-top: 14px; }
         var name = h("input", { type: "text", placeholder: "First name", value: s.name, autocomplete: "given-name", maxlength: 40,
           oninput: function () { s.name = name.value; bar(); } });
         return [preview ? h("div", { class: "preview", text: "Preview: answers stay on this screen and nothing is sent." }) : null,
-          head("Become a hero", "The System will measure you and assign your rank."), field("First name", name),
+          head("Become a hero", "The System will read your stats and draw your hero."), field("First name", name),
           h("label", { class: "toggle" }, ["I'm 18 or older", h("input", { type: "checkbox", checked: s.adult, onchange: function (e) { s.adult = e.target.checked; bar(); } })]),
           h("p", { class: "note", text: "Only your first name is kept, on Luke's Mac. It's never sent to the AI." })];
       case "way":
@@ -335,7 +335,7 @@ body.kb nav.actions { padding-top: 14px; }
           row("Lifts", lifts.length ? lifts.map(function (l) { return (c.lifts.filter(function (x) { return x.key === l.exercise; })[0] || {}).name + " " + (l.dumbbells ? "2 × " + l.weight_lb / 2 + " lb dumbbells" : l.weight_lb + " lb") + " × " + l.reps; }).join("\n") : "skipped"),
           row("Broad jump", j ? Math.floor(j / 12) + " ft " + (j % 12) + " in" : "skipped"),
           row("Skill", !s.skipped.skill && s.skill.trim() ? s.skill.trim() : "skipped")));
-        return [head("Ready, " + s.name.trim() + "?", "The System will now measure you."), h("div", { class: "win" }, [h("h2", { text: "SUMMARY" }), dl]),
+        return [head("Ready, " + s.name.trim() + "?", "Your results are one tap away."), h("div", { class: "win" }, [h("h2", { text: "SUMMARY" }), dl]),
           s.error ? h("div", { class: "err", text: s.error }) : null];
     }
   }
@@ -343,10 +343,10 @@ body.kb nav.actions { padding-top: 14px; }
   function doneScreen() {
     if (s.result) return resultScreen();
     return [head("Your hero is being forged", preview ? "Preview: nothing was sent. Tap below to see what the result looks like." :
-        "The System is measuring your answers. Your result shows up right here, on this same link, usually within a day."),
+        "The System is reading your answers. Your result shows up right here, on this same link, usually within a day."),
       preview ? h("button", { type: "button", class: "btn-file", text: "Preview the result screen", onclick: function () { s.result = SAMPLE; render(); } }) : null,
       h("div", { class: "hex", text: "?" }),
-      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Stats measured: strength, endurance, agility and skill. Your rank is set from these, and your anime hero is drawn from your " +
+      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Your stats: strength, endurance, agility and skill. Your rank is set from these, and your anime hero is drawn from your " +
         (s.way === "selfie" ? "selfie." : "description.") })]),
       h("p", { class: "note", text: "Keep this link: it's where your result appears. Want your answers deleted? Just tell Luke." })];
   }
@@ -446,7 +446,7 @@ body.kb nav.actions { padding-top: 14px; }
     if (s.step > 0) kids.push(h("button", { type: "button", text: "Back", onclick: function () { go(-1); } }));
     if (OPTIONAL[st]) kids.push(h("button", { type: "button", text: "Skip", onclick: function () { s.skipped[st] = true; go(1); } }));
     var last = st === "review";
-    kids.push(h("button", { type: "button", class: "go", text: last ? (s.sending ? "Sending…" : "Measure me") : "Next", disabled: !canGo() || s.sending,
+    kids.push(h("button", { type: "button", class: "go", text: last ? (s.sending ? "Sending…" : "Show my results") : "Next", disabled: !canGo() || s.sending,
       onclick: function () { if (last) send(); else { delete s.skipped[st]; go(1); } } }));
     nav.replaceChildren.apply(nav, kids);
   }
