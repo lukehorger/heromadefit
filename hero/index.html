@@ -135,7 +135,7 @@ body.kb nav.actions { padding-top: 14px; }
   var preview = !ENDPOINT || !token;
   var STEPS = ["start", "way", "consent", "capture", "body", "age", "weight", "height", "pushups", "pullups", "run", "lifts", "jump", "skill", "review"];
   var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, lifts: 1, jump: 1, skill: 1 };
-  var s = { step: 0, name: "", adult: false, way: null, agreed: false, selfie: null, look: { extra: "" }, sex: null, shirt: null, muscle: null,
+  var s = { step: 0, name: "", adult: false, way: null, agreed: false, selfie: null, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
     age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", lifts: {}, reps: {}, jFt: "", jIn: "",
     skill: "", skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
 
@@ -183,6 +183,14 @@ body.kb nav.actions { padding-top: 14px; }
     var go = document.querySelector("nav.actions .go");
     e.target.blur();
     if (go && !go.disabled) go.click();
+  }
+  // Their own words for the drawing (Erina, 22 Oct 2026: "petite", "shorter legs" say more than a height).
+  function noteField() {
+    var i = h("input", { type: "text", placeholder: "e.g. petite, shorter legs, broad shoulders", value: s.note, maxlength: C.extra_max,
+      autocomplete: "off", enterkeyhint: "done", oninput: function () { s.note = i.value; } });
+    i.style.font = "400 17px var(--body)";
+    return h("div", {}, [field("Anything the drawing should get right? (optional)", i),
+      h("p", { class: "note", text: "This goes to Higgsfield with your other answers to draw your hero. Don't include names or anything private." })]);
   }
   function chips(label, options, get, set, clearable) {
     var wrap = h("div", { class: "chips" });
@@ -265,7 +273,7 @@ body.kb nav.actions { padding-top: 14px; }
         return [head("Choose your body", "This picks the norms you're compared with, too."), h("div", { class: "choices" }, [sx("male", "Male"), sx("female", "Female")]),
           chips("Shirt size you usually wear (optional)", c.shirt_sizes, function () { return s.shirt; }, function (v) { s.shirt = v; }, true),
           chips("Muscle (optional)", c.muscle, function () { return s.muscle; }, function (v) { s.muscle = v; }, true),
-          h("p", { class: "note", text: "These help us draw your hero's body. Tap again to clear." })];
+          h("p", { class: "note", text: "These help us draw your hero's body. Tap again to clear." }), noteField()];
       case "age": return [head("How old are you?", "We compare you with people your age."), num("age", "Age", "years", { max: 3 })];
       case "weight": return [head("Your bodyweight", "Strength is measured for your size. Skip it if you'd rather not say."), num("weight", "Bodyweight", "lb", { decimal: true })];
       case "height":
@@ -307,6 +315,7 @@ body.kb nav.actions { padding-top: 14px; }
         var dl = h("dl", { class: "review" }, [].concat(
           row("Drawn from", s.way === "selfie" ? "a selfie" : "your description"),
           row("Body", [s.sex === "male" ? "Male" : "Female", s.shirt ? "shirt " + s.shirt : null, s.muscle ? s.muscle.toLowerCase() : null].filter(Boolean).join(", ")),
+          s.note.trim() ? row("Drawing", s.note.trim()) : null,
           row("Age", s.age), row("Bodyweight", weightLb() != null ? weightLb() + " lb" : "skipped"),
           row("Height", hi ? Math.floor(hi / 12) + " ft " + (hi % 12) + " in" : "skipped"),
           row("Push-ups", s.skipped.pushups || s.pushups === "" ? "skipped" : s.pushups), row("Pull-ups", s.skipped.pullups || s.pullups === "" ? "skipped" : s.pullups),
@@ -457,6 +466,7 @@ body.kb nav.actions { padding-top: 14px; }
       consent_method: "web_link", sex: s.sex, answers: answers };
     if (s.way === "describe") f.description = Object.assign({}, s.look, { extra: (s.look.extra || "").trim() });
     if (!s.skipped.skill && s.skill.trim()) f.skill_text = s.skill.trim();
+    if (s.note.trim()) f.drawing_note = s.note.trim();
     return f;
   }
 
