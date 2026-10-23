@@ -139,7 +139,7 @@ body.kb nav.actions { padding-top: 14px; }
   var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, lifts: 1, jump: 1, skill: 1 };
   var s = { step: 0, name: "", adult: false, way: null, agreed: false, selfie: null, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
     age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", lifts: {}, reps: {}, db: {}, jFt: "", jIn: "",
-    skill: "", skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
+    skill: "", sk: { how_long: "", how_often: "", best: "" }, skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
 
   // A few slow motes, like the app's star field.
   (function () { var m = document.getElementById("motes"); for (var i = 0; i < 26; i++) { var d = document.createElement("i");
@@ -193,6 +193,12 @@ body.kb nav.actions { padding-top: 14px; }
     i.style.font = "400 17px var(--body)";
     return h("div", {}, [field("Anything the drawing should get right? (optional)", i),
       h("p", { class: "note", text: "This goes to Higgsfield with your other answers to draw your hero. Don't include names or anything private." })]);
+  }
+  function skDetail(key, label, example) {
+    var i = h("input", { type: "text", placeholder: example, value: s.sk[key], maxlength: 80, autocomplete: "off", enterkeyhint: "next",
+      onkeydown: onEnter, oninput: function () { s.sk[key] = i.value; } });
+    i.style.font = "400 17px var(--body)";
+    return field(label, i);
   }
   function chips(label, options, get, set, clearable) {
     var wrap = h("div", { class: "chips" });
@@ -320,6 +326,10 @@ body.kb nav.actions { padding-top: 14px; }
         ta.value = s.skill;
         return [head("Your best physical skill", "What are you good at, and how good are you? Numbers help most: how long you've done it, how often, and a level, rating or result. Skip it if nothing comes to mind."),
           h("div", {}, [h("div", { class: "label", text: "Your skill" }), h("div", { class: "field" }, [ta])]),
+          // Three quick follow-ups, so a score doesn't rest on a guess (Kasia, 23 Oct 2026).
+          skDetail("how_long", "How long have you done it? (optional)", "e.g. 3 years"),
+          skDetail("how_often", "How often? (optional)", "e.g. twice a week"),
+          skDetail("best", "Best level, rating or result? (optional)", "e.g. I win about half my league matches"),
           h("p", { class: "note", text: "For example: \"BJJ blue belt, 4 years\", \"Tennis league every week for 3 years, I win about half my matches\", \"I climb V4 at the gym\", or \"I swim 1 mile in 40 minutes\". An AI reads it and scores it." })];
       case "review":
         var lifts = liftList(), hi = heightIn(), j = jumpIn(), r = runSecs(), runName = (c.runs.filter(function (x) { return x.key === s.runDist; })[0] || {}).name;
@@ -334,7 +344,8 @@ body.kb nav.actions { padding-top: 14px; }
           row("Run", r ? runName + " in " + Math.floor(r / 60) + ":" + ("0" + (r % 60)).slice(-2) : "skipped"),
           row("Lifts", lifts.length ? lifts.map(function (l) { return (c.lifts.filter(function (x) { return x.key === l.exercise; })[0] || {}).name + " " + (l.dumbbells ? "2 × " + l.weight_lb / 2 + " lb dumbbells" : l.weight_lb + " lb") + " × " + l.reps; }).join("\n") : "skipped"),
           row("Broad jump", j ? Math.floor(j / 12) + " ft " + (j % 12) + " in" : "skipped"),
-          row("Skill", !s.skipped.skill && s.skill.trim() ? s.skill.trim() : "skipped")));
+          row("Skill", !s.skipped.skill && s.skill.trim() ? [s.skill.trim()].concat(["how_long", "how_often", "best"].filter(function (k) { return s.sk[k].trim(); })
+            .map(function (k) { return s.sk[k].trim(); })).join("\n") : "skipped")));
         return [head("Ready, " + s.name.trim() + "?", "Your results are one tap away."), h("div", { class: "win" }, [h("h2", { text: "SUMMARY" }), dl]),
           s.error ? h("div", { class: "err", text: s.error }) : null];
     }
@@ -490,6 +501,8 @@ body.kb nav.actions { padding-top: 14px; }
       consent_method: "web_link", sex: s.sex, answers: answers };
     if (s.way === "describe") f.description = Object.assign({}, s.look, { extra: (s.look.extra || "").trim() });
     if (!s.skipped.skill && s.skill.trim()) f.skill_text = s.skill.trim();
+    var sk = {}; Object.keys(s.sk).forEach(function (k) { if (s.sk[k].trim()) sk[k] = s.sk[k].trim(); });
+    if (!s.skipped.skill && f.skill_text && Object.keys(sk).length) f.skill_details = sk;
     if (s.note.trim()) f.drawing_note = s.note.trim();
     return f;
   }
