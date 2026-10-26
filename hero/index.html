@@ -364,7 +364,7 @@ body.kb nav.actions { padding-top: 14px; }
 
   var SAMPLE = { first_name: "Sample", rank: "D", power: 31, avatar_status: "queued", stats: [
     { key: "STR", name: "Strength", value: 34, rank: "D", in_rank: true, parts: [{ name: "Push-ups", measured: "25 in a row", percentile: "about the 72nd percentile for men 25–34" }] },
-    { key: "END", name: "Endurance", value: 28, rank: "D", in_rank: true, parts: [{ name: "Aerobic engine", measured: "5K in 26:00 → VO2 max about 38 (estimated)", percentile: "below the 50th percentile for men 25–34" }] },
+    { key: "END", name: "Endurance", value: 28, rank: "D", in_rank: true, parts: [{ name: "Aerobic engine", measured: "5K in 26:00 = 50% age-graded", percentile: null }] },
     { key: "AGI", name: "Agility", value: 0, rank: "–", in_rank: false, summary: "Speed and explosiveness. Not answered, so it doesn't count toward the rank.", parts: [] },
     { key: "SKL", name: "Skill", value: 40, rank: "C", in_rank: true, parts: [{ name: "Brazilian jiu-jitsu", measured: "BJJ blue belt", percentile: "A blue belt takes real time and effort to earn, which puts you ahead of most people who train." }] }] };
 
@@ -376,11 +376,12 @@ body.kb nav.actions { padding-top: 14px; }
       var els = [h("b", { text: x.key }), h("span", { class: "nm", text: x.name.toUpperCase() }), h("span", { class: "rk", text: na ? "" : x.rank }),
         h("span", { class: "val" + (na ? " na" : ""), text: na ? "N/A" : String(x.value) })];
       if (!na) { var bar = h("div", { class: "bar" }, [h("div")]); bar.firstChild.style.width = Math.min(100, x.value) + "%"; els.push(bar); }
+      // Next-point targets (Luke, 23 Oct 2026): the smallest trainable step that adds a point to this stat.
+      // Shown first, before the measurements, so the feedback leads with the task (Luke, 26 Oct 2026).
+      if (!na && x.next && x.next.length) els.push(h("div", { class: "next" }, [h("b", { text: "▲ NEXT POINT" }), x.next.join(", or ")]));
       els.push(h("div", { class: "why", text: na ? (x.unlock || "No answers for this one, so it doesn't count toward your rank.") :
         x.key === "SKL" && part ? part.name + ": " + part.percentile + " (estimated by AI from your description)" :
         (x.parts || []).map(function (q) { return q.name + ": " + q.measured + (q.percentile ? " · " + q.percentile : ""); }).join("\n") }));
-      // Next-point targets (Luke, 23 Oct 2026): the smallest trainable step that adds a point to this stat.
-      if (!na && x.next && x.next.length) els.push(h("div", { class: "next" }, [h("b", { text: "▲ NEXT POINT" }), x.next.join(", or ")]));
       return h("div", { class: "stat" }, els);
     });
     kids.push(h("div", { class: "win" }, [h("h2", { text: "HERO ASSESSMENT" })].concat(rows, [
