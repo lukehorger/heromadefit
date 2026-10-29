@@ -175,6 +175,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
 .what.on { border-color: var(--frame); background: rgba(77,186,255,.12); }
 .demo { border: 1px solid var(--frame-dim); background: rgba(10,23,46,.6); padding: 10px 12px; margin: 0 0 8px; font: 400 14px/1.5 var(--body); }
 .demo video { display: block; width: 100%; margin-bottom: 8px; background: #000; }
+.demo iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; margin-bottom: 8px; background: #000; }
 .demo .src { font: 500 11px/1.5 var(--mono); color: var(--muted); margin-top: 6px; }
 /* Two columns on a computer. On a phone these wrappers vanish, so the phone layout is unchanged. */
 .cols, .col { display: contents; }
@@ -413,9 +414,14 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       h("button", { type: "button", class: "what" + (on ? " on" : ""), "aria-expanded": on ? "true" : "false", text: on ? "Hide" : "What's this?",
         onclick: function () { s.demo[key] = !on; render(); } })]);
     if (!on) return [row];
-    return [row, h("div", { class: "demo" }, [
-      d.clip ? h("video", { src: d.clip, autoplay: true, loop: true, muted: true, playsinline: true, "aria-label": name + " demo" }) : null,
+    // A short public YouTube demo (YouTube's privacy-enhanced player; it only loads when the panel opens), until
+    // Tom's own clips can replace them.
+    var player = d.clip ? h("video", { src: d.clip, autoplay: true, loop: true, muted: true, playsinline: true, "aria-label": name + " demo" }) :
+      d.video ? h("iframe", { src: "https://www.youtube-nocookie.com/embed/" + d.video + "?rel=0&playsinline=1", title: name + " demo video", loading: "lazy",
+        allow: "encrypted-media; picture-in-picture; fullscreen", referrerpolicy: "strict-origin-when-cross-origin", allowfullscreen: true }) : null;
+    return [row, h("div", { class: "demo" }, [player,
       h("div", { text: d.what }),
+      d.video && !d.clip ? h("div", { class: "src", text: "Demo video: " + d.by + " on YouTube." }) : null,
       h("div", { class: "src", text: d.where ? "Tom shows it in his club: " + d.where + "." : "Not in Tom's courses yet." })])];
   }
 
@@ -553,9 +559,9 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           var reps = s.reps[l.key] || 1, count = h("span", { text: reps + (reps === 1 ? " rep" : " reps") + " in one set" });
           function step(dv) { return function () { s.reps[l.key] = Math.max(1, Math.min(30, (s.reps[l.key] || 1) + dv)); render(); }; }
           var kit = seg([{ key: "bar", name: "Barbell" }, { key: "db", name: "Dumbbells" }], function () { return s.db[l.key] ? "db" : "bar"; }, function (v) { s.db[l.key] = v === "db"; });
-          return h("div", {}, [h("div", { class: "label", text: l.name }), kit, h("div", { style: "height:8px" }),
+          return h("div", {}, whatsThis("lift_" + l.key, l.name).concat([kit, h("div", { style: "height:8px" }),
             h("div", { class: "field" }, [inp, h("span", { class: "unit", text: s.db[l.key] ? "lb each dumbbell" : "lb" })]), h("div", { class: "stepper" }, [count, h("div", {}, [h("button", { type: "button", text: "−", onclick: step(-1), "aria-label": "Fewer reps" }),
-            h("button", { type: "button", text: "+", onclick: step(1), "aria-label": "More reps" })])])]);
+            h("button", { type: "button", text: "+", onclick: step(1), "aria-label": "More reps" })])])]));
         });
         return [head("Strength · Weight lifting", "Your best lifts", "Your heaviest set with good form: the weight, and the reps in that one set. For dumbbells, enter the weight of one. Fill in any you know."),
           h("div", { class: "cols" }, rows)].concat(

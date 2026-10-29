@@ -672,192 +672,289 @@ window.HERO_CATALOG = {
    "pullups": {
     "what": "Hang from a bar, palms facing away, arms straight. Pull until your chin is over the bar, then lower all the way down. No kicking or swinging.",
     "where": "Pulling Mastery · White Belt · Level 5",
-    "clip": null
+    "clip": null,
+    "video": "eGo4IYlbE5g",
+    "by": "Calisthenicmovement"
    },
    "pushups": {
     "what": "Hands just wider than your shoulders, body straight from head to heels. Lower until your chest touches the floor, then push back up.",
     "where": "Pushing Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "WDIpL0pjun0",
+    "by": "National Academy of Sports Medicine (NASM)"
    },
    "dead_hang_s": {
     "what": "Hang from a pull-up bar with both hands, arms straight and feet off the floor, for as long as you can hold on.",
     "where": "Pulling Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "0HBhuaD_S7M",
+    "by": "Maximus Pump"
    },
    "scap_pullups": {
     "what": "Hang with straight arms, then pull your shoulder blades down and together so your body rises an inch or two, without bending your elbows. Lower slowly: that's one.",
     "where": "Pulling Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "XIkPI-_80r4",
+    "by": "Perform 360"
    },
    "assisted_pullups": {
     "what": "A pull-up with help: a resistance band looped over the bar under your knee or foot, or your feet on a box taking some of your weight.",
     "where": "Pulling Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "5rR_bzBc1NA",
+    "by": "Jenny LaBaw"
    },
    "knee_raises": {
     "what": "Hang from the bar and lift your knees to hip height or higher, then lower them under control, without swinging.",
     "where": "Pulling Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "RD_A-Z15ER4",
+    "by": "Renaissance Periodization"
    },
    "aus_rows": {
     "what": "Lie under a low bar (or rings) and hold it with straight arms, heels on the floor, body straight. Pull your chest up to the bar, then lower. The more upright you are, the easier it is.",
     "where": "Pulling Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "bHO0A4ZF_Zg",
+    "by": "Breaking Muscle"
    },
    "aus_rows_flat": {
     "what": "An Australian row with the bar low enough that your body is flat, parallel to the floor: the hardest angle.",
     "where": "Pulling Mastery · White Belt · Level 10",
-    "clip": null
+    "clip": null,
+    "video": "KOaCM1HMwU0",
+    "by": "Renaissance Periodization"
    },
    "leg_raises": {
     "what": "Hang from the bar and lift your legs, kept straight, until they're level with your hips or higher. Lower slowly.",
     "where": "Pulling Mastery · White Belt · Level 15",
-    "clip": null
+    "clip": null,
+    "video": "z1oF36cdb4w",
+    "by": "Central Athlete"
    },
    "one_arm_hang_s": {
     "what": "Hang from the bar with one hand, arm straight. Time your weaker hand.",
     "where": "Pulling Mastery · White Belt · Level 20",
-    "clip": null
+    "clip": null,
+    "video": "AVEe_bLMdbo",
+    "by": "The Strength Institute"
    },
    "hanging_l_sit_s": {
     "what": "Hang from the bar with straight arms and hold your legs straight out in front, level with your hips, so your body makes an L.",
     "where": "Pulling Mastery · White Belt · Level 20",
-    "clip": null
+    "clip": null,
+    "video": "WHi1bvZLwlw",
+    "by": "CrossFit"
    },
    "skin_the_cat": {
     "what": "From a hang, tuck your knees, roll backwards and pass your legs between your arms until you hang upside down behind the bar, then come back the same way. Go slowly: it stretches the shoulders hard.",
     "where": "Pulling Mastery · Yellow Belt · Level 25",
-    "clip": null
+    "clip": null,
+    "video": "mqZDdpFh1gA",
+    "by": "PowerMonkeyFitness"
    },
    "l_sit_chinups": {
     "what": "A chin-up (palms facing you) while holding your legs straight out in front in an L the whole time.",
     "where": "Pulling Mastery · Yellow Belt · Level 35",
-    "clip": null
+    "clip": null,
+    "video": "2FuWfA7ur7w",
+    "by": "Bodybuilding.com"
    },
    "wide_pullups": {
     "what": "A pull-up with your hands well wider than your shoulders.",
     "where": "Pulling Mastery · Yellow Belt · Level 35",
-    "clip": null
+    "clip": null,
+    "video": "dWB-hEfgMD4",
+    "by": "Functional Bodybuilding"
    },
    "clapping_pullups": {
     "what": "Pull up explosively so your hands leave the bar, clap once, and catch the bar again.",
     "where": "Pulling Mastery · Yellow Belt · Level 35",
-    "clip": null
+    "clip": null,
+    "video": "uKiXB0DzsjA",
+    "by": "CrossFit"
    },
    "one_arm_l_sit_s": {
     "what": "Hang from one hand and hold your legs straight out in front in an L.",
     "where": "Pulling Mastery · Yellow Belt · Level 35",
-    "clip": null
+    "clip": null,
+    "video": "QzS8qf2hY6A",
+    "by": "Firmen Sowers"
    },
    "muscle_ups": {
     "what": "Pull up hard and high, roll your chest over the bar, and press up until your arms are straight above it: from below the bar to above it in one move.",
     "where": "Pulling Mastery · Yellow Belt · Level 40",
-    "clip": null
+    "clip": null,
+    "video": "o69WaY_7k2c",
+    "by": "CrossFit"
    },
    "kneeling_pushups": {
     "what": "A push-up with your knees on the floor instead of your toes. Keep a straight line from knees to head and lower your chest to the floor.",
     "where": "Pushing Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "Ahf4t9ky3d8",
+    "by": "CrossFit"
    },
    "single_arm_plank_s": {
     "what": "Hold a plank on straight arms, then lift one hand off the floor and hold without letting your hips twist or sag. Time it on your weaker arm.",
     "where": "Pushing Mastery · White Belt · Level 10",
-    "clip": null
+    "clip": null,
+    "video": "X-gv0Ygb3yI",
+    "by": "Functional Bodybuilding"
    },
    "db_press": {
     "what": "Lie on a bench set at an incline, a dumbbell in each hand at your chest, and press them up until your arms are straight.",
     "where": "Pushing Mastery · White Belt · Level 1",
-    "clip": null
+    "clip": null,
+    "video": "6tW4LUaOxlE",
+    "by": "Women's Strength Nation by Holly Perkins"
    },
    "pike_pushups": {
     "what": "Start in a push-up, walk your feet in and lift your hips high so your body makes an upside-down V. Bend your elbows to lower the top of your head toward the floor, then press back up. It works the shoulders.",
     "where": "Pushing Mastery · Yellow Belt · Level 25",
-    "clip": null
+    "clip": null,
+    "video": "XckEEwa1BPI",
+    "by": "National Academy of Sports Medicine (NASM)"
    },
    "diamond_pushups": {
     "what": "A push-up with your hands together under your chest, thumbs and index fingers touching to make a diamond.",
     "where": "Pushing Mastery · Yellow Belt · Level 30",
-    "clip": null
+    "clip": null,
+    "video": "J0DnG1_S92I",
+    "by": "ScottHermanFitness"
    },
    "wide_pushups": {
     "what": "A push-up with your hands well wider than your shoulders.",
     "where": "Pushing Mastery · Yellow Belt · Level 30",
-    "clip": null
+    "clip": null,
+    "video": "m3FTgWtJsFE",
+    "by": "Nuffield Health"
    },
    "lateral_raise": {
     "what": "Stand with a dumbbell in each hand at your sides. Elbows slightly bent, raise your arms out to the sides up to shoulder height, then lower slowly.",
     "where": "Pushing Mastery · Yellow Belt · Level 30",
-    "clip": null
+    "clip": null,
+    "video": "3VcKaXpzqRo",
+    "by": "ScottHermanFitness"
    },
    "one_arm_pushups": {
     "what": "A full push-up on one hand, feet spread wide for balance, the other hand behind your back.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "IlWN4SNqaEM",
+    "by": "ATHLEAN-X™"
    },
    "squats": {
     "what": "Feet about shoulder-width apart, sit your hips back and down until they're at knee height or lower, then stand up.",
     "where": "Legs Mastery",
-    "clip": null
+    "clip": null,
+    "video": "l83R5PblSMA",
+    "by": "PureGym"
    },
    "lunges": {
     "what": "Step one foot back and lower until your back knee nearly touches the floor, then return to standing.",
     "where": "Legs Mastery",
-    "clip": null
+    "clip": null,
+    "video": "xrPteyQLGAo",
+    "by": "PureGym"
    },
    "calf_raises": {
     "what": "Stand on one foot, ideally on the edge of a step, rise as high as you can onto your toes, then lower all the way down.",
     "where": "Legs Mastery",
-    "clip": null
+    "clip": null,
+    "video": "qPd73snQfUs",
+    "by": "Hospital for Special Surgery"
    },
    "pistols": {
     "what": "A one-leg squat: on one foot, the other leg held straight out in front, squat all the way down and stand back up.",
     "where": "Legs Mastery",
-    "clip": null
+    "clip": null,
+    "video": "bH3mRwnAN88",
+    "by": "[P]rehab"
    },
    "weighted_pullup": {
     "what": "A pull-up with extra weight hung from a dip belt or worn in a vest.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "HuuyDNGrCI8",
+    "by": "ScottHermanFitness"
    },
    "weighted_dip": {
     "what": "Between parallel bars, arms straight, lower until your shoulders are below your elbows, then press back up, with extra weight on a belt or vest.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "UArbMCwLUZs",
+    "by": "Live Lean TV Daily Exercises"
    },
    "kb_swing": {
     "what": "Feet wide, hike the kettlebell back between your legs, then snap your hips forward to swing it up to chest height with straight arms. The power comes from the hips, not the arms.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "1cVT3ee9mgU",
+    "by": "StrongFirst"
    },
    "goblet_squat": {
     "what": "Hold a kettlebell by its horns against your chest and squat as deep as you can with good form, then stand.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "MWHIs0zxkCU",
+    "by": "National Academy of Sports Medicine (NASM)"
    },
    "kb_catch": {
     "what": "Toss the kettlebell so it flips in the air and catch it by the handle. Start light and keep your feet clear.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "cfvZBgC6mVQ",
+    "by": "Rippel Effect Fitness"
    },
    "mace_360": {
     "what": "Hold the mace upright, then swing the heavy end in a circle behind your back and round to the front again, keeping it close to you.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "7591zLVLH84",
+    "by": "Steve Shannon"
    },
    "kb_press": {
     "what": "Bring a kettlebell to your shoulder with one hand, then press it straight overhead until your arm is locked out.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "gjr-QAdsq4o",
+    "by": "Onnit"
    },
    "one_arm_swing": {
     "what": "A kettlebell swing, holding the bell in one hand.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "mVwhivtXobw",
+    "by": "CORE Strong Fitness"
    },
    "hand_to_hand": {
     "what": "A one-arm swing where you let go at the top and catch the bell with the other hand, switching every swing.",
     "where": null,
-    "clip": null
+    "clip": null,
+    "video": "KKumMhxKapw",
+    "by": "National Academy of Sports Medicine (NASM)"
+   },
+   "lift_bench": {
+    "what": "Lie on a flat bench, feet on the floor, and lower the bar to the middle of your chest, then press it back up until your arms are straight.",
+    "where": null,
+    "clip": null,
+    "video": "SCVCLChPQFY",
+    "by": "CrossFit"
+   },
+   "lift_squat": {
+    "what": "With the bar across your upper back, sit your hips back and down until your thighs are at least level with your knees, then stand back up.",
+    "where": null,
+    "clip": null,
+    "video": "rrJIyZGlK8c",
+    "by": "PureGym"
+   },
+   "lift_deadlift": {
+    "what": "With the bar over the middle of your feet, grip it just outside your legs, keep your back flat and stand up tall, then lower it back to the floor.",
+    "where": null,
+    "clip": null,
+    "video": "GxsLrTzyGUU",
+    "by": "PureGym"
    }
   }
  }
