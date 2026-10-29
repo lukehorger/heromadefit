@@ -358,9 +358,25 @@ body.kb nav.actions { padding-top: 14px; }
     }
   }
 
+  // "Check back at 3:10 PM" (Luke, 28 Oct 2026): the Mac imports every 2 minutes, so stats are usually ready in a few
+  // minutes; we say 7 to be safe. Hero art here is still drawn by hand, so it follows within a day. The time is kept
+  // on this device for a reopened link.
+  var READY_MIN = 7;
+  function sentAt(set) {
+    var key = "hmf-sent-" + token;
+    try { if (set) localStorage.setItem(key, String(set)); s.sentAt = s.sentAt || parseInt(localStorage.getItem(key), 10) || null; }
+    catch (e) { s.sentAt = s.sentAt || set || null; }
+    return s.sentAt;
+  }
+  function readyAt() { var t = sentAt(); return t ? t + READY_MIN * 60000 : null; }
+  function clock(ms) { return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+  function rerenderAtReady() { var r = readyAt(); if (r && r > Date.now()) setTimeout(render, r - Date.now() + 1000); }
   function doneScreen() {
     if (s.result) return resultScreen();
+    var r = readyAt(), soon = r && Date.now() <= r;
     return [head("Your hero is being forged", preview ? "Preview: nothing was sent. Tap below to see what the result looks like." :
+        soon ? "Your stats and rank: by " + clock(sentAt() + 3 * 60000) + ", right here on this link. Keep this page open and they show up by themselves. Your hero art follows within a day." :
+        r ? "Taking a little longer than usual. Your result shows up right here, on this same link, within a day." :
         "The System is reading your answers. Your result shows up right here, on this same link, usually within a day."),
       preview ? h("button", { type: "button", class: "btn-file", text: "Preview the result screen", onclick: function () { s.result = SAMPLE; render(); } }) : null,
       h("div", { class: "hex", text: "?" }),
@@ -451,7 +467,7 @@ body.kb nav.actions { padding-top: 14px; }
         if (reply.has_avatar && !s.avatar) loadAvatar(0);
         if (first) render();
         if (!reply.has_avatar) setTimeout(checkResult, 30000);
-      } else if (reply.submitted || reply.result) { s.done = true; render(); setTimeout(checkResult, 30000); }
+      } else if (reply.submitted || reply.result) { var again = !s.done; s.done = true; render(); if (again) rerenderAtReady(); setTimeout(checkResult, 30000); }
       else if (wasChecking) render();
     }).catch(function () { if (s.checking) { s.checking = false; render(); } });
   }
@@ -522,7 +538,7 @@ body.kb nav.actions { padding-top: 14px; }
     if (s.way === "selfie" && s.selfie) body.set("selfie", s.selfie.b64);
     fetch(ENDPOINT, { method: "POST", body: body }).then(function (r) { return r.json(); }).then(function (reply) {
       s.sending = false;
-      if (reply && reply.ok) { s.done = true; setTimeout(checkResult, 30000); } else { s.error = (reply && reply.error) || "That didn't send. Please try again."; }
+      if (reply && reply.ok) { s.done = true; sentAt(Date.now()); rerenderAtReady(); setTimeout(checkResult, 30000); } else { s.error = (reply && reply.error) || "That didn't send. Please try again."; }
       render();
     }).catch(function () { s.sending = false; s.error = "That didn't send. Check your connection and try again."; render(); });
   }
