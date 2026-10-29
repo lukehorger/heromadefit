@@ -358,9 +358,9 @@ body.kb nav.actions { padding-top: 14px; }
     }
   }
 
-  // "Check back at 3:10 PM" (Luke, 28 Oct 2026): the Mac imports every 2 minutes, so stats are usually ready in a few
-  // minutes; we say 7 to be safe. Hero art here is still drawn by hand, so it follows within a day. The time is kept
-  // on this device for a reopened link.
+  // "Check back at 3:10 PM" (Luke, 28 Oct 2026): the Mac imports every 2 minutes and draws the art automatically
+  // (about a minute), so stats are usually ready in 2 to 3 minutes and the art in 3 to 5; we say 3 and 7 to be safe.
+  // The time is kept on this device for a reopened link.
   var READY_MIN = 7;
   function sentAt(set) {
     var key = "hmf-sent-" + token;
@@ -375,7 +375,7 @@ body.kb nav.actions { padding-top: 14px; }
     if (s.result) return resultScreen();
     var r = readyAt(), soon = r && Date.now() <= r;
     return [head("Your hero is being forged", preview ? "Preview: nothing was sent. Tap below to see what the result looks like." :
-        soon ? "Your stats and rank: by " + clock(sentAt() + 3 * 60000) + ", right here on this link. Keep this page open and they show up by themselves. Your hero art follows within a day." :
+        soon ? "Your stats and rank: by " + clock(sentAt() + 3 * 60000) + ". Your hero art: by " + clock(r) + ". Both show up right here, by themselves, if you keep this page open." :
         r ? "Taking a little longer than usual. Your result shows up right here, on this same link, within a day." :
         "The System is reading your answers. Your result shows up right here, on this same link, usually within a day."),
       preview ? h("button", { type: "button", class: "btn-file", text: "Preview the result screen", onclick: function () { s.result = SAMPLE; render(); } }) : null,
@@ -415,7 +415,8 @@ body.kb nav.actions { padding-top: 14px; }
         " at power " + r.next_rank.power + "." }) : null])));
     if (s.avatar) kids.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("img", { class: "hero-img", src: "data:image/jpeg;base64," + s.avatar, alt: "Your anime hero" }),
       h("p", { class: "note", text: "Press and hold the picture to save it." })]));
-    else kids.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: "Your hero art is being drawn. It shows up here when it's ready." })]));
+    else kids.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: s.result && s.result.avatar_status === "queued" && readyAt() && Date.now() <= readyAt() ?
+      "Your hero art is being drawn. It shows up here by " + clock(readyAt()) + "." : "Your hero art is being drawn. It shows up here within a day." })]));
     kids.push(feedbackBox());
     return kids;
   }
@@ -465,7 +466,7 @@ body.kb nav.actions { padding-top: 14px; }
       if (reply.result && !reply.result.held) {
         var first = !s.result; s.result = reply.result; s.done = true;
         if (reply.has_avatar && !s.avatar) loadAvatar(0);
-        if (first) render();
+        if (first) { render(); rerenderAtReady(); }
         if (!reply.has_avatar) setTimeout(checkResult, 30000);
       } else if (reply.submitted || reply.result) { var again = !s.done; s.done = true; render(); if (again) rerenderAtReady(); setTimeout(checkResult, 30000); }
       else if (wasChecking) render();
