@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Body Improvement Club · Hero assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Tom's club page (28 Oct 2026). Building your character feels like an old-school RPG's character sheet: gold
+   frames on a starry night, like Tom's skill tree poster. The result is the Hero app's System status screen
+   (ios/Hunter/App/Theme.swift). Inspired by both, copied from neither: our own frames, fonts and art. */
+:root {
+  --void: #03050b; --deep: #070e1e; --glass: rgba(10, 23, 46, .72); --frame: #4dbaff; --frame-dim: rgba(77, 186, 255, .3);
+  --ice: #b2e3ff; --text: #e1edff; --muted: #8796b3; --gold: #ffca57; --gold-dim: rgba(255, 202, 87, .35); --warn: #ff5568; --done: #5fedbb;
+  --wide: "Archivo", "Arial Black", system-ui, sans-serif; --body: "Inter", -apple-system, system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; --rune: "Cinzel", Georgia, serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--void); color: var(--text); font: 16px/1.45 var(--body); }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 110% 55% at 50% 0%, rgba(77,130,255,.18), transparent 60%),
+              radial-gradient(ellipse 80% 40% at 80% 100%, rgba(255,202,87,.06), transparent 70%); }
+.motes { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.motes i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--ice); animation: twinkle ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .1; } }
+@media (prefers-reduced-motion: reduce) { .motes i { animation: none; } }
+.app { position: relative; max-width: 30rem; margin: 0 auto; min-height: 100svh; display: flex; flex-direction: column;
+  padding-block: max(14px, env(safe-area-inset-top, 0px)) 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { font: 800 12px var(--rune); letter-spacing: .16em; color: var(--gold); }
+.count { font: 500 12px var(--mono); color: var(--muted); }
+.gauge { height: 6px; margin: 10px 0 4px; border: 1px solid var(--gold-dim); background: rgba(3,5,11,.8); }
+.gauge > div { height: 100%; width: 0; background: linear-gradient(90deg, rgba(255,202,87,.45), var(--gold)); box-shadow: 0 0 8px rgba(255,202,87,.6); transition: width .3s ease; }
+main { padding: 14px 0 0; display: flex; flex-direction: column; gap: 18px; }
+.area { font: 500 11px var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; }
+h1 { font: 800 25px/1.15 var(--rune); letter-spacing: .02em; margin: 4px 0 0; color: #f4e7c8; text-shadow: 0 0 16px rgba(255,202,87,.35); }
+.sub { color: var(--muted); margin: 6px 0 0; }
+.label { font: 500 12px var(--mono); color: var(--gold); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.how { font: 400 13px/1.4 var(--body); color: var(--muted); margin: -2px 0 6px; }
+.field { border: 1px solid var(--gold-dim); padding: 12px; background: rgba(3,5,11,.55); display: flex; align-items: center; gap: 10px; }
+.field input, .field textarea { flex: 1; min-width: 0; width: 100%; background: none; border: 0; outline: 0; color: var(--text); font: 700 24px var(--mono); }
+.field textarea { font: 400 17px var(--body); resize: none; min-height: 90px; }
+.field .unit { font: 500 12px var(--mono); color: var(--muted); white-space: nowrap; }
+.field:focus-within { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pair > * { min-width: 0; }
+/* Character-sheet frame: a gold double border with small diamond corners. */
+.sheet { position: relative; padding: 16px; border: 1px solid var(--gold-dim); outline: 1px solid rgba(255,202,87,.12); outline-offset: 3px;
+  background: linear-gradient(rgba(14,18,34,.82), rgba(6,9,20,.9)); }
+.sheet::before, .sheet::after { content: ""; position: absolute; width: 9px; height: 9px; background: var(--gold); transform: rotate(45deg); top: -5px; }
+.sheet::before { left: -5px; } .sheet::after { right: -5px; }
+.sheet h2 { font: 800 13px var(--rune); letter-spacing: .2em; color: var(--gold); margin: 0 0 10px; padding-bottom: 8px;
+  border-bottom: 1px solid; border-image: linear-gradient(90deg, transparent, var(--gold-dim), transparent) 1; text-align: center; }
+/* The System window, for the result. */
+.win { position: relative; padding: 16px; background: linear-gradient(var(--glass), rgba(7,14,30,.88)); border: 1px solid rgba(77,186,255,.35);
+  box-shadow: 0 0 22px rgba(77,186,255,.16); }
+.win::before, .win::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--frame); }
+.win::before { top: -4px; left: -4px; border-right: 0; border-bottom: 0; }
+.win::after { bottom: -4px; right: -4px; border-left: 0; border-top: 0; }
+.win h2 { font: 900 12px var(--wide); font-stretch: 125%; letter-spacing: .25em; color: var(--frame); margin: 0 0 10px;
+  padding-bottom: 10px; border-bottom: 1px solid; border-image: linear-gradient(90deg, rgba(77,186,255,.7), transparent) 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 600 15px var(--body); color: var(--text); background: none; border: 1px solid var(--gold-dim); border-radius: 999px; padding: 8px 13px; cursor: pointer; }
+.chip.on { border: 2px solid var(--gold); background: rgba(255,202,87,.16); padding: 7px 12px; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.big { background: none; color: var(--text); border: 1px solid var(--gold-dim); padding: 18px 10px; font: 700 17px var(--body); cursor: pointer; min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.big small { font: 500 12px var(--mono); color: var(--muted); }
+.big .ico { font-size: 30px; line-height: 1; }
+.photo { display: block; max-height: 340px; max-width: 100%; margin: 0 auto; border: 1px solid var(--gold-dim); }
+.btn-file { display: block; text-align: center; border: 1px solid var(--gold); color: var(--gold); padding: 14px; font: 600 16px var(--body); cursor: pointer; }
+.btn-file input { display: none; }
+.big.on { border: 2px solid var(--gold); background: rgba(255,202,87,.14); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; font: 700 17px var(--body); cursor: pointer; }
+.toggle input { appearance: none; width: 52px; height: 32px; border-radius: 99px; background: #2a3448; position: relative; cursor: pointer; flex: none; transition: background .2s; }
+.toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .2s; }
+.toggle input:checked { background: var(--gold); }
+.toggle input:checked::after { left: 23px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--gold-dim); }
+.seg button { background: none; border: 0; color: var(--muted); padding: 10px; font: 600 15px var(--body); cursor: pointer; }
+.seg button.on { background: rgba(255,202,87,.16); color: var(--text); }
+.stepper { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font: 700 16px var(--mono); }
+.stepper div { display: flex; border: 1px solid var(--gold-dim); }
+.stepper button { width: 46px; height: 36px; background: none; border: 0; color: var(--text); font-size: 20px; cursor: pointer; }
+.note { font: 500 12px/1.5 var(--mono); color: var(--muted); }
+.gold { color: var(--gold); }
+.review { display: grid; grid-template-columns: 7.5rem 1fr; gap: 6px 10px; font: 500 13px/1.45 var(--mono); }
+.review dt { color: var(--muted); text-transform: uppercase; }
+.review dd { margin: 0; white-space: pre-line; }
+.err { border: 1px solid rgba(255,85,104,.6); color: var(--warn); padding: 10px; font: 500 13px var(--mono); }
+nav.actions { display: flex; gap: 10px; padding: 22px 0 10px; }
+nav.actions:empty { display: none; }
+nav.actions button { flex: 1; padding: 15px 8px; font: 700 17px var(--body); cursor: pointer; border: 1px solid var(--gold-dim); background: var(--void); color: var(--muted); }
+nav.actions button.go { background: var(--gold); color: #1a1405; border-color: var(--gold); }
+nav.actions button.go:disabled { background: rgba(255,202,87,.22); border-color: transparent; color: rgba(3,5,11,.7); cursor: default; }
+footer { margin-top: auto; padding: 14px 0 max(18px, env(safe-area-inset-bottom, 0px)); text-align: center; font: 500 11px/1.6 var(--mono); color: var(--muted); }
+footer a { color: var(--ice); }
+.preview { font: 500 12px var(--mono); color: var(--gold); border: 1px solid rgba(255,202,87,.5); padding: 8px 10px; }
+.promise { font: 500 13px/1.5 var(--body); color: var(--text); border-left: 2px solid var(--gold); padding: 2px 0 2px 10px; }
+/* Skill tree: a constellation like Tom's poster. */
+.tree { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.tree .ln { stroke: rgba(178,227,255,.22); stroke-width: 2; }
+.tree .ln.on { stroke: var(--ice); filter: drop-shadow(0 0 4px var(--frame)); }
+.tree .nd { cursor: pointer; }
+.tree .nd circle.dot { fill: #0b1428; stroke: rgba(178,227,255,.45); stroke-width: 2; transition: fill .2s; }
+.tree .nd.on circle.dot { fill: var(--ice); stroke: #fff; filter: drop-shadow(0 0 8px var(--frame)); }
+.tree .nd.locked { opacity: .38; }
+.tree .nd text { fill: var(--text); font: 700 9.5px var(--body); text-anchor: middle; letter-spacing: .02em; pointer-events: none; }
+.tree .nd.on text { fill: #fff; }
+.tree .root circle { fill: var(--ice); filter: drop-shadow(0 0 10px var(--frame)); }
+.picked { font: 500 13px/1.5 var(--body); color: var(--muted); text-align: center; min-height: 1.5em; }
+/* Result */
+.hex { width: 120px; height: 120px; margin: 10px auto 0; display: grid; place-items: center; font: 900 52px var(--wide); font-stretch: 125%; color: var(--ice);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: radial-gradient(rgba(77,186,255,.35), var(--void)); text-shadow: 0 0 14px var(--frame); }
+.hex.wait { color: var(--gold); background: radial-gradient(rgba(255,202,87,.35), var(--void)); text-shadow: 0 0 14px var(--gold); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 50% { filter: brightness(1.35); } }
+.stat { display: grid; grid-template-columns: 3.2rem 1fr auto auto; align-items: baseline; gap: 4px 10px; padding: 6px 0; }
+.stat b { font: 900 15px var(--wide); font-stretch: 125%; }
+.stat .nm { font: 500 12px var(--mono); color: var(--muted); }
+.stat .rk { font: 900 13px var(--wide); font-stretch: 125%; color: var(--ice); }
+.stat .val { font: 700 26px var(--mono); }
+.stat .na { color: var(--muted); }
+.bar { grid-column: 1 / -1; height: 6px; border: 1px solid var(--frame-dim); background: rgba(3,5,11,.8); }
+.bar > div { height: 100%; background: linear-gradient(90deg, rgba(77,186,255,.5), var(--frame)); box-shadow: 0 0 6px var(--frame); }
+.why { grid-column: 1 / -1; font: 400 13px/1.45 var(--body); color: var(--muted); white-space: pre-line; }
+.next { grid-column: 1 / -1; font: 500 13px/1.45 var(--body); color: var(--gold); border-left: 2px solid var(--gold); padding: 2px 0 2px 8px; margin-top: 2px; }
+.next b { font: 700 11px var(--mono); letter-spacing: .06em; margin-right: 6px; }
+.rankline { text-align: center; font: 900 18px var(--wide); font-stretch: 125%; letter-spacing: .04em; }
+.hero-img { display: block; width: 100%; border: 1px solid rgba(77,186,255,.5); }
+.disc { padding: 12px 0; border-top: 1px solid rgba(77,186,255,.18); }
+.disc:first-of-type { border-top: 0; padding-top: 2px; }
+.disc .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.disc .t b { font: 900 14px var(--wide); font-stretch: 125%; letter-spacing: .04em; }
+.disc .t span { font: 500 12px var(--mono); color: var(--muted); }
+.beltline { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
+.belt { position: relative; flex: none; width: 120px; height: 20px; border-radius: 3px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.18), 0 0 10px rgba(0,0,0,.4); }
+.belt .tip { position: absolute; right: 12px; top: 0; bottom: 0; width: 34px; background: #111; display: flex; align-items: center; justify-content: space-evenly; padding: 0 3px; }
+.belt .tip i { width: 3px; height: 14px; background: #fff; }
+.belt.none { background: none; border: 1px dashed var(--muted); box-shadow: none; }
+.beltname { font: 700 15px var(--body); }
+.beltname small { display: block; font: 500 12px var(--mono); color: var(--muted); }
+.draft { font: 500 11px var(--mono); color: var(--gold); }
+.levelup { margin-top: 8px; border-left: 2px solid var(--gold); padding: 2px 0 2px 10px; }
+.levelup .h { font: 700 11px var(--mono); letter-spacing: .06em; color: var(--gold); }
+.levelup ul { list-style: none; margin: 4px 0 0; padding: 0; font: 400 14px/1.5 var(--body); }
+.levelup li { display: grid; grid-template-columns: 1.3rem 1fr; }
+.levelup li .y { grid-column: 2; font: 500 12px var(--mono); color: var(--muted); }
+.levelup li.met { color: var(--done); }
+.levelup li.not_answered { color: var(--muted); }
+.maybe { margin-top: 6px; font: 500 13px/1.45 var(--body); color: var(--ice); }
+.cta { display: block; text-align: center; text-decoration: none; padding: 15px 10px; font: 700 17px var(--body); background: var(--gold); color: #1a1405; border: 0; }
+.cta.alt { background: none; color: var(--ice); border: 1px solid var(--frame); font-size: 15px; padding: 12px; }
+.rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rate .big { padding: 14px 6px; font-size: 15px; }
+.btn { display: block; width: 100%; text-align: center; border: 1px solid var(--gold); color: var(--gold); background: none; padding: 14px; font: 600 16px var(--body); cursor: pointer; }
+body.kb h1 { font-size: 19px; margin-top: 0; }
+body.kb .sub { font-size: 14px; margin-top: 4px; }
+body.kb main { gap: 12px; padding-top: 8px; }
+body.kb footer { display: none; }
+/* Selfie: the photo is shown as a canvas, and on a computer the camera's live view (mirrored, like a mirror). */
+.photo { width: auto; height: auto; object-fit: contain; }
+.cam { width: 100%; max-height: 60vh; transform: scaleX(-1); background: #000; }
+button.btn-file { width: 100%; background: none; }
+button.btn-file.go { background: var(--gold); color: #1a1405; }
+/* "What's this?" for each movement. */
+.lrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.lrow .label { margin-bottom: 0; }
+.what { flex: none; font: 600 12px var(--body); color: var(--ice); background: none; border: 1px solid var(--frame-dim); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.what.on { border-color: var(--frame); background: rgba(77,186,255,.12); }
+.demo { border: 1px solid var(--frame-dim); background: rgba(10,23,46,.6); padding: 10px 12px; margin: 0 0 8px; font: 400 14px/1.5 var(--body); }
+.demo video { display: block; width: 100%; margin-bottom: 8px; background: #000; }
+.demo .src { font: 500 11px/1.5 var(--mono); color: var(--muted); margin-top: 6px; }
+/* Two columns on a computer. On a phone these wrappers vanish, so the phone layout is unchanged. */
+.cols, .col { display: contents; }
+@media (min-width: 900px) {
+  .app { max-width: 66rem; padding-top: 26px; padding-left: 40px; padding-right: 40px; }
+  main, nav.actions { width: 100%; max-width: 44rem; margin-left: auto; margin-right: auto; }
+  main.wide { max-width: none; }
+  main { gap: 22px; padding-top: 22px; }
+  h1 { font-size: 34px; }
+  .sub { font-size: 17px; }
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 36px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 22px; }
+  .tree { max-height: 60vh; }
+  .photo { max-height: 420px; }
+  footer { padding-top: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="motes" id="motes" aria-hidden="true"></div>
+<div class="app">
+  <div class="top"><span class="brand">BODY IMPROVEMENT CLUB</span><span class="count" id="count"></span></div>
+  <div class="gauge" aria-hidden="true"><div id="gauge"></div></div>
+  <main id="main" aria-live="polite"></main>
+  <nav class="actions" id="nav"></nav>
+  <footer id="foot"></footer>
+</div>
+<script src="catalog.js"></script>
+<script>
+(function () {
+  "use strict";
+  // Same private Apps Script and one-time links as the hero page (business/demo-form). No link = preview mode.
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbxQ6Q1wlhdCfulUkrFy5s0O0AaOgTHzVqmrI041qGEObuh-0-LXdc3r3a2hA9jnSKrsCg/exec";
+  var C = window.HERO_CATALOG, K = C && C.club;
+  var token = (new URLSearchParams(location.hash.slice(1))).get("t") || "";
+  var preview = !ENDPOINT || !token;
+  // Selfies need a face data release here (Luke, 28 Oct 2026): Tom is in Illinois, where a face map from a photo is
+  // biometric data (BIPA). The person ticks "I agree" and types their full name as their signature.
+  var s = { step: 0, name: "", adult: false, way: null, selfie: null, signedName: "", agreed: false, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
+    skills: {}, tests: {}, demo: {}, cam: null, kbUnit: "kg", age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "",
+    lifts: {}, reps: {}, db: {}, jFt: "", jIn: "", skill: "", sk: { how_long: "", how_often: "", best: "" }, skipped: {},
+    sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
+
+  // The club tests, grouped into screens. Each screen shows only the tests of skills that were ticked.
+  var GROUPS = [
+    { key: "pulling", area: "Strength · Pulling", title: "Pulling tests", sub: "Tom's Monkey belt: hangs, rows and the pull-up path.", base: "pullups",
+      tests: ["dead_hang_s", "scap_pullups", "assisted_pullups", "knee_raises", "aus_rows", "aus_rows_flat", "leg_raises", "one_arm_hang_s",
+        "hanging_l_sit_s", "skin_the_cat", "l_sit_chinups", "wide_pullups", "clapping_pullups", "one_arm_l_sit_s", "muscle_ups", "blue_circuit"] },
+    { key: "pushing", area: "Strength · Pushing", title: "Pushing tests", sub: "Tom's Tiger belt: push-ups, planks and presses.", base: "pushups",
+      tests: ["kneeling_pushups", "single_arm_plank_s", "db_press", "pike_pushups", "diamond_pushups", "wide_pushups", "lateral_raise", "one_arm_pushups"] },
+    { key: "legs", area: "Strength · Legs", title: "Leg tests", sub: "Tom's Panda belt: squats, lunges and pistols.", tests: ["squats", "lunges", "calf_raises", "pistols"] },
+    { key: "weighted", area: "Strength · Weighted", title: "Weighted calisthenics", sub: "Weight added on a belt or vest.", tests: ["weighted_pullup", "weighted_dip"] },
+    { key: "kb", area: "Strength · Agility", title: "Kettlebell and mace", sub: "Your best set of each. The catch is a test of timing and grip, too.",
+      tests: ["kb_swing", "goblet_squat", "kb_catch", "mace_360", "kb_press", "one_arm_swing", "hand_to_hand"] }
+  ];
+  var TEST = {}; (K ? K.tests : []).forEach(function (t) { TEST[t.key] = t; });
+  function ticked(key) { return !!s.skills[key]; }
+  // Yellow Belt tests and up (tier 2) appear once you reach Tom's White Belt test number, or tick Advanced Calisthenics,
+  // so a beginner isn't asked about muscle-ups.
+  function tier2Open(g) { return ticked("advanced_calisthenics") || (g && g.base && parseInt(s[g.base], 10) >= K.tier2_from[g.base]); }
+  function asked(key) { var t = TEST[key]; return !!t && t.skills.some(ticked) && (t.tier < 2 || tier2Open(groupOf(key))); }
+  function groupTests(g) { return g.tests.filter(asked); }
+
+  function steps() {
+    if (s.teen) { var t = ["teen", "tree", "strength"]; GROUPS.forEach(function (g) { if (groupTests(g).length) t.push(g.key); }); return t.concat(["review"]); }
+    var out = ["start", "tree", "way", "consent", "capture", "body", "age", "weight", "height", "strength"];
+    GROUPS.forEach(function (g) { if (groupTests(g).length) out.push(g.key); });
+    if (ticked("weightlifting")) out.push("lifts");
+    return out.concat(["run", "jump", "skill", "review"]);
+  }
+  var OPTIONAL = { weight: 1, height: 1, strength: 1, lifts: 1, run: 1, jump: 1, skill: 1, pulling: 1, pushing: 1, legs: 1, advanced: 1, weighted: 1, kb: 1 };
+
+  // Stars, still and twinkling, like the night sky on Tom's poster.
+  (function () { var m = document.getElementById("motes"); for (var i = 0; i < 46; i++) { var d = document.createElement("i");
+    d.style.left = (Math.random() * 100) + "%"; d.style.top = (Math.random() * 100) + "%"; d.style.opacity = .15 + Math.random() * .5;
+    d.style.animationDuration = (3 + Math.random() * 6) + "s"; d.style.animationDelay = (-Math.random() * 6) + "s"; m.appendChild(d); } })();
+
+  (function () {
+    var vv = window.visualViewport, full = window.innerHeight;
+    if (!vv) return;
+    vv.addEventListener("resize", function () {
+      if (!document.activeElement || !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) full = Math.max(full, vv.height);
+      var open = vv.height < full * 0.78;
+      document.body.classList.toggle("kb", open);
+      if (open) setTimeout(function () { var f = document.activeElement; if (f && /INPUT|TEXTAREA/.test(f.tagName)) f.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60);
+    });
+  })();
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    for (var k in (attrs || {})) { var v = attrs[k]; if (v == null || v === false) continue;
+      if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), v); else if (k === "text") e.textContent = v; else e.setAttribute(k, v === true ? "" : v); }
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+  var SVG = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, kids) {
+    var e = document.createElementNS(SVG, tag);
+    for (var k in (attrs || {})) { if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]); }
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(c); });
+    return e;
+  }
+  function head(area, title, sub) { return h("div", {}, [area ? h("div", { class: "area", text: area }) : null, h("h1", { text: title }), sub ? h("p", { class: "sub", text: sub }) : null]); }
+  function field(label, input, unit) { return h("div", {}, [h("div", { class: "label", text: label }), h("div", { class: "field" }, [input, unit ? h("span", { class: "unit", text: unit }) : null])]); }
+  function numInput(get, set, opts) {
+    opts = opts || {};
+    var i = h("input", { type: "text", inputmode: opts.decimal ? "decimal" : "numeric", placeholder: opts.placeholder || "0", value: get() || "", autocomplete: "off",
+      enterkeyhint: "next", onkeydown: onEnter, "aria-label": opts.aria || null,
+      oninput: function () { var v = i.value.replace(opts.decimal ? /[^0-9.]/g : /[^0-9]/g, "").slice(0, opts.max || 5); if (i.value !== v) i.value = v; set(v);
+        if (opts.onfill) opts.onfill(i); bar(); } });
+    return i;
+  }
+  function num(key, label, unit, opts) { return field(label, numInput(function () { return s[key]; }, function (v) { s[key] = v; }, opts), unit); }
+  function onEnter(e) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    var all = [].slice.call(document.querySelectorAll("#main input[type=text]")), n = all[all.indexOf(e.target) + 1];
+    if (n) { n.focus(); return; }
+    var go = document.querySelector("nav.actions .go");
+    e.target.blur();
+    if (go && !go.disabled) go.click();
+  }
+  // Done on the keyboard closes it and brings the Next button into view: while an iPhone keyboard is open, the
+  // consent screen was hard to scroll down to it (Luke, 28 Oct 2026). The person still taps Next themselves.
+  function doneKey(e) { if (e.key === "Enter") { e.preventDefault(); e.target.blur(); showNext(); } }
+  function showNext() { setTimeout(function () { var n = document.getElementById("nav"); if (n) n.scrollIntoView({ block: "end" }); }, 350); }
+  function chips(label, options, get, set, clearable) {
+    var wrap = h("div", { class: "chips" });
+    options.forEach(function (o) { wrap.appendChild(h("button", { type: "button", class: "chip" + (get() === o ? " on" : ""), text: o,
+      onclick: function () { set(clearable && get() === o ? null : o); render(); } })); });
+    return h("div", {}, [h("div", { class: "label", text: label }), wrap]);
+  }
+  function seg(options, get, set) {
+    var e = h("div", { class: "seg" });
+    options.forEach(function (o) { e.appendChild(h("button", { type: "button", class: get() === o.key ? "on" : "", text: o.name, onclick: function () { set(o.key); render(); } })); });
+    return e;
+  }
+
+  // --- The skill tree ---------------------------------------------------------------------------
+  // Positions follow Tom's poster: three roots on the middle row, the advanced skills above them.
+  var NODES = { calisthenics: [62, 176, "Calisthenics"], weightlifting: [170, 176, "Weight|Lifting"], kb_mace: [278, 176, "Kettlebell|& Mace"],
+    advanced_calisthenics: [42, 62, "Advanced|Calisthenics"], weighted_calisthenics: [126, 62, "Weighted|Calisthenics"],
+    heavy_kb_mace: [214, 62, "Heavy|Kettlebell|& Mace"], advanced_swings: [298, 62, "Advanced|Swings"] };
+  var PARENTS = {}; (K ? K.skills : []).forEach(function (sk) { PARENTS[sk.key] = sk.parents; });
+  // The teen version's tree: calisthenics only, so Pulling, Pushing and Legs (Luke, 28 Oct 2026: no Kettlebell and
+  // Mace, which is all our draft and heavy; no Iron Hand or Neck; no lifting or added weight).
+  var TEEN_SKILLS = { calisthenics: 1, advanced_calisthenics: 1 };
+  function allowed(key) { return !s.teen || !!TEEN_SKILLS[key]; }
+  function open(key) { return !PARENTS[key].length || PARENTS[key].some(ticked); }
+  function toggle(key) {
+    if (!open(key)) { s.error = "Tick " + PARENTS[key].map(function (p) { return NODES[p][2].replace(/\|/g, " "); }).join(" or ") + " first."; render(); return; }
+    s.error = "";
+    if (s.skills[key]) delete s.skills[key]; else s.skills[key] = true;
+    // An advanced skill closes when none of its roots is ticked any more.
+    Object.keys(s.skills).forEach(function (k) { if (!open(k)) delete s.skills[k]; });
+    render();
+  }
+  function tree() {
+    var lines = [], nodes = [];
+    function line(a, b, x1, y1) { var p = NODES[b]; var on = (a === "root" || ticked(a)) && ticked(b);
+      lines.push(sv("line", { class: "ln" + (on ? " on" : ""), x1: x1 != null ? x1 : NODES[a][0], y1: y1 != null ? y1 : NODES[a][1], x2: p[0], y2: p[1] })); }
+    ["calisthenics", "weightlifting", "kb_mace"].filter(allowed).forEach(function (k) { line("root", k, 170, 272); });
+    Object.keys(PARENTS).filter(allowed).forEach(function (k) { PARENTS[k].filter(allowed).forEach(function (p) { line(p, k); }); });
+    Object.keys(NODES).filter(allowed).forEach(function (k) {
+      var n = NODES[k], words = n[2].split("|"), on = ticked(k), lock = !open(k);
+      var below = n[1] > 120, y0 = below ? n[1] + 30 : n[1] - 20 - (words.length - 1) * 12;
+      var label = sv("text", { x: n[0], y: y0 }, words.map(function (w, i) { var t = sv("tspan", { x: n[0], dy: i ? 12 : 0 }); t.textContent = w.toUpperCase(); return t; }));
+      nodes.push(sv("g", { class: "nd" + (on ? " on" : "") + (lock ? " locked" : ""), role: "checkbox", "aria-checked": on ? "true" : "false",
+        "aria-label": n[2].replace(/\|/g, " ") + (lock ? " (locked)" : ""), tabindex: "0",
+        onclick: function () { toggle(k); }, onkeydown: function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(k); } } },
+        [sv("circle", { cx: n[0], cy: n[1], r: 26, fill: "transparent" }), sv("circle", { class: "dot", cx: n[0], cy: n[1], r: 11 }), label]));
+    });
+    var root = sv("g", { class: "root" }, [sv("circle", { cx: 170, cy: 272, r: 9 })]);
+    return sv("svg", { class: "tree", viewBox: "0 0 340 292", role: "group", "aria-label": "Skill tree" }, lines.concat([root], nodes));
+  }
+
+  // --- Answers ----------------------------------------------------------------------------------
+  function heightIn() { var f = parseInt(s.hFt, 10); if (s.skipped.height || !(f >= 4 && f <= 7)) return null; return f * 12 + Math.min(parseInt(s.hIn || "0", 10), 11); }
+  function runSecs() { if (s.skipped.run) return null; var m = parseInt(s.runMin, 10); if (isNaN(m)) return null; var t = m * 60 + (parseInt(s.runSec || "0", 10) || 0); return t > 0 ? t : null; }
+  function liftList() { if (s.skipped.lifts || !ticked("weightlifting")) return []; return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); if (!(w > 0)) return null;
+    var lift = { exercise: l.key, weight_lb: s.db[l.key] ? w * 2 : w, reps: s.reps[l.key] || 1 }; if (s.db[l.key]) lift.dumbbells = true; return lift; }).filter(Boolean); }
+  function jumpIn() { if (s.skipped.jump) return null; var f = parseInt(s.jFt, 10); if (isNaN(f)) return null; var t = f * 12 + (parseInt(s.jIn || "0", 10) || 0); return t > 0 ? t : null; }
+  function weightLb() { var w = parseFloat(s.weight); return s.skipped.weight || !(w >= 70) ? null : w; }
+  function lookDone() { return ["hair_style", "hair_colour", "skin_tone", "eye_colour", "facial_hair", "glasses"].every(function (k) { return !!s.look[k]; }); }
+  function groupOf(key) { return GROUPS.filter(function (g) { return g.tests.indexOf(key) !== -1; })[0]; }
+  // The club tests as the Mac wants them: numbers, sets as {weight, reps} (kettlebells in kg), only for ticked skills.
+  function clubTests() {
+    var out = {};
+    Object.keys(s.tests).forEach(function (key) {
+      var t = TEST[key], v = s.tests[key], g = groupOf(key);
+      if (!t || !asked(key) || (g && s.skipped[g.key])) return;
+      if (t.kind === "set") {
+        var w = parseFloat(v.weight), r = parseInt(v.reps, 10);
+        if (!(w > 0) || !(r > 0)) return;
+        if (t.unit === "kg" && s.kbUnit === "lb") w = Math.round(w / 2.2046 * 10) / 10;
+        out[key] = { weight: w, reps: r };
+      } else if (t.kind === "check") { if (v === true || v === false) out[key] = v; }
+      else if (v !== "" && v != null) out[key] = parseInt(v, 10);
+    });
+    return out;
+  }
+
+  // A screen's own Skip doesn't count while you're back on it, so filling it in after all turns Next on again
+  // (Luke, 28 Oct 2026: skipped height, went back, Next stayed grey). Next then clears the skip.
+  function canGo() {
+    var st = steps()[s.step], was = s.skipped[st];
+    delete s.skipped[st];
+    try { return canGoHere(st); } finally { if (was) s.skipped[st] = was; }
+  }
+  function canGoHere(st) {
+    switch (st) {
+      case "start": return s.adult && s.name.trim().length > 0;
+      case "teen": return !!window.CLUB_BELTS;
+      case "tree": return Object.keys(s.skills).length > 0;
+      case "way": return !!s.way;
+      case "consent": return s.agreed && (s.way !== "selfie" || (s.signedName.trim().length >= 3 && s.signedName.trim().indexOf(" ") > 0));
+      case "capture": return s.way === "selfie" ? !!s.selfie : lookDone();
+      case "body": return !!s.sex;
+      case "age": var a = parseInt(s.age, 10); return a >= 18 && a <= 100;
+      case "weight": return weightLb() != null;
+      case "height": return heightIn() != null;
+      case "run": return runSecs() != null;
+      case "lifts": return liftList().length > 0 && weightLb() != null;
+      case "jump": return jumpIn() != null;
+      default: return true;
+    }
+  }
+
+  // "What's this?" (Luke, 28 Oct 2026): what the movement is, a short demo clip once one is cleared, and where Tom
+  // shows it in his club.
+  function whatsThis(key, name) {
+    var d = K.demos && K.demos[key];
+    if (!d) return [h("div", { class: "label", text: name })];
+    var on = !!s.demo[key];
+    var row = h("div", { class: "lrow" }, [h("div", { class: "label", text: name }),
+      h("button", { type: "button", class: "what" + (on ? " on" : ""), "aria-expanded": on ? "true" : "false", text: on ? "Hide" : "What's this?",
+        onclick: function () { s.demo[key] = !on; render(); } })]);
+    if (!on) return [row];
+    return [row, h("div", { class: "demo" }, [
+      d.clip ? h("video", { src: d.clip, autoplay: true, loop: true, muted: true, playsinline: true, "aria-label": name + " demo" }) : null,
+      h("div", { text: d.what }),
+      h("div", { class: "src", text: d.where ? "Tom shows it in his club: " + d.where + "." : "Not in Tom's courses yet." })])];
+  }
+
+  function testField(key) {
+    var t = TEST[key];
+    if (t.kind === "check") {
+      var yn = h("div", { class: "chips" }, [[true, "Yes"], [false, "Not yet"]].map(function (o) {
+        return h("button", { type: "button", class: "chip" + (s.tests[key] === o[0] ? " on" : ""), text: o[1], onclick: function () { s.tests[key] = s.tests[key] === o[0] ? null : o[0]; render(); } }); }));
+      return h("div", {}, whatsThis(key, t.name).concat([h("p", { class: "how", text: t.how }), yn]));
+    }
+    if (t.kind !== "set") {
+      var v = s.tests[key] != null ? s.tests[key] : "";
+      return h("div", {}, whatsThis(key, t.name).concat([h("p", { class: "how", text: t.how }),
+        h("div", { class: "field" }, [numInput(function () { return v; }, function (x) { s.tests[key] = x; }, { max: 4, aria: t.name }), h("span", { class: "unit", text: t.kind === "seconds" ? "sec" : "reps" })])]));
+    }
+    var cur = s.tests[key] || { weight: "", reps: "" }; s.tests[key] = cur;
+    var unit = t.unit === "kg" ? s.kbUnit : t.unit;
+    return h("div", {}, whatsThis(key, t.name).concat([h("p", { class: "how", text: t.how }),
+      h("div", { class: "pair" }, [
+        h("div", { class: "field" }, [numInput(function () { return cur.weight; }, function (x) { cur.weight = x; }, { decimal: true, max: 5, aria: t.name + " weight" }), h("span", { class: "unit", text: unit })]),
+        h("div", { class: "field" }, [numInput(function () { return cur.reps; }, function (x) { cur.reps = x; }, { max: 3, aria: t.name + " reps" }), h("span", { class: "unit", text: "reps" })])])]));
+  }
+
+  function screen() {
+    var c = C, st = steps()[s.step], g = GROUPS.filter(function (x) { return x.key === st; })[0];
+    if (g) {
+      var kids = [head(g.area, g.title, g.sub + " Fill in what you know and leave the rest blank.")];
+      if (g.base && !tier2Open(g)) kids.push(h("p", { class: "note", text: "Harder tests appear here once you reach " + K.tier2_from[g.base] + " " + (g.base === "pullups" ? "pull-ups" : "push-ups") + ", or if you tick Advanced Calisthenics." }));
+      if (g.key === "kb") kids.push(h("div", {}, [h("div", { class: "label", text: "Kettlebells in" }), seg([{ key: "kg", name: "kg" }, { key: "lb", name: "lb" }], function () { return s.kbUnit; }, function (v) { s.kbUnit = v; })]));
+      return kids.concat([h("div", { class: "cols" }, groupTests(g).map(testField))]);
+    }
+    switch (st) {
+      case "start":
+        var name = h("input", { type: "text", placeholder: "First name", value: s.name, autocomplete: "given-name", maxlength: 40,
+          enterkeyhint: "done", onkeydown: doneKey, oninput: function () { s.name = name.value; bar(); } });
+        name.style.font = "700 22px var(--body)";
+        // Tom's link comes first; the page for his whole community comes after his feedback (Luke, 28 Oct 2026).
+        return [h("div", { class: "preview", text: "Early version for Tom: your feedback shapes it." }),
+          preview ? h("div", { class: "preview", text: "Preview: answers stay on this screen and nothing is sent." }) : null,
+          head("Character creation", "Find your power level", "Choose your path on Tom's skill tree, take the tests, and see your hero rank and your belt in each of his disciplines."),
+          field("First name", name),
+          h("label", { class: "toggle" }, ["I'm 18 or older", h("input", { type: "checkbox", checked: s.adult, onchange: function (e) { s.adult = e.target.checked; footer(); bar(); } })]),
+          h("div", { class: "sheet" }, [h("h2", { text: "BEFORE YOU BEGIN" }), h("div", { style: "font:400 14px/1.5 var(--body);color:var(--text)" }, [
+            "This assessment is for adults only. The club has younger members, but this page is 18 and up.", h("br"), h("br"),
+            "No ads, and your answers are never sold. They're only used to make your result. Your name is never sent to the AI."])]),
+          h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--ice)", text: "Under 18? Try the teen version", onclick: startTeen })];
+      case "teen":
+        return [head("Teen version", "Find your belts", "Choose your path, take the tests, and see your belt and next level-up in each of Tom's disciplines."),
+          h("div", { class: "sheet" }, [h("h2", { text: "HOW THIS VERSION WORKS" }), h("div", { style: "font:400 14px/1.5 var(--body);color:var(--text)" }, [
+            "Everything is worked out right here on your " + (WIDE.matches ? "computer" : "phone") + ". Nothing you enter is sent anywhere or saved, and there's no name, no AI and no hero art.", h("br"), h("br"),
+            "Train safely: build up slowly, and check with a parent or coach before heavy or new exercises."])]),
+          s.error ? h("div", { class: "err", text: s.error }) : null,
+          h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--muted)", text: "I'm 18 or older: back to the full version", onclick: function () { s.teen = false; s.step = 0; render(); } })];
+      case "tree":
+        var on = Object.keys(s.skills).map(function (k) { return NODES[k][2].replace(/\|/g, " "); });
+        return [head("Skill tree", "Choose your path", s.teen ? "Tap Calisthenics for Tom's Pulling, Pushing and Legs belts. Advanced Calisthenics opens from it." :
+            "Tap the skills you train or care about. You'll only get tests for those. Advanced paths open from the skill below them."),
+          h("div", { class: "sheet", style: "padding:10px 6px 4px" }, [tree()]),
+          h("p", { class: "picked", text: on.length ? on.join(" · ") : "Nothing picked yet." }),
+          s.error ? h("div", { class: "err", text: s.error }) : null];
+      case "way":
+        function way(key, title, ico, note) { return h("button", { type: "button", class: "big" + (s.way === key ? " on" : ""),
+          onclick: function () { if (s.way !== key) { s.agreed = false; s.signedName = ""; s.selfie = null; } s.way = key; render(); } }, [h("span", { class: "ico", text: ico }), title, h("small", { text: note })]); }
+        return [head("Appearance", "How should we draw you?", "Pick either one. Both make a full hero."),
+          h("div", { class: "choices" }, [way("selfie", "Use a selfie", "📷", "Looks most like you"), way("describe", "Describe yourself", "✍️", "No photo")])];
+      case "consent":
+        if (s.way === "selfie") {
+          var sig = h("input", { type: "text", placeholder: "Your full name", value: s.signedName, autocomplete: "name", maxlength: 80,
+            enterkeyhint: "done", onkeydown: doneKey, onblur: showNext, oninput: function () { s.signedName = sig.value; bar(); } });
+          sig.style.font = "400 20px var(--body)";
+          // The release, then the box they tick: the last line of the stored text (demo.FACE_RELEASE_AGREE).
+          var lines = c.consent.selfie.split("\n"), agree = lines.pop();
+          return [head(null, "Before you use a selfie", "Please read and sign before your selfie is taken."),
+            h("div", { class: "sheet" }, [h("h2", { text: "FACE DATA RELEASE" }), h("div", { style: "font:400 14px/1.55 var(--body)" }, lines.map(function (l) { return h("p", { style: "margin:0 0 9px", text: l }); }))]),
+            h("label", { class: "toggle", style: "font:600 15px/1.4 var(--body)" }, [agree, h("input", { type: "checkbox", checked: s.agreed, onchange: function (e) { s.agreed = e.target.checked; bar(); } })]),
+            field("Type your full name to sign", sig),
+            h("p", { class: "note", text: "Your full name is kept with this agreement as proof of your consent. It's never sent to the AI." }),
+            h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--ice)", text: "Describe myself instead",
+              onclick: function () { s.way = "describe"; s.agreed = false; s.signedName = ""; render(); window.scrollTo(0, 0); } })];
+        }
+        return [head(null, "About your hero art", "Please read before going on."),
+          h("div", { class: "sheet" }, [h("h2", { text: "CONSENT" }), h("div", { text: c.consent.describe })]),
+          h("label", { class: "toggle" }, ["I agree", h("input", { type: "checkbox", checked: s.agreed, onchange: function (e) { s.agreed = e.target.checked; bar(); } })])];
+      case "capture":
+        if (s.way === "selfie") {
+          if (s.cam) return camScreen();
+          // Two buttons: with `capture` an iPhone opens the camera only and never offers the photo library (Kasia, 23 Oct 2026).
+          // Computer browsers ignore `capture`, so there "Take a selfie" opens the camera itself (Luke, 28 Oct 2026).
+          function pick(label, camera) {
+            return h("label", { class: "btn-file" }, [label, h("input", { type: "file", accept: "image/*", capture: camera ? "user" : null,
+              onchange: function (e) { var f = e.target.files[0]; e.target.value = ""; if (f) toJpeg(f); } })]);
+          }
+          var take = s.selfie ? "Take another" : "Take a selfie";
+          return [head("Appearance", "Your selfie", "Face the camera in good light. Just you in the photo."),
+            s.selfie ? s.selfie.cv : null,
+            h("div", { class: "pair" }, [desktopCam() ? h("button", { type: "button", class: "btn-file", text: take, onclick: startCam }) : pick(take, true), pick("Choose a photo", false)]),
+            h("p", { class: "note", text: "The photo is resized on your " + (desktopCam() ? "computer" : "phone") + " first, and its location data is removed." }),
+            s.error ? h("div", { class: "err", text: s.error }) : null];
+        }
+        var d = c.describe, L = s.look;
+        function lk(key) { return function () { return L[key]; }; }
+        function setLk(key) { return function (v) { L[key] = v; }; }
+        var extra = h("input", { type: "text", placeholder: "e.g. freckles, a nose ring", value: L.extra, maxlength: c.extra_max, oninput: function () { L.extra = extra.value; } });
+        extra.style.font = "400 17px var(--body)";
+        return [head("Appearance", "Describe your hero", "Pick what fits you. No photo is used: only these words are sent to draw your hero."),
+          h("div", { class: "cols" }, [chips("Hair", d.hair_style, lk("hair_style"), setLk("hair_style")), chips("Hair colour", d.hair_colour, lk("hair_colour"), setLk("hair_colour")),
+            chips("Skin tone", d.skin_tone, lk("skin_tone"), setLk("skin_tone")), chips("Eyes", d.eye_colour, lk("eye_colour"), setLk("eye_colour")),
+            chips("Facial hair", d.facial_hair, lk("facial_hair"), setLk("facial_hair")), chips("Glasses", d.glasses, lk("glasses"), setLk("glasses"))]),
+          field("Anything else? (optional)", extra), h("p", { class: "note", text: "Don't include names or anything private." })];
+      case "body":
+        function sx(key, label) { return h("button", { type: "button", class: "big" + (s.sex === key ? " on" : ""), text: label, onclick: function () { s.sex = key; render(); } }); }
+        var note = h("input", { type: "text", placeholder: "e.g. petite, shorter legs, broad shoulders", value: s.note, maxlength: c.extra_max,
+          autocomplete: "off", oninput: function () { s.note = note.value; } });
+        note.style.font = "400 17px var(--body)";
+        return [head("Appearance", "Choose your body", "This also picks the norms you're compared with."), h("div", { class: "choices" }, [sx("male", "Male"), sx("female", "Female")]),
+          chips("Shirt size you usually wear (optional)", c.shirt_sizes, function () { return s.shirt; }, function (v) { s.shirt = v; }, true),
+          chips("Muscle (optional)", c.muscle, function () { return s.muscle; }, function (v) { s.muscle = v; }, true),
+          field("Anything the drawing should get right? (optional)", note),
+          h("p", { class: "note", text: "These words go to Higgsfield with your description to draw your hero. Tap a choice again to clear it." })];
+      case "age": return [head("Attributes", "How old are you?", "You're compared with people your age."), num("age", "Age", "years", { max: 3 })];
+      case "weight": return [head("Attributes", "Your bodyweight", "Strength is measured for your size. Skip it if you'd rather not say."), num("weight", "Bodyweight", "lb", { decimal: true })];
+      case "height":
+        return [head("Attributes", "How tall are you?", "So your hero is drawn at the right height."),
+          h("div", { class: "pair" }, [num("hFt", "Feet", "ft", { max: 1, onfill: function () { var n = document.querySelectorAll(".pair input")[1]; if (s.hFt && n) n.focus(); } }),
+            num("hIn", "Inches", "in", { max: 2 })])];
+      case "strength":
+        return [head("Strength", "Push-ups and pull-ups", "Your most in one set, in a row without stopping, not a total across sets. Leave one blank if you don't know it."),
+          h("div", {}, whatsThis("pushups", "Push-ups").concat([h("p", { class: "how", text: "Full push-ups, chest to the floor." }),
+            h("div", { class: "field" }, [numInput(function () { return s.pushups; }, function (v) { s.pushups = v; }, { max: 3 }), h("span", { class: "unit", text: "reps" })])])),
+          h("div", {}, whatsThis("pullups", "Pull-ups").concat([h("p", { class: "how", text: "Strict, from a dead hang, chin over the bar." }),
+            h("div", { class: "field" }, [numInput(function () { return s.pullups; }, function (v) { s.pullups = v; }, { max: 3 }), h("span", { class: "unit", text: "reps" })])]))];
+      case "lifts":
+        var rows = c.lifts.map(function (l) {
+          var inp = numInput(function () { return s.lifts[l.key]; }, function (v) { s.lifts[l.key] = v; }, { decimal: true, max: 5 });
+          var reps = s.reps[l.key] || 1, count = h("span", { text: reps + (reps === 1 ? " rep" : " reps") + " in one set" });
+          function step(dv) { return function () { s.reps[l.key] = Math.max(1, Math.min(30, (s.reps[l.key] || 1) + dv)); render(); }; }
+          var kit = seg([{ key: "bar", name: "Barbell" }, { key: "db", name: "Dumbbells" }], function () { return s.db[l.key] ? "db" : "bar"; }, function (v) { s.db[l.key] = v === "db"; });
+          return h("div", {}, [h("div", { class: "label", text: l.name }), kit, h("div", { style: "height:8px" }),
+            h("div", { class: "field" }, [inp, h("span", { class: "unit", text: s.db[l.key] ? "lb each dumbbell" : "lb" })]), h("div", { class: "stepper" }, [count, h("div", {}, [h("button", { type: "button", text: "−", onclick: step(-1), "aria-label": "Fewer reps" }),
+            h("button", { type: "button", text: "+", onclick: step(1), "aria-label": "More reps" })])])]);
+        });
+        return [head("Strength · Weight lifting", "Your best lifts", "Your heaviest set with good form: the weight, and the reps in that one set. For dumbbells, enter the weight of one. Fill in any you know."),
+          h("div", { class: "cols" }, rows)].concat(
+          [liftList().length && weightLb() == null ? h("p", { class: "note gold", text: "Lifts are measured for your size, so go back and add your bodyweight, or skip the lifts." }) : null]);
+      case "run":
+        return [head("Endurance", "How fast could you run today?", "A mile or a 5K: your fastest in the past year, or your best guess for today. An estimate is fine."),
+          seg(c.runs, function () { return s.runDist; }, function (v) { s.runDist = v; }),
+          h("div", { class: "pair" }, [num("runMin", "Minutes", "min", { max: 3 }), num("runSec", "Seconds", "sec", { max: 2 })])];
+      case "jump":
+        return [head("Agility", "Standing broad jump", "Your longest jump from standing still, both feet. Skip it if you don't know."),
+          h("div", { class: "pair" }, [num("jFt", "Feet", "ft", { max: 1, onfill: function () { var n = document.querySelectorAll(".pair input")[1]; if (s.jFt && n) n.focus(); } }),
+            num("jIn", "Inches", "in", { max: 2 })])];
+      case "skill":
+        var ta = h("textarea", { placeholder: "Tell us in your own words", maxlength: c.skill_text_max || 300, oninput: function () { s.skill = ta.value; } });
+        ta.value = s.skill;
+        function skDetail(key, label, example) {
+          var i = h("input", { type: "text", placeholder: example, value: s.sk[key], maxlength: 80, autocomplete: "off", enterkeyhint: "next", onkeydown: onEnter, oninput: function () { s.sk[key] = i.value; } });
+          i.style.font = "400 17px var(--body)";
+          return field(label, i);
+        }
+        return [head("Skill", "Your best physical skill", "What are you best at, and how good are you? Numbers help most. Skip it if nothing comes to mind."),
+          h("div", {}, [h("div", { class: "label", text: "Your skill" }), h("div", { class: "field" }, [ta])]),
+          skDetail("how_long", "How long have you done it? (optional)", "e.g. 3 years"),
+          skDetail("how_often", "How often? (optional)", "e.g. twice a week"),
+          skDetail("best", "Best level, rating or result? (optional)", "e.g. 12 strict muscle-ups"),
+          h("p", { class: "note", text: "For example: \"BJJ blue belt, 4 years\", \"handstand for 30 seconds\", or \"I swim a mile in 40 minutes\". An AI reads it and scores it." })];
+      case "review":
+        var lifts = liftList(), hi = heightIn(), j = jumpIn(), r = runSecs(), runName = (c.runs.filter(function (x) { return x.key === s.runDist; })[0] || {}).name, ct = clubTests();
+        function row(k, v) { return [h("dt", { text: k }), h("dd", { text: v })]; }
+        var testLines = Object.keys(ct).map(function (k) { var v = ct[k], t = TEST[k];
+          return t.name + ": " + (t.kind === "set" ? v.reps + " × " + v.weight + " " + (t.unit === "kg" ? "kg" : t.unit.replace(" added", "")) : t.kind === "check" ? (v ? "yes" : "not yet") : v + (t.kind === "seconds" ? " s" : "")); });
+        if (s.teen) return [head(null, "Ready?", "Your belts are one tap away."), h("div", { class: "sheet" }, [h("h2", { text: "CHARACTER SHEET" }), h("dl", { class: "review" }, [].concat(
+          row("Skills", Object.keys(s.skills).map(function (k) { return NODES[k][2].replace(/\|/g, " "); }).join("\n")),
+          row("Push-ups", s.skipped.strength || s.pushups === "" ? "skipped" : s.pushups), row("Pull-ups", s.skipped.strength || s.pullups === "" ? "skipped" : s.pullups),
+          row("Tests", testLines.length ? testLines.join("\n") : "none")))])];
+        var dl = h("dl", { class: "review" }, [].concat(
+          row("Skills", Object.keys(s.skills).map(function (k) { return NODES[k][2].replace(/\|/g, " "); }).join("\n")),
+          row("Drawn from", s.way === "selfie" ? "your selfie (release signed)" : "your description"),
+          row("Body", [s.sex === "male" ? "Male" : "Female", s.shirt ? "shirt " + s.shirt : null, s.muscle ? s.muscle.toLowerCase() : null].filter(Boolean).join(", ")),
+          row("Age", s.age), row("Bodyweight", weightLb() != null ? weightLb() + " lb" : "skipped"),
+          row("Height", hi ? Math.floor(hi / 12) + " ft " + (hi % 12) + " in" : "skipped"),
+          row("Push-ups", s.skipped.strength || s.pushups === "" ? "skipped" : s.pushups), row("Pull-ups", s.skipped.strength || s.pullups === "" ? "skipped" : s.pullups),
+          row("Tests", testLines.length ? testLines.join("\n") : "none"),
+          ticked("weightlifting") ? row("Lifts", lifts.length ? lifts.map(function (l) { return (c.lifts.filter(function (x) { return x.key === l.exercise; })[0] || {}).name + " " + (l.dumbbells ? "2 × " + l.weight_lb / 2 + " lb dumbbells" : l.weight_lb + " lb") + " × " + l.reps; }).join("\n") : "skipped") : null,
+          row("Run", r ? runName + " in " + Math.floor(r / 60) + ":" + ("0" + (r % 60)).slice(-2) : "skipped"),
+          row("Broad jump", j ? Math.floor(j / 12) + " ft " + (j % 12) + " in" : "skipped"),
+          row("Skill", !s.skipped.skill && s.skill.trim() ? s.skill.trim() : "skipped")));
+        return [head(null, "Ready, " + s.name.trim() + "?", "Your hero is one tap away."), h("div", { class: "sheet" }, [h("h2", { text: "CHARACTER SHEET" }), dl]),
+          s.error ? h("div", { class: "err", text: s.error }) : null];
+    }
+  }
+
+  // --- After sending ----------------------------------------------------------------------------
+  function doneScreen() {
+    if (s.result) return resultScreen();
+    return [head(null, "Your hero is being forged", preview ? "Preview: nothing was sent. Tap below to see what a result looks like." :
+        "Your stats, rank, belts and hero art will be ready within 24 hours, right here on this same link."),
+      preview ? h("button", { type: "button", class: "btn", text: "Preview the result screen", onclick: function () { s.result = SAMPLE; render(); window.scrollTo(0, 0); } }) : null,
+      h("div", { class: "hex wait", text: "?" }),
+      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Your strength, endurance, agility and skill set your hero rank. Your tests place you on Tom's belts, with your next level-up. Your hero is drawn from your " + (s.way === "selfie" ? "selfie." : "description.") })]),
+      h("p", { class: "note", text: "Keep this link: it's where your result appears. Want your answers deleted? Just ask Luke." })];
+  }
+
+  // A real result card from the Mac's scoring (club.py, 28 Oct 2026), for the preview: a made-up person, D-rank.
+  var SAMPLE = {"first_name": "Sample", "rank": "D", "power": 38, "stats": [{"key": "STR", "name": "Strength", "value": 32, "rank": "D", "in_rank": true, "summary": "Strength for your bodyweight.", "parts": [{"name": "Push-ups", "measured": "20 in a row", "percentile": null}, {"name": "Pull-ups", "measured": "9 strict", "percentile": "about the 78th percentile for men 25–34"}], "next": ["21 push-ups in one set", "10 strict pull-ups in one set"]}, {"key": "END", "name": "Endurance", "value": 37, "rank": "D", "in_rank": true, "summary": "How well you hold a pace, from your run time against world standards for your age.", "parts": [{"name": "Mile endurance", "measured": "Mile in 7:50 = 48% age-graded", "percentile": "about the 71st percentile, age-graded for men 25–34"}], "next": ["Mile in 7:45"]}, {"key": "AGI", "name": "Agility", "value": 44, "rank": "C", "in_rank": true, "summary": "Speed and explosiveness.", "parts": [{"name": "Mile speed", "measured": "7:50 = 48% age-graded", "percentile": "about the 71st percentile, age-graded for men 25–34"}, {"name": "Broad jump", "measured": "7 ft 6 in", "percentile": "about the 84th percentile for men 25–34"}], "next": ["Broad jump 7 ft 7 in", "Mile in 7:40"]}, {"key": "SKL", "name": "Skill", "value": 0, "rank": "–", "in_rank": false, "summary": "Optional. Nothing listed, so it doesn't count toward the rank.", "parts": [], "unlock": "Describe your best physical skill to get a Skill score."}], "next_rank": {"rank": "C", "power": 40}, "avatar_status": "queued", "club": {"skills": ["Calisthenics", "Kettlebell and Mace Training", "Advanced Swings"], "belts": [{"key": "pulling", "name": "Pulling", "animal": "Monkey", "animal_emoji": "🐒", "level": 25, "belt": "Yellow", "emoji": "🟨", "stripes": 0, "source": "video", "note": "Tom's test (from his video)", "maybe": null, "next": {"level": 30, "source": "video", "note": "Tom's test (from his video)", "belt_test": null, "unclear": "the 100 s dead hang is unclear in Tom's captions", "belt": "Yellow", "emoji": "🟨", "stripes": 1, "tests": [{"test": "10 pull-ups", "yours": "9", "status": "not_yet"}, {"test": "1 skin-the-cat", "yours": "2", "status": "met"}, {"test": "Dead hang: 100 s", "yours": "95 s", "status": "not_yet"}, {"test": "One-arm hang: 20 s", "yours": "16 s", "status": "not_yet"}, {"test": "Hanging L-sit: 45 s", "yours": "32 s", "status": "not_yet"}]}, "top": false}, {"key": "pushing", "name": "Pushing", "animal": "Tiger", "animal_emoji": "🐅", "level": 15, "belt": "White", "emoji": "⬜️", "stripes": 3, "source": "video", "note": "Tom's test (from his video)", "maybe": null, "next": {"level": 20, "source": "video", "note": "Tom's test (from his video)", "belt_test": null, "unclear": null, "belt": "White", "emoji": "⬜️", "stripes": 4, "tests": [{"test": "18 push-ups", "yours": "20", "status": "met"}, {"test": "Single-arm plank: 45 s", "yours": "50 s", "status": "met"}, {"test": "Incline dumbbell press: 15 reps with 40 lb each", "yours": "12 × 35 lb each", "status": "not_yet"}]}, "top": false}, {"key": "legs", "name": "Legs", "animal": "Panda", "animal_emoji": "🐼", "level": 15, "belt": "White", "emoji": "⬜️", "stripes": 3, "source": "draft", "note": "draft, for Tom to confirm", "maybe": null, "next": {"level": 20, "source": "draft", "note": "draft, for Tom to confirm", "belt_test": null, "unclear": null, "belt": "White", "emoji": "⬜️", "stripes": 4, "tests": [{"test": "80 bodyweight squats", "yours": "60", "status": "not_yet"}, {"test": "20 single-leg calf raises", "yours": "18", "status": "not_yet"}, {"test": "1 pistol squat", "yours": "0", "status": "not_yet"}]}, "top": false}, {"key": "kb_mace", "name": "Kettlebell and Mace", "animal": null, "animal_emoji": "🔔", "level": 10, "belt": "White", "emoji": "⬜️", "stripes": 2, "source": "draft", "note": "draft, for Tom to confirm", "maybe": null, "next": {"level": 15, "source": "draft", "note": "draft, for Tom to confirm", "belt_test": null, "unclear": null, "belt": "White", "emoji": "⬜️", "stripes": 3, "tests": [{"test": "Two-hand kettlebell swing: 50 reps with 16 kg", "yours": "30 × 16 kg", "status": "not_yet"}, {"test": "Kettlebell catch: 10 reps with 12 kg", "yours": "6 × 8 kg", "status": "not_yet"}, {"test": "Mace 360: 10 reps with 10 lb mace each side", "yours": "10 × 15 lb mace", "status": "met"}]}, "top": false}], "skool_url": "https://www.skool.com/bodyimprovementclub", "waitlist_url": "https://heromadefit.com/?ref=tom-club"}};
+
+  var BELT_COLOUR = { White: "#f2f2ee", Yellow: "#f2c11d", Blue: "#2f6fd6" };
+  function beltBar(b) {
+    if (!b.belt) return h("div", { class: "belt none", "aria-hidden": "true" });
+    var tip = h("div", { class: "tip" }); for (var i = 0; i < b.stripes; i++) tip.appendChild(h("i"));
+    var e = h("div", { class: "belt", "aria-hidden": "true" }, [tip]); e.style.background = BELT_COLOUR[b.belt] || "#888";
+    return e;
+  }
+  function stripes(n) { return n ? " · " + n + " stripe" + (n === 1 ? "" : "s") : ""; }
+  function discipline(b) {
+    var who = b.animal ? b.animal + " " + b.animal_emoji : b.animal_emoji;
+    var kids = [h("div", { class: "t" }, [h("b", { text: b.name.toUpperCase() }), h("span", { text: who })]),
+      h("div", { class: "beltline" }, [beltBar(b), h("div", { class: "beltname" }, [b.emoji + " " + b.belt + " Belt",
+        h("small", { text: (b.animal ? b.animal + " · " : "") + "Level " + b.level + stripes(b.stripes) + (b.top ? " · top of the draft" : "") })])])];
+    kids.push(h("div", { class: "draft", text: !b.source ? "Everyone starts here, at Level 1" : b.source === "draft" ? "Placed on a draft level, for Tom to confirm" : "Placed on Tom's own tests" }));
+    if (b.maybe) kids.push(h("div", { class: "maybe", text: "You may already be Level " + b.maybe + ". Fill in the tests marked ○ below to confirm it." }));
+    if (b.next) {
+      var nx = b.next, to = nx.belt_test ? nx.belt_test.toUpperCase() + " → " + nx.belt.toUpperCase() + " BELT" :
+        "LEVEL " + nx.level + (nx.stripes ? " · " + nx.stripes + " STRIPE" + (nx.stripes === 1 ? "" : "S") : "");
+      kids.push(h("div", { class: "levelup" }, [h("div", { class: "h", text: "▲ NEXT LEVEL-UP: " + to }),
+        h("ul", {}, nx.tests.map(function (t) { return h("li", { class: t.status }, [h("span", { text: t.status === "met" ? "✓" : t.status === "not_yet" ? "▸" : "○" }), h("span", { text: t.test }),
+          h("span", { class: "y", text: t.status === "not_answered" ? "not answered yet" : "yours: " + t.yours }) ]); })),
+        nx.belt_test ? h("div", { class: "draft", style: "margin-top:4px;color:var(--ice)", text: "Belt tests are approved by Tom: post your video in his club." }) : null,
+        nx.source === "draft" ? h("div", { class: "draft", style: "margin-top:4px", text: "Draft level, for Tom to confirm" }) : null,
+        nx.unclear ? h("div", { class: "draft", style: "margin-top:4px", text: "Note: " + nx.unclear + "." }) : null]));
+    }
+    return h("div", { class: "disc" }, kids);
+  }
+
+  function resultScreen() {
+    var r = s.result, club = r.club;
+    if (r.teen) {
+      var belts = h("div", { class: "win" }, [h("h2", { text: "CLUB BELTS" })].concat(club.belts.map(discipline), [
+        h("p", { class: "note", style: "margin-top:10px", text: "Belts are Tom's, from his Body Improvement Club courses. Levels marked draft are our best guess until Tom confirms them." })]));
+      var rest = [h("a", { class: "cta", href: club.skool_url, target: "_blank", rel: "noopener", text: "Train for your next belt in Tom's club →" }),
+        h("p", { class: "note", style: "text-align:center", text: "Nothing you entered left this " + (WIDE.matches ? "computer." : "phone.") }),
+        h("button", { type: "button", class: "btn", text: "Change my answers", onclick: function () { s.done = false; s.result = null; s.step = steps().length - 1; render(); } })];
+      return [head("Teen version", "Your belts", "Where you stand now, and your next level-up in each discipline.")].concat(twoCols([belts], rest));
+    }
+    var left = [], right = [];
+    var rows = r.stats.filter(function (x) { return x.key !== "VIT"; }).map(function (x) {
+      var na = !x.in_rank, part = (x.parts || [])[0];
+      var els = [h("b", { text: x.key }), h("span", { class: "nm", text: x.name.toUpperCase() }), h("span", { class: "rk", text: na ? "" : x.rank }),
+        h("span", { class: "val" + (na ? " na" : ""), text: na ? "N/A" : String(x.value) })];
+      if (!na) { var bar = h("div", { class: "bar" }, [h("div")]); bar.firstChild.style.width = Math.min(100, x.value) + "%"; els.push(bar); }
+      if (!na && x.next && x.next.length) els.push(h("div", { class: "next" }, [h("b", { text: "▲ NEXT POINT" }), x.next.join(", or ")]));
+      els.push(h("div", { class: "why", text: na ? (x.unlock || "No answers for this one, so it doesn't count toward your rank.") :
+        x.key === "SKL" && part ? part.name + ": " + part.percentile + " (estimated by AI from your description)" :
+        (x.parts || []).map(function (q) { return q.name + ": " + q.measured + (q.percentile ? " · " + q.percentile : ""); }).join("\n") }));
+      return h("div", { class: "stat" }, els);
+    });
+    var top = r.rank === "National Level";
+    left.push(h("div", { class: "win" }, [h("h2", { text: "STATUS" })].concat(rows, [
+      h("div", { class: "hex", text: top ? "W" : r.rank }),
+      h("div", { class: "rankline", text: top ? "WORLD CLASS HERO" : r.rank + "-RANK HERO" }),
+      h("p", { class: "note", style: "text-align:center", text: "POWER " + r.power + " · 100 = world class for your sex and age" }),
+      r.next_rank ? h("p", { class: "note gold", style: "text-align:center", text: "NEXT RANK: " + (r.next_rank.rank === "National Level" ? "World class" : r.next_rank.rank + "-rank") + " at power " + r.next_rank.power + "." }) : null])));
+    if (club && club.belts && club.belts.length) {
+      right.push(h("div", { class: "win" }, [h("h2", { text: "CLUB BELTS" })].concat(club.belts.map(discipline), [
+        h("p", { class: "note", style: "margin-top:10px", text: "Belts are Tom's, from his Body Improvement Club courses. Levels marked draft are our best guess until Tom confirms them." })])));
+      right.push(h("a", { class: "cta", href: club.skool_url, target: "_blank", rel: "noopener", text: "Train for your next belt in Tom's club →" }));
+    }
+    var after = [];
+    if (s.avatar) after.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("img", { class: "hero-img", src: "data:image/jpeg;base64," + s.avatar, alt: "Your anime hero" }),
+      h("p", { class: "note", text: "Press and hold the picture to save it." })]));
+    else after.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: "Your hero art is being drawn. It shows up here within 24 hours." })]));
+    after.push(feedbackBox());
+    // Phone: status, belts, hero, feedback. Computer: status, hero and feedback on the left, belts on the right.
+    return [head(null, r.first_name + ", your status", "Where you stand now, and your next step up.")].concat(
+      right.length ? twoCols(left.concat(after), right, left.concat(right, after)) : left.concat(after));
+  }
+  // Two columns on a computer; on a phone, one column in `phone` order (default: left, then right).
+  var WIDE = matchMedia("(min-width: 900px)");
+  function twoCols(left, right, phone) {
+    if (!WIDE.matches) return phone || left.concat(right);
+    return [h("div", { class: "cols" }, [h("div", { class: "col" }, left), h("div", { class: "col" }, right)])];
+  }
+
+  function feedbackBox() {
+    var f = s.fb;
+    if (f.sent) return h("div", { class: "win" }, [h("h2", { text: "FEEDBACK" }), h("div", { text: "Thanks! Luke reads every one." })]);
+    function rb(key, label) { return h("button", { type: "button", class: "big" + (f.rating === key ? " on" : ""), text: label, onclick: function () { f.rating = f.rating === key ? null : key; render(); } }); }
+    var ta = h("textarea", { placeholder: "Did your belts look right? What felt off?", maxlength: 1000, oninput: function () { f.text = ta.value; } });
+    ta.value = f.text;
+    return h("div", { class: "win" }, [h("h2", { text: "HOW DID WE DO?" }),
+      h("div", { class: "rate" }, [rb("spot_on", "Spot on"), rb("close", "Close"), rb("off", "Way off")]),
+      h("div", { class: "field", style: "margin-top:10px;border-color:var(--frame-dim)" }, [ta]),
+      s.error ? h("div", { class: "err", text: s.error }) : null,
+      h("button", { type: "button", class: "btn", style: "margin-top:10px", text: f.sending ? "Sending…" : "Send feedback", onclick: sendFeedback })]);
+  }
+
+  function post(fields) {
+    return fetch(ENDPOINT, { method: "POST", body: new URLSearchParams(Object.assign({ token: token }, fields)) }).then(function (r) { return r.json(); });
+  }
+  function sendFeedback() {
+    var f = s.fb;
+    if (!f.rating && !f.text.trim()) { s.error = "Pick a rating or write a comment."; render(); return; }
+    if (preview) { f.sent = true; s.error = ""; render(); return; }
+    f.sending = true; s.error = ""; render();
+    post({ action: "feedback", rating: f.rating || "", text: f.text }).then(function (reply) {
+      f.sending = false; if (reply && reply.ok) f.sent = true; else s.error = (reply && reply.error) || "That didn't send. Please try again."; render();
+    }).catch(function () { f.sending = false; s.error = "That didn't send. Check your connection and try again."; render(); });
+  }
+  // Google's web app sometimes loses a reply with a picture in it (23 Oct 2026), so try a few times.
+  function loadAvatar(n) {
+    post({ action: "avatar" }).then(function (a) {
+      if (a && a.ok && a.jpeg) { s.avatar = a.jpeg; render(); } else if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000);
+    }).catch(function () { if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000); });
+  }
+  // A used link becomes the person's results page: check now, and every 30 s while they wait.
+  function checkResult() {
+    if (preview) return;
+    post({ action: "result" }).then(function (reply) {
+      var wasChecking = s.checking; s.checking = false;
+      if (reply && reply.error && !reply.ok) { s.closed = reply.error; render(); return; }
+      if (!reply || !reply.ok) { if (wasChecking) render(); return; }
+      if (reply.result && !reply.result.held) {
+        var first = !s.result; s.result = reply.result; s.done = true;
+        if (reply.has_avatar && !s.avatar) loadAvatar(0);
+        if (first) render();
+        if (!reply.has_avatar) setTimeout(checkResult, 30000);
+      } else if (reply.submitted || reply.result) { s.done = true; render(); setTimeout(checkResult, 30000); }
+      else if (wasChecking) render();
+    }).catch(function () { if (s.checking) { s.checking = false; render(); } });
+  }
+
+  function footer() {
+    var club = (s.result && s.result.club) || K || {};
+    var f = document.getElementById("foot");
+    // Fit is 18+, so the waitlist link shows only once someone says they're 18 or older (Luke, 28 Oct 2026).
+    if (s.teen || !s.adult) { f.replaceChildren(h("div", { text: "Made with Hero Made Fit" })); return; }
+    f.replaceChildren.apply(f, [h("div", {}, ["Made with Hero Made Fit · ", h("a", { href: club.waitlist_url || "https://heromadefit.com/", target: "_blank", rel: "noopener", text: "Join the Fit waitlist" })]),
+      s.done ? h("div", {}, [h("a", { href: club.skool_url || "#", target: "_blank", rel: "noopener", text: "Tom's Body Improvement Club on Skool" })]) : null].filter(Boolean));
+  }
+
+  function render() {
+    var main = document.getElementById("main"), all = steps();
+    if (s.step >= all.length) s.step = all.length - 1;
+    var st = all[s.step];
+    main.className = (s.done ? !!s.result : GROUPS.some(function (g) { return g.key === st; }) || st === "lifts" || (st === "capture" && s.way === "describe" && !s.closed)) ? "wide" : "";
+    main.replaceChildren.apply(main, (s.closed ? [head(null, "This link is closed", s.closed), h("p", { class: "note", text: "Ask Luke if you'd like a new one." })]
+      : s.checking ? [head(null, "Opening your link…", "One moment.")] : s.done ? doneScreen() : screen()).filter(Boolean));
+    document.getElementById("count").textContent = s.done ? "" : (s.step + 1) + " / " + all.length;
+    document.getElementById("gauge").style.width = (s.done ? 100 : (s.step + 1) / all.length * 100) + "%";
+    footer();
+    bar();
+  }
+
+  function bar() {
+    var nav = document.getElementById("nav"), st = steps()[s.step];
+    if (s.done || s.checking || s.closed) { nav.replaceChildren(); return; }
+    var kids = [];
+    if (s.step > 0) kids.push(h("button", { type: "button", text: "Back", onclick: function () { go(-1); } }));
+    if (OPTIONAL[st]) kids.push(h("button", { type: "button", text: "Skip", onclick: function () { s.skipped[st] = true; go(1); } }));
+    var last = st === "review";
+    kids.push(h("button", { type: "button", class: "go", text: last ? (s.sending ? "Sending…" : s.teen ? "Show my belts" : "Forge my hero") : st === "consent" && s.way === "selfie" ? "Agree and add my selfie" : "Next", disabled: !canGo() || s.sending,
+      onclick: function () { if (last) send(); else { delete s.skipped[st]; go(1); } } }));
+    nav.replaceChildren.apply(nav, kids);
+  }
+
+  function go(d) { stopCam(); s.error = ""; s.step = Math.max(0, Math.min(steps().length - 1, s.step + d)); render(); window.scrollTo(0, 0); }
+
+  // Resize to at most 1600 px and re-encode as JPEG: smaller to send, and the photo's location data is dropped.
+  // createImageBitmap decodes the file without an image URL, and the preview is the canvas itself, so this works under
+  // a strict Content-Security-Policy too (the review server's img-src 'self' blocked the old blob: URL, 28 Oct 2026).
+  function keepPhoto(src, w, ht) {
+    var scale = Math.min(1, 1600 / Math.max(w, ht)), cv = document.createElement("canvas");
+    cv.width = Math.round(w * scale); cv.height = Math.round(ht * scale);
+    cv.getContext("2d").drawImage(src, 0, 0, cv.width, cv.height);
+    var data = cv.toDataURL("image/jpeg", 0.85);
+    cv.className = "photo"; cv.setAttribute("role", "img"); cv.setAttribute("aria-label", "Your selfie");
+    s.selfie = { cv: cv, b64: data.split(",")[1] }; s.error = ""; render();
+  }
+  function toJpeg(file) {
+    function bad() { s.error = "That photo couldn't be opened. Try another one."; render(); }
+    function viaImage() {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () { URL.revokeObjectURL(url); keepPhoto(img, img.naturalWidth, img.naturalHeight); };
+      img.onerror = function () { URL.revokeObjectURL(url); bad(); };
+      img.src = url;
+    }
+    if (!window.createImageBitmap) { viaImage(); return; }
+    createImageBitmap(file).then(function (b) { keepPhoto(b, b.width, b.height); if (b.close) b.close(); }, viaImage);
+  }
+
+  // The computer's camera (getUserMedia): a live view and a "Take photo" button. Phones keep the file input, which
+  // opens their own camera app.
+  function desktopCam() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && matchMedia("(hover: hover) and (pointer: fine)").matches; }
+  function startCam() {
+    s.error = "";
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false }).then(function (stream) {
+      s.cam = stream; render();
+    }, function (e) {
+      s.error = e && e.name === "NotAllowedError" ? "The camera is blocked for this page. Allow it from your browser's address bar, or choose a photo instead." :
+        "No camera could be opened. Choose a photo instead."; render();
+    });
+  }
+  function stopCam() { if (s.cam) { s.cam.getTracks().forEach(function (t) { t.stop(); }); s.cam = null; } }
+  function camScreen() {
+    var v = s.camEl || (s.camEl = h("video", { class: "photo cam", autoplay: true, muted: true, playsinline: true, "aria-label": "Camera view" }));
+    if (v.srcObject !== s.cam) v.srcObject = s.cam;
+    var p = v.play && v.play(); if (p && p.catch) p.catch(function () {});
+    return [head("Appearance", "Your selfie", "Face the camera in good light. Just you in the photo."), v,
+      h("div", { class: "pair" }, [
+        h("button", { type: "button", class: "btn-file go", text: "Take photo", onclick: function () {
+          if (!v.videoWidth) return;
+          var w = v.videoWidth, ht = v.videoHeight; keepPhoto(v, w, ht); stopCam(); render(); } }),
+        h("button", { type: "button", class: "btn-file", style: "border-color:var(--frame-dim);color:var(--muted)", text: "Cancel", onclick: function () { stopCam(); render(); } })]),
+      s.error ? h("div", { class: "err", text: s.error }) : null];
+  }
+
+  // --- Teen version (Luke, 28 Oct 2026): under 18, the belts are placed here on the phone with the same rules as
+  // the Mac (club.place, via belts.js), and nothing is sent or kept.
+  function startTeen() {
+    s.teen = true; s.step = 0; s.adult = false; s.name = "";
+    Object.keys(s.skills).forEach(function (k) { if (!allowed(k)) delete s.skills[k]; });
+    if (!window.CLUB_BELTS) {
+      var sc = document.createElement("script"); sc.src = "belts.js";
+      sc.onload = render; sc.onerror = function () { s.error = "The teen version isn't available yet."; render(); };
+      document.head.appendChild(sc);
+    }
+    render();
+  }
+  function teenValue(key, tests) {
+    if (key === "pushups" || key === "pullups") { var v = parseInt(s[key], 10); return s.skipped.strength || isNaN(v) ? null : v; }
+    return tests[key] == null ? null : tests[key];
+  }
+  function teenMet(v, need) { return Array.isArray(need) ? v.weight >= need[0] && v.reps >= need[1] : need === true ? v === true : v >= need; }
+  function teenYours(key, v) {
+    if (v == null) return null;
+    if (v === true || v === false) return v ? "yes" : "no";
+    var t = TEST[key];
+    if (typeof v === "object") return v.reps + " × " + v.weight + " " + (t.unit || "kg").replace(" added", "");
+    return t && t.kind === "seconds" ? v + " s" : String(v);
+  }
+  function teenBelt(level) {
+    var b = window.CLUB_BELTS.belts.filter(function (x) { return level >= x[0]; }).pop();
+    return { belt: b[1], emoji: b[2], stripes: b[3].filter(function (m) { return level >= m; }).length };
+  }
+  function teenPlace(key, tests) {
+    var R = window.CLUB_BELTS, d = R.disciplines[key], level = 1, source = null, maybe = null, nxt = null;
+    for (var i = 0; i < R.levels[key].length; i++) {
+      var L = R.levels[key][i];
+      var checks = L.tests.map(function (t) {
+        var answered = t.opts.filter(function (o) { return teenValue(o[0], tests) != null; });
+        var hit = answered.filter(function (o) { return teenMet(teenValue(o[0], tests), o[1]); })[0], show = hit || answered[0];
+        return { test: t.text, yours: show ? teenYours(show[0], teenValue(show[0], tests)) : null, status: hit ? "met" : answered.length ? "not_yet" : "not_answered" };
+      });
+      var st = checks.map(function (c) { return c.status; });
+      if (st.every(function (x) { return x === "met"; })) { level = L.level; source = L.source; continue; }
+      if (st.indexOf("not_yet") === -1 && st.indexOf("met") !== -1) maybe = L.level;
+      nxt = { level: L.level, source: L.source, note: R.notes[L.source], belt_test: L.belt_test, unclear: L.unclear, belt: L.belt, emoji: L.emoji, stripes: L.stripes, tests: checks };
+      break;
+    }
+    var b = teenBelt(level);
+    return { key: key, name: d.name, animal: d.animal, animal_emoji: d.emoji, level: level, belt: b.belt, emoji: b.emoji, stripes: b.stripes,
+      source: source, note: source ? R.notes[source] : null, maybe: maybe, next: nxt, top: level >= R.top };
+  }
+  function teenResult() {
+    var tests = clubTests(), D = window.CLUB_BELTS.disciplines;
+    return { teen: true, club: { skool_url: K.skool_url, belts: Object.keys(D).filter(function (k) { return ticked(D[k].skill); }).map(function (k) { return teenPlace(k, tests); }) } };
+  }
+  if (preview) window.__teenResult = teenResult;
+
+  function form() {
+    var answers = { age: parseInt(s.age, 10) };
+    var w = weightLb(), hi = heightIn(), r = runSecs(), lifts = liftList(), j = jumpIn();
+    if (w != null) answers.bodyweight_lb = w;
+    if (hi) answers.height_in = hi;
+    if (s.shirt) answers.shirt_size = s.shirt;
+    if (s.muscle) answers.muscle = s.muscle;
+    if (!s.skipped.strength && s.pushups !== "") answers.pushups = parseInt(s.pushups, 10);
+    if (!s.skipped.strength && s.pullups !== "") answers.pullups = parseInt(s.pullups, 10);
+    if (r) answers.run = { distance: s.runDist, seconds: r };
+    if (lifts.length && w != null) answers.lifts = lifts;
+    if (j) answers.broad_jump_in = j;
+    answers.club = { skills: Object.keys(s.skills), tests: clubTests() };
+    var f = { first_name: s.name.trim(), adult: s.adult, way_in: s.way, agreed: s.agreed, consent_version: C.consent_version,
+      consent_method: "web_link", sex: s.sex, answers: answers };
+    if (s.way === "describe") f.description = Object.assign({}, s.look, { extra: (s.look.extra || "").trim() });
+    if (s.way === "selfie") f.face_release = { signed_name: s.signedName.trim() };
+    if (!s.skipped.skill && s.skill.trim()) f.skill_text = s.skill.trim();
+    var sk = {}; Object.keys(s.sk).forEach(function (k) { if (s.sk[k].trim()) sk[k] = s.sk[k].trim(); });
+    if (!s.skipped.skill && f.skill_text && Object.keys(sk).length) f.skill_details = sk;
+    if (s.note.trim()) f.drawing_note = s.note.trim();
+    return f;
+  }
+  // Preview only (no link): hooks for checking the page's answers and a real result card before it goes live.
+  if (preview) { window.__clubForm = form; window.__showResult = function (r) { s.result = r; s.done = true; render(); window.scrollTo(0, 0); }; }
+
+  function send() {
+    if (s.teen) { s.result = teenResult(); s.done = true; render(); window.scrollTo(0, 0); return; }
+    if (preview) { s.done = true; render(); window.scrollTo(0, 0); return; }
+    s.sending = true; s.error = ""; bar();
+    var body = new URLSearchParams({ token: token, form: JSON.stringify(form()) });
+    if (s.way === "selfie" && s.selfie) body.set("selfie", s.selfie.b64);
+    fetch(ENDPOINT, { method: "POST", body: body }).then(function (r) { return r.json(); }).then(function (reply) {
+      s.sending = false;
+      if (reply && reply.ok) { s.done = true; setTimeout(checkResult, 30000); } else { s.error = (reply && reply.error) || "That didn't send. Please try again."; }
+      render(); window.scrollTo(0, 0);
+    }).catch(function () { s.sending = false; s.error = "That didn't send. Check your connection and try again."; render(); });
+  }
+
+  if (WIDE.addEventListener) WIDE.addEventListener("change", render); else WIDE.addListener(render);
+  if (!C || !K) { document.getElementById("main").textContent = "This page didn't load properly. Please reload it."; return; }
+  render();
+  checkResult();
+})();
+</script>
+</body>
+</html>
