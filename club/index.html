@@ -874,7 +874,9 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     if (key === "pushups" || key === "pullups") { var v = parseInt(s[key], 10); return s.skipped.strength || isNaN(v) ? null : v; }
     return tests[key] == null ? null : tests[key];
   }
-  function teenMet(v, need) { return Array.isArray(need) ? v.weight >= need[0] && v.reps >= need[1] : need === true ? v === true : v >= need; }
+  // A heavier set with fewer reps counts when its estimated one-rep max (Epley) is as high, as in club.py.
+  function oneRep(w, r) { return w * (1 + r / 30); }
+  function teenMet(v, need) { return Array.isArray(need) ? v.weight >= need[0] && (v.reps >= need[1] || oneRep(v.weight, v.reps) >= oneRep(need[0], need[1])) : need === true ? v === true : v >= need; }
   function teenYours(key, v) {
     if (v == null) return null;
     if (v === true || v === false) return v ? "yes" : "no";
