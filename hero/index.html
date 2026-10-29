@@ -221,8 +221,15 @@ body.kb nav.actions { padding-top: 14px; }
   function weightLb() { var w = parseFloat(s.weight); return s.skipped.weight || !(w >= 70) ? null : w; }
   function lookDone() { return ["hair_style", "hair_colour", "skin_tone", "eye_colour", "facial_hair", "glasses"].every(function (k) { return !!s.look[k]; }); }
 
+  // A screen's own Skip doesn't count while you're back on it, so filling it in after all turns Next on again
+  // (Luke, 28 Oct 2026: skipped height, went back, Next stayed grey). Next then clears the skip.
   function canGo() {
-    switch (STEPS[s.step]) {
+    var st = STEPS[s.step], was = s.skipped[st];
+    delete s.skipped[st];
+    try { return canGoHere(st); } finally { if (was) s.skipped[st] = was; }
+  }
+  function canGoHere(st) {
+    switch (st) {
       case "start": return s.adult && s.name.trim().length > 0;
       case "way": return !!s.way;
       case "consent": return s.agreed;
