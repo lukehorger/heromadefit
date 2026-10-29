@@ -1,5 +1,5 @@
 // Made by `fitcoach demo web-catalog` from sync/src/fitcoach/club.py. Don't edit by hand.
-// Teen version only. Holds Tom's belt numbers: don't publish until Tom says OK.
+// Teen version only. Holds Tom's belt numbers, published for his testing (28 Oct 2026); Tom can have it taken down.
 window.CLUB_BELTS = {
  "disciplines": {
   "pulling": {
