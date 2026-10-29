@@ -135,10 +135,10 @@ body.kb nav.actions { padding-top: 14px; }
   var C = window.HERO_CATALOG;
   var token = (new URLSearchParams(location.hash.slice(1))).get("t") || "";
   var preview = !ENDPOINT || !token;
-  var STEPS = ["start", "way", "consent", "capture", "body", "age", "weight", "height", "pushups", "pullups", "run", "lifts", "jump", "skill", "review"];
-  var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, lifts: 1, jump: 1, skill: 1 };
+  var STEPS = ["start", "way", "consent", "capture", "body", "age", "weight", "height", "pushups", "pullups", "run", "far", "lifts", "jump", "skill", "review"];
+  var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, far: 1, lifts: 1, jump: 1, skill: 1 };
   var s = { step: 0, name: "", adult: false, way: null, agreed: false, selfie: null, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
-    age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", lifts: {}, reps: {}, db: {}, jFt: "", jIn: "",
+    age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", farRun: "", farRide: "", farSwim: "", farUnit: "mi", lifts: {}, reps: {}, db: {}, jFt: "", jIn: "",
     skill: "", sk: { how_long: "", how_often: "", best: "" }, skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
 
   // A few slow motes, like the app's star field.
@@ -214,6 +214,11 @@ body.kb nav.actions { padding-top: 14px; }
 
   function heightIn() { var f = parseInt(s.hFt, 10); if (s.skipped.height || !(f >= 4 && f <= 7)) return null; return f * 12 + Math.min(parseInt(s.hIn || "0", 10), 11); }
   function runSecs() { if (s.skipped.run) return null; var m = parseInt(s.runMin, 10); if (isNaN(m)) return null; var t = m * 60 + (parseInt(s.runSec || "0", 10) || 0); return t > 0 ? t : null; }
+  // Always sent in miles; a distance typed in km is converted (Luke, 29 Oct 2026: miles first, km on a tap).
+  var FAR = [{ key: "run", name: "Run", s: "farRun" }, { key: "ride", name: "Ride", s: "farRide" }, { key: "swim", name: "Swim", s: "farSwim" }];
+  function farMiles() { if (s.skipped.far) return null; var out = {}, any = false;
+    FAR.forEach(function (f) { var m = parseFloat(s[f.s]); if (m > 0) { out[f.key] = Math.round((s.farUnit === "km" ? m / 1.609344 : m) * 100) / 100; any = true; } });
+    return any ? out : null; }
   // With dumbbells the box takes one dumbbell's weight, and both are counted (Kasia, 23 Oct 2026).
   function liftList() { if (s.skipped.lifts) return []; return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); if (!(w > 0)) return null;
     var lift = { exercise: l.key, weight_lb: s.db[l.key] ? w * 2 : w, reps: s.reps[l.key] || 1 }; if (s.db[l.key]) lift.dumbbells = true; return lift; }).filter(Boolean); }
@@ -241,6 +246,7 @@ body.kb nav.actions { padding-top: 14px; }
       case "pushups": return s.pushups !== "";
       case "pullups": return s.pullups !== "";
       case "run": return runSecs() != null;
+      case "far": return farMiles() != null;
       case "lifts": return liftList().length > 0 && weightLb() != null;
       case "jump": return jumpIn() != null;
       default: return true;
@@ -308,6 +314,10 @@ body.kb nav.actions { padding-top: 14px; }
         return [head("How fast could you run today?", "A mile or a 5K: your fastest in the past year, or your best guess for today, not a time from years ago. An estimate is fine. Skip it if you don't know."),
           seg(c.runs, function () { return s.runDist; }, function (v) { s.runDist = v; }),
           h("div", { class: "pair" }, [num("runMin", "Minutes", "min", { max: 3 }), num("runSec", "Seconds", "sec", { max: 2 })])];
+      case "far":
+        return [head("How far can you go?", "Your longest single run, ride and swim in the past year, each in one go. Fill in any you've done; whichever scores best counts, so a long ride counts as much as a long run. A marathon is 26.2 miles (42.2 km); a mile swim is about 1,650 yards. An estimate is fine."),
+          seg([{ key: "mi", name: "Miles" }, { key: "km", name: "Kilometers" }], function () { return s.farUnit; }, function (v) { s.farUnit = v; }),
+          h("div", { style: "display:grid;gap:10px" }, FAR.map(function (f) { return num(f.s, f.name, s.farUnit === "km" ? "km" : "mi", { decimal: true }); }))];
       case "lifts":
         var rows = c.lifts.map(function (l, i) {
           var inp = h("input", { type: "text", inputmode: "decimal", placeholder: "0", value: s.lifts[l.key] || "", autocomplete: "off",
@@ -349,6 +359,7 @@ body.kb nav.actions { padding-top: 14px; }
           row("Height", hi ? Math.floor(hi / 12) + " ft " + (hi % 12) + " in" : "skipped"),
           row("Push-ups", s.skipped.pushups || s.pushups === "" ? "skipped" : s.pushups), row("Pull-ups", s.skipped.pullups || s.pullups === "" ? "skipped" : s.pullups),
           row("Run", r ? runName + " in " + Math.floor(r / 60) + ":" + ("0" + (r % 60)).slice(-2) : "skipped"),
+          row("Longest", farMiles() ? FAR.filter(function (f) { return parseFloat(s[f.s]) > 0; }).map(function (f) { return f.name + " " + parseFloat(s[f.s]) + (s.farUnit === "km" ? " km" : " mi"); }).join("\n") : "skipped"),
           row("Lifts", lifts.length ? lifts.map(function (l) { return (c.lifts.filter(function (x) { return x.key === l.exercise; })[0] || {}).name + " " + (l.dumbbells ? "2 × " + l.weight_lb / 2 + " lb dumbbells" : l.weight_lb + " lb") + " × " + l.reps; }).join("\n") : "skipped"),
           row("Broad jump", j ? Math.floor(j / 12) + " ft " + (j % 12) + " in" : "skipped"),
           row("Skill", !s.skipped.skill && s.skill.trim() ? [s.skill.trim()].concat(["how_long", "how_often", "best"].filter(function (k) { return s.sk[k].trim(); })
@@ -520,6 +531,7 @@ body.kb nav.actions { padding-top: 14px; }
     if (!s.skipped.pushups && s.pushups !== "") answers.pushups = parseInt(s.pushups, 10);
     if (!s.skipped.pullups && s.pullups !== "") answers.pullups = parseInt(s.pullups, 10);
     if (r) answers.run = { distance: s.runDist, seconds: r };
+    if (farMiles()) answers.longest = farMiles();
     if (lifts.length && w != null) answers.lifts = lifts;
     if (j) answers.broad_jump_in = j;
     var f = { first_name: s.name.trim(), adult: s.adult, way_in: s.way, agreed: s.agreed, consent_version: C.consent_version,

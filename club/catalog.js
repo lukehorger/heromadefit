@@ -99,6 +99,20 @@ window.HERO_CATALOG = {
    "name": "5K"
   }
  ],
+ "longest": [
+  {
+   "key": "run",
+   "name": "Run"
+  },
+  {
+   "key": "ride",
+   "name": "Ride"
+  },
+  {
+   "key": "swim",
+   "name": "Swim"
+  }
+ ],
  "skills": [
   {
    "key": "judo",
