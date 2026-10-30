@@ -135,10 +135,10 @@ body.kb nav.actions { padding-top: 14px; }
   var C = window.HERO_CATALOG;
   var token = (new URLSearchParams(location.hash.slice(1))).get("t") || "";
   var preview = !ENDPOINT || !token;
-  var STEPS = ["start", "way", "consent", "capture", "body", "age", "weight", "height", "pushups", "pullups", "run", "far", "lifts", "jump", "skill", "review"];
-  var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, far: 1, lifts: 1, jump: 1, skill: 1 };
+  var STEPS = ["start", "way", "consent", "capture", "body", "age", "weight", "height", "pushups", "pullups", "run", "far", "lifts", "jump", "sprint", "skill", "review"];
+  var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, far: 1, lifts: 1, jump: 1, sprint: 1, skill: 1 };
   var s = { step: 0, name: "", adult: false, way: null, agreed: false, selfie: null, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
-    age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", farRun: "", farRide: "", farSwim: "", farUnit: "mi", lifts: {}, reps: {}, db: {}, jFt: "", jIn: "",
+    age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", farRun: "", farRide: "", farSwim: "", farUnit: "mi", lifts: {}, reps: {}, db: {}, jFt: "", jIn: "", sprint: "", sprintDist: "40yd",
     skill: "", sk: { how_long: "", how_often: "", best: "" }, skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false }, redo: { i: -1, answers: {}, sent: 0, sending: false, error: "" } };
 
   // A few slow motes, like the app's star field.
@@ -222,6 +222,9 @@ body.kb nav.actions { padding-top: 14px; }
   // With dumbbells the box takes one dumbbell's weight, and both are counted (Kasia, 23 Oct 2026).
   function liftList() { if (s.skipped.lifts) return []; return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); if (!(w > 0)) return null;
     var lift = { exercise: l.key, weight_lb: s.db[l.key] ? w * 2 : w, reps: s.reps[l.key] || 1 }; if (s.db[l.key]) lift.dumbbells = true; return lift; }).filter(Boolean); }
+  // A 40-yard or a 100 m dash, whichever they know (Luke, 29 Oct 2026).
+  function sprintS() { var t = parseFloat(s.sprint), lo = s.sprintDist === "100m" ? 9 : 3.5, hi = s.sprintDist === "100m" ? 40 : 15;
+    return s.skipped.sprint || !(t >= lo && t <= hi) ? null : Math.round(t * 100) / 100; }
   function jumpIn() { if (s.skipped.jump) return null; var f = parseInt(s.jFt, 10); if (isNaN(f)) return null; var t = f * 12 + (parseInt(s.jIn || "0", 10) || 0); return t > 0 ? t : null; }
   function weightLb() { var w = parseFloat(s.weight); return s.skipped.weight || !(w >= 70) ? null : w; }
   function lookDone() { return ["hair_style", "hair_colour", "skin_tone", "eye_colour", "facial_hair", "glasses"].every(function (k) { return !!s.look[k]; }); }
@@ -249,6 +252,7 @@ body.kb nav.actions { padding-top: 14px; }
       case "far": return farMiles() != null;
       case "lifts": return liftList().length > 0 && weightLb() != null;
       case "jump": return jumpIn() != null;
+      case "sprint": return sprintS() != null;
       default: return true;
     }
   }
@@ -338,6 +342,10 @@ body.kb nav.actions { padding-top: 14px; }
         return [head("Standing broad jump", "Your longest jump from standing still, both feet. Skip it if you don't know."),
           h("div", { class: "pair" }, [num("jFt", "Feet", "ft", { max: 1, onfill: function () { var n = document.querySelectorAll(".pair input")[1]; if (s.jFt && n) n.focus(); } }),
             num("jIn", "Inches", "in", { max: 2 })])];
+      case "sprint":
+        return [head("Sprint", "Your fastest 40-yard dash (like 5.4 seconds) or 100 m dash (like 14.5 seconds), whichever you know. Skip it if you've never timed one."),
+          seg([{ key: "40yd", name: "40 yards" }, { key: "100m", name: "100 m" }], function () { return s.sprintDist; }, function (v) { s.sprintDist = v; }),
+          num("sprint", "Time", "s", { decimal: true, max: 5 })];
       case "skill":
         var ta = h("textarea", { placeholder: "Tell us in your own words", maxlength: c.skill_text_max || 300, oninput: function () { s.skill = ta.value; } });
         ta.value = s.skill;
@@ -362,6 +370,7 @@ body.kb nav.actions { padding-top: 14px; }
           row("Longest", farMiles() ? FAR.filter(function (f) { return parseFloat(s[f.s]) > 0; }).map(function (f) { return f.name + " " + parseFloat(s[f.s]) + (s.farUnit === "km" ? " km" : " mi"); }).join("\n") : "skipped"),
           row("Lifts", lifts.length ? lifts.map(function (l) { return (c.lifts.filter(function (x) { return x.key === l.exercise; })[0] || {}).name + " " + (l.dumbbells ? "2 × " + l.weight_lb / 2 + " lb dumbbells" : l.weight_lb + " lb") + " × " + l.reps; }).join("\n") : "skipped"),
           row("Broad jump", j ? Math.floor(j / 12) + " ft " + (j % 12) + " in" : "skipped"),
+          row("Sprint", sprintS() ? (s.sprintDist === "100m" ? "100 m in " : "40 yards in ") + sprintS() + " s" : "skipped"),
           row("Skill", !s.skipped.skill && s.skill.trim() ? [s.skill.trim()].concat(["how_long", "how_often", "best"].filter(function (k) { return s.sk[k].trim(); })
             .map(function (k) { return s.sk[k].trim(); })).join("\n") : "skipped")));
         return [head("Ready, " + s.name.trim() + "?", "Your results are one tap away."), h("div", { class: "win" }, [h("h2", { text: "SUMMARY" }), dl]),
@@ -587,6 +596,7 @@ body.kb nav.actions { padding-top: 14px; }
     if (farMiles()) answers.longest = farMiles();
     if (lifts.length && w != null) answers.lifts = lifts;
     if (j) answers.broad_jump_in = j;
+    if (sprintS()) answers[s.sprintDist === "100m" ? "sprint_100m_s" : "sprint_40yd_s"] = sprintS();
     var f = { first_name: s.name.trim(), adult: s.adult, way_in: s.way, agreed: s.agreed, consent_version: C.consent_version,
       consent_method: "web_link", sex: s.sex, answers: answers };
     if (s.way === "describe") f.description = Object.assign({}, s.look, { extra: (s.look.extra || "").trim() });
