@@ -116,6 +116,7 @@ body.kb nav.actions { padding-top: 14px; }
 .next { grid-column: 1 / -1; font: 500 13px/1.45 var(--body); color: var(--gold); border-left: 2px solid var(--gold); padding: 2px 0 2px 8px; margin-top: 2px; }
 .next b { font: 700 11px var(--mono); letter-spacing: .06em; margin-right: 6px; }
 .rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.howto { margin: 0; padding-left: 20px; display: grid; gap: 6px; font: 400 14px/1.45 var(--body); color: var(--muted); }
 </style>
 </head>
 <body>
@@ -339,7 +340,9 @@ body.kb nav.actions { padding-top: 14px; }
         return [head("Your best lifts", "Your heaviest set with good form: the weight, and how many reps you did in that one set (not a total across sets). For example, 95 lb for 10 reps. For dumbbells, tap Dumbbells and enter the weight of one. Fill in any you know and leave the rest blank.")].concat(rows,
           [liftList().length && weightLb() == null ? h("p", { class: "note gold", text: "Lifts are measured for your size, so go back and add your bodyweight, or skip the lifts." }) : null]);
       case "jump":
-        return [head("Standing broad jump", "Your longest jump from standing still, both feet. Skip it if you don't know."),
+        // A jump people can do on the spot, so Agility doesn't need a number they already know (Luke, 29 Oct 2026).
+        return [head("Standing broad jump", "No need to know it already: you can do it right now, in about 2 minutes. Skip it if you'd rather not."),
+          h("div", { class: "win" }, [h("h2", { text: "HOW TO" }), h("ol", { class: "howto" }, [h("li", { text: "Stand with your toes behind a line, feet about hip-width apart." }), h("li", { text: "Swing your arms and jump forward as far as you can with both feet. Land and hold it: no step." }), h("li", { text: "Measure from the line to the back of your nearer heel: a tape measure, the iPhone Measure app, or count floor tiles (they're often 12 in)." }), h("li", { text: "Take the best of 3 tries." })])]),
           h("div", { class: "pair" }, [num("jFt", "Feet", "ft", { max: 1, onfill: function () { var n = document.querySelectorAll(".pair input")[1]; if (s.jFt && n) n.focus(); } }),
             num("jIn", "Inches", "in", { max: 2 })])];
       case "sprint":
