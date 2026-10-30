@@ -217,7 +217,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var s = { step: 0, name: "", adult: false, way: null, selfie: null, signedName: "", agreed: false, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
     skills: {}, tests: {}, demo: {}, cam: null, kbUnit: "kg", age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", farRun: "", farRide: "", farSwim: "", farUnit: "mi",
     lifts: {}, reps: {}, db: {}, jFt: "", jIn: "", skill: "", sk: { how_long: "", how_often: "", best: "" }, skipped: {},
-    sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
+    sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false }, redo: { i: -1, answers: {}, sent: 0, sending: false, error: "" } };
 
   // The club tests, grouped into screens. Each screen shows only the tests of skills that were ticked.
   var GROUPS = [
@@ -724,6 +724,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       h("p", { class: "note", text: "Press and hold the picture to save it." })]));
     else after.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: r.avatar_status === "queued" && !late() ?
       "Your hero art is being drawn. It shows up here by " + clock(readyAt()) + "." : "Your hero art is being drawn. It shows up here within 24 hours." })]));
+    after.push(skillRedoBox());
     after.push(feedbackBox());
     // Phone: status, belts, hero, feedback. Computer: status, hero and feedback on the left, belts on the right.
     return [head(null, r.first_name + ", your status", "Where you stand now, and your next step up.")].concat(
@@ -734,6 +735,58 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   function twoCols(left, right, phone) {
     if (!WIDE.matches) return phone || left.concat(right);
     return [h("div", { class: "cols" }, [h("div", { class: "col" }, left), h("div", { class: "col" }, right)])];
+  }
+
+  // The one optional skill redo (Luke, 29 Oct 2026). The AI's follow-up questions come one at a time; each has a
+  // Skip, and the whole thing can be declined. Only when the AI asked something; the new score replaces the old.
+  var REDO_KEY = "skillRedoNo:" + token;
+  function redoDeclined() { try { return localStorage.getItem(REDO_KEY) === "1"; } catch (e) { return false; } }
+  function declineRedo() { s.redo.declined = true; try { localStorage.setItem(REDO_KEY, "1"); } catch (e) {} render(); }
+  function redoButtons(list) { list = list.filter(Boolean); return h("div", { class: "rate", style: "margin-top:10px;grid-template-columns:repeat(" + list.length + ",minmax(0,1fr))" }, list.map(function (b) {
+    return h("button", { type: "button", class: "big" + (b.on ? " on" : ""), text: b.text, onclick: b.go }); })); }
+  function skillRedoBox() {
+    var offer = s.result && s.result.skill_redo, d = s.redo;
+    if (!offer) return null;
+    if (offer.done) return h("div", { class: "win" }, [h("h2", { text: "SKILL REDO" }), h("div", { text: "Your Skill score includes your extra answers. That was your one redo." })]);
+    if (d.sent) return h("div", { class: "win" }, [h("h2", { text: "SKILL REDO" }), h("div", { text: "Thanks! Your new Skill score shows up here by " + clock(d.sent + 3 * 60000) + "." })]);
+    if (d.declined || redoDeclined() || !offer.questions || !offer.questions.length) return null;
+    var qs = offer.questions;
+    if (d.i < 0) return h("div", { class: "win" }, [h("h2", { text: "A MORE ACCURATE SKILL SCORE?" }),
+      h("div", { text: "The AI has " + (qs.length === 1 ? "a question" : qs.length + " questions") + " about your skill. Your answers could make your Skill score more accurate. It's optional, and you can skip any question." }),
+      h("p", { class: "note gold", text: "Your new score could go up or down, and it replaces this one. You get one redo." }),
+      redoButtons([{ text: "Answer", go: function () { d.i = 0; render(); } }, { text: "No thanks", go: declineRedo }])]);
+    if (d.i < qs.length) {
+      var ta = h("textarea", { maxlength: 200, placeholder: "A few words is plenty", oninput: function () { d.answers[d.i] = ta.value; } });
+      ta.value = d.answers[d.i] || "";
+      return h("div", { class: "win" }, [h("h2", { text: "QUESTION " + (d.i + 1) + " OF " + qs.length }), h("div", { text: qs[d.i] }),
+        h("div", { class: "field", style: "margin-top:10px" }, [ta]),
+        redoButtons([{ text: "Skip", go: function () { delete d.answers[d.i]; d.i++; render(); } }, { text: "Next", on: true, go: function () { d.i++; render(); } }])]);
+    }
+    var given = qs.map(function (q, i) { return { question: q, answer: (d.answers[i] || "").trim() }; }).filter(function (a) { return a.answer; });
+    return h("div", { class: "win" }, [h("h2", { text: "READY TO RESCORE?" }),
+      given.length ? h("div", {}, given.map(function (a) { return h("div", { style: "margin-top:10px" }, [h("div", { class: "note", style: "margin:0", text: a.question }), h("div", { text: a.answer })]); }))
+        : h("div", { text: "You skipped every question, so there's nothing to send." }),
+      given.length ? h("p", { class: "note gold", text: "Your new score could go up or down, and it replaces this one." }) : null,
+      d.error ? h("div", { class: "err", text: d.error }) : null,
+      redoButtons([{ text: "Back", go: function () { d.i = qs.length - 1; render(); } },
+        given.length ? { text: d.sending ? "Sending…" : "Rescore my skill", on: true, go: function () { sendRedo(given); } } : { text: "No thanks", go: declineRedo }])]);
+  }
+  function sendRedo(given) {
+    var d = s.redo; if (d.sending) return;
+    if (preview) { d.sent = Date.now(); render(); return; }
+    d.sending = true; d.error = ""; render();
+    post({ action: "skill_redo", answers: JSON.stringify(given) }).then(function (reply) {
+      d.sending = false;
+      if (reply && reply.ok) { d.sent = Date.now(); setTimeout(waitRedo, 60000); } else d.error = (reply && reply.error) || "That didn't send. Please try again.";
+      render();
+    }).catch(function () { d.sending = false; d.error = "That didn't send. Check your connection and try again."; render(); });
+  }
+  // The Mac takes the answers within about 2 minutes, scores them again and updates this link.
+  function waitRedo() {
+    post({ action: "result" }).then(function (reply) {
+      if (reply && reply.ok && reply.result && reply.result.skill_redo && reply.result.skill_redo.done) { s.result = reply.result; render(); }
+      else setTimeout(waitRedo, 30000);
+    }).catch(function () { setTimeout(waitRedo, 30000); });
   }
 
   function feedbackBox() {

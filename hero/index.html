@@ -139,7 +139,7 @@ body.kb nav.actions { padding-top: 14px; }
   var OPTIONAL = { weight: 1, height: 1, pushups: 1, pullups: 1, run: 1, far: 1, lifts: 1, jump: 1, skill: 1 };
   var s = { step: 0, name: "", adult: false, way: null, agreed: false, selfie: null, look: { extra: "" }, sex: null, shirt: null, muscle: null, note: "",
     age: "", weight: "", hFt: "", hIn: "", pushups: "", pullups: "", runDist: "1_mile", runMin: "", runSec: "", farRun: "", farRide: "", farSwim: "", farUnit: "mi", lifts: {}, reps: {}, db: {}, jFt: "", jIn: "",
-    skill: "", sk: { how_long: "", how_often: "", best: "" }, skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false } };
+    skill: "", sk: { how_long: "", how_often: "", best: "" }, skipped: {}, sending: false, error: "", done: false, checking: !!(ENDPOINT && token), result: null, avatar: null, fb: { rating: null, text: "", sent: false, sending: false }, redo: { i: -1, answers: {}, sent: 0, sending: false, error: "" } };
 
   // A few slow motes, like the app's star field.
   (function () { var m = document.getElementById("motes"); for (var i = 0; i < 26; i++) { var d = document.createElement("i");
@@ -400,7 +400,7 @@ body.kb nav.actions { padding-top: 14px; }
     { key: "STR", name: "Strength", value: 34, rank: "D", in_rank: true, parts: [{ name: "Push-ups", measured: "25 in a row", percentile: "about the 72nd percentile for men 25–34" }] },
     { key: "END", name: "Endurance", value: 28, rank: "D", in_rank: true, parts: [{ name: "Aerobic engine", measured: "5K in 26:00 = 50% age-graded", percentile: null }] },
     { key: "AGI", name: "Agility", value: 0, rank: "–", in_rank: false, summary: "Speed and explosiveness. Not answered, so it doesn't count toward the rank.", parts: [] },
-    { key: "SKL", name: "Skill", value: 40, rank: "C", in_rank: true, parts: [{ name: "Brazilian jiu-jitsu", measured: "BJJ blue belt", percentile: "A blue belt takes real time and effort to earn, which puts you ahead of most people who train." }] }] };
+    { key: "SKL", name: "Skill", value: 40, rank: "C", in_rank: true, parts: [{ name: "Brazilian jiu-jitsu", measured: "BJJ blue belt", percentile: "A blue belt takes real time and effort to earn, which puts you ahead of most people who train." }] }], skill_redo: { questions: ["How long have you trained BJJ, and how often?", "Have you competed? If so, how did you do?"] } };
 
   function resultScreen() {
     var r = s.result, kids = [];
@@ -428,8 +428,61 @@ body.kb nav.actions { padding-top: 14px; }
       h("p", { class: "note", text: "Press and hold the picture to save it." })]));
     else kids.push(h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: s.result && s.result.avatar_status === "queued" && readyAt() && Date.now() <= readyAt() ?
       "Your hero art is being drawn. It shows up here by " + clock(readyAt()) + "." : "Your hero art is being drawn. It shows up here within a day." })]));
+    kids.push(skillRedoBox());
     kids.push(feedbackBox());
     return kids;
+  }
+
+  // The one optional skill redo (Luke, 29 Oct 2026). The AI's follow-up questions come one at a time; each has a
+  // Skip, and the whole thing can be declined. Only when the AI asked something; the new score replaces the old.
+  var REDO_KEY = "skillRedoNo:" + token;
+  function redoDeclined() { try { return localStorage.getItem(REDO_KEY) === "1"; } catch (e) { return false; } }
+  function declineRedo() { s.redo.declined = true; try { localStorage.setItem(REDO_KEY, "1"); } catch (e) {} render(); }
+  function redoButtons(list) { list = list.filter(Boolean); return h("div", { class: "rate", style: "margin-top:10px;grid-template-columns:repeat(" + list.length + ",minmax(0,1fr))" }, list.map(function (b) {
+    return h("button", { type: "button", class: "big" + (b.on ? " on" : ""), text: b.text, onclick: b.go }); })); }
+  function skillRedoBox() {
+    var offer = s.result && s.result.skill_redo, d = s.redo;
+    if (!offer) return null;
+    if (offer.done) return h("div", { class: "win" }, [h("h2", { text: "SKILL REDO" }), h("div", { text: "Your Skill score includes your extra answers. That was your one redo." })]);
+    if (d.sent) return h("div", { class: "win" }, [h("h2", { text: "SKILL REDO" }), h("div", { text: "Thanks! Your new Skill score shows up here by " + clock(d.sent + 3 * 60000) + "." })]);
+    if (d.declined || redoDeclined() || !offer.questions || !offer.questions.length) return null;
+    var qs = offer.questions;
+    if (d.i < 0) return h("div", { class: "win" }, [h("h2", { text: "A MORE ACCURATE SKILL SCORE?" }),
+      h("div", { text: "The AI has " + (qs.length === 1 ? "a question" : qs.length + " questions") + " about your skill. Your answers could make your Skill score more accurate. It's optional, and you can skip any question." }),
+      h("p", { class: "note gold", text: "Your new score could go up or down, and it replaces this one. You get one redo." }),
+      redoButtons([{ text: "Answer", go: function () { d.i = 0; render(); } }, { text: "No thanks", go: declineRedo }])]);
+    if (d.i < qs.length) {
+      var ta = h("textarea", { maxlength: 200, placeholder: "A few words is plenty", oninput: function () { d.answers[d.i] = ta.value; } });
+      ta.value = d.answers[d.i] || "";
+      return h("div", { class: "win" }, [h("h2", { text: "QUESTION " + (d.i + 1) + " OF " + qs.length }), h("div", { text: qs[d.i] }),
+        h("div", { class: "field", style: "margin-top:10px" }, [ta]),
+        redoButtons([{ text: "Skip", go: function () { delete d.answers[d.i]; d.i++; render(); } }, { text: "Next", on: true, go: function () { d.i++; render(); } }])]);
+    }
+    var given = qs.map(function (q, i) { return { question: q, answer: (d.answers[i] || "").trim() }; }).filter(function (a) { return a.answer; });
+    return h("div", { class: "win" }, [h("h2", { text: "READY TO RESCORE?" }),
+      given.length ? h("div", {}, given.map(function (a) { return h("div", { style: "margin-top:10px" }, [h("div", { class: "note", style: "margin:0", text: a.question }), h("div", { text: a.answer })]); }))
+        : h("div", { text: "You skipped every question, so there's nothing to send." }),
+      given.length ? h("p", { class: "note gold", text: "Your new score could go up or down, and it replaces this one." }) : null,
+      d.error ? h("div", { class: "err", text: d.error }) : null,
+      redoButtons([{ text: "Back", go: function () { d.i = qs.length - 1; render(); } },
+        given.length ? { text: d.sending ? "Sending…" : "Rescore my skill", on: true, go: function () { sendRedo(given); } } : { text: "No thanks", go: declineRedo }])]);
+  }
+  function sendRedo(given) {
+    var d = s.redo; if (d.sending) return;
+    if (preview) { d.sent = Date.now(); render(); return; }
+    d.sending = true; d.error = ""; render();
+    post({ action: "skill_redo", answers: JSON.stringify(given) }).then(function (reply) {
+      d.sending = false;
+      if (reply && reply.ok) { d.sent = Date.now(); setTimeout(waitRedo, 60000); } else d.error = (reply && reply.error) || "That didn't send. Please try again.";
+      render();
+    }).catch(function () { d.sending = false; d.error = "That didn't send. Check your connection and try again."; render(); });
+  }
+  // The Mac takes the answers within about 2 minutes, scores them again and updates this link.
+  function waitRedo() {
+    post({ action: "result" }).then(function (reply) {
+      if (reply && reply.ok && reply.result && reply.result.skill_redo && reply.result.skill_redo.done) { s.result = reply.result; render(); }
+      else setTimeout(waitRedo, 30000);
+    }).catch(function () { setTimeout(waitRedo, 30000); });
   }
 
   function feedbackBox() {
