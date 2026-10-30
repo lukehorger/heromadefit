@@ -714,7 +714,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       var els = [h("b", { text: x.key }), h("span", { class: "nm", text: x.name.toUpperCase() }), h("span", { class: "rk", text: na ? "" : x.rank }),
         h("span", { class: "val" + (na ? " na" : ""), text: na ? "N/A" : String(x.value) })];
       if (!na) { var bar = h("div", { class: "bar" }, [h("div")]); bar.firstChild.style.width = Math.min(100, x.value) + "%"; els.push(bar); }
-      if (!na && x.next && x.next.length) els.push(h("div", { class: "next" }, [h("b", { text: "▲ NEXT POINT" }), x.next.join(", or ")]));
+      if (!na && x.next && x.next.length) els.push(h("div", { class: "next" }, [h("b", { text: "▲ NEXT POINT" }), x.next.map(function (t, i) { return i && /^A /.test(t) ? "a" + t.slice(1) : t; }).join(", or ")]));  // "or a 53-mile run"
       els.push(h("div", { class: "why", text: na ? (x.unlock || "No answers for this one, so it doesn't count toward your rank.") :
         x.key === "SKL" && part ? part.name + ": " + part.percentile + " (estimated by AI from your description)" :
         (x.parts || []).map(function (q) { return q.name + ": " + q.measured + (q.percentile ? " · " + q.percentile : ""); }).join("\n") }));
