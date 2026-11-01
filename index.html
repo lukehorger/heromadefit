@@ -73,6 +73,8 @@
   .note { font-size: 13px; color: var(--muted); }
   .note a, footer a { color: var(--muted); }
   .thanks { display: none; color: var(--done); font-weight: 600; }
+  .thanks .follow { display: inline-block; margin-top: 6px; font-weight: 400; color: var(--muted); }
+  .thanks .follow a { color: var(--done); }
   .oops { display: none; color: var(--gold); font-weight: 600; }
   .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
   footer { padding: 30px 0 40px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--frame-dim); margin-top: 20px; }
@@ -167,13 +169,13 @@
       <input type="hidden" name="source" id="source" value="direct">
         <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
       <button type="submit" class="display">JOIN THE WAITLIST</button>
-      <p class="thanks" id="thanks">You're on the list. We'll email you when the first gates open.</p>
+      <p class="thanks" id="thanks">You're on the list. We'll email you when the first gates open.<br><span class="follow">Follow along: <a href="https://www.instagram.com/heromadefit/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.tiktok.com/@heromadefit" target="_blank" rel="noopener">TikTok</a> · <a href="https://www.youtube.com/@HeroMadeFit" target="_blank" rel="noopener">YouTube</a> · <a href="https://www.threads.com/@heromadefit" target="_blank" rel="noopener">Threads</a></span></p>
       <p class="oops" id="oops">That didn't go through. Check your connection and try again.</p>
       <p class="note">Hero Made Fit emails only: build updates, early access, the launch, and invites to our community or a short chat. Never sold or shared. Unsubscribe anytime. <a href="privacy.html">Privacy</a></p>
     </form>
   </section>
 
-  <footer>Hero Made Fit is an original world and isn't affiliated with any anime, manhwa or game. © 2026 Hero Made Labs · <a href="privacy.html">Privacy</a></footer>
+  <footer>Hero Made Fit is an original world and isn't affiliated with any anime, manhwa or game. © 2026 Hero Made Labs · <a href="privacy.html">Privacy</a><br><a href="https://www.instagram.com/heromadefit/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.tiktok.com/@heromadefit" target="_blank" rel="noopener">TikTok</a> · <a href="https://www.youtube.com/@HeroMadeFit" target="_blank" rel="noopener">YouTube</a> · <a href="https://www.threads.com/@heromadefit" target="_blank" rel="noopener">Threads</a></footer>
 </div>
 <script>
   // Waitlist form endpoint.
