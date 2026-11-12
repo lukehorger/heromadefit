@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Tom's Assessment v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Tom's club page (28 Oct 2026). Building your character feels like an old-school RPG's character sheet: gold
+   frames on a starry night, like Tom's skill tree poster. The result is the Hero app's System status screen
+   (ios/Hunter/App/Theme.swift). Inspired by both, copied from neither: our own frames, fonts and art. */
+:root {
+  --void: #03050b; --deep: #070e1e; --glass: rgba(10, 23, 46, .72); --frame: #4dbaff; --frame-dim: rgba(77, 186, 255, .3);
+  --ice: #b2e3ff; --text: #e1edff; --muted: #8796b3; --gold: #ffca57; --gold-dim: rgba(255, 202, 87, .35); --warn: #ff5568; --done: #5fedbb;
+  --wide: "Archivo", "Arial Black", system-ui, sans-serif; --body: "Inter", -apple-system, system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; --rune: "Cinzel", Georgia, serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--void); color: var(--text); font: 16px/1.45 var(--body); }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 110% 55% at 50% 0%, rgba(77,130,255,.18), transparent 60%),
+              radial-gradient(ellipse 80% 40% at 80% 100%, rgba(255,202,87,.06), transparent 70%); }
+.motes { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.motes i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--ice); animation: twinkle ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .1; } }
+@media (prefers-reduced-motion: reduce) { .motes i { animation: none; } }
+.app { position: relative; max-width: 30rem; margin: 0 auto; min-height: 100svh; display: flex; flex-direction: column;
+  padding-block: max(14px, env(safe-area-inset-top, 0px)) 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { font: 800 12px var(--rune); letter-spacing: .16em; color: var(--gold); }
+.count { font: 500 12px var(--mono); color: var(--muted); }
+.gauge { height: 6px; margin: 10px 0 4px; border: 1px solid var(--gold-dim); background: rgba(3,5,11,.8); }
+.gauge > div { height: 100%; width: 0; background: linear-gradient(90deg, rgba(255,202,87,.45), var(--gold)); box-shadow: 0 0 8px rgba(255,202,87,.6); transition: width .3s ease; }
+main { padding: 14px 0 0; display: flex; flex-direction: column; gap: 18px; }
+.area { font: 500 11px var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; }
+h1 { font: 800 25px/1.15 var(--rune); letter-spacing: .02em; margin: 4px 0 0; color: #f4e7c8; text-shadow: 0 0 16px rgba(255,202,87,.35); }
+.sub { color: var(--muted); margin: 6px 0 0; }
+.label { font: 500 12px var(--mono); color: var(--gold); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.how { font: 400 13px/1.4 var(--body); color: var(--muted); margin: -2px 0 6px; }
+.field { border: 1px solid var(--gold-dim); padding: 12px; background: rgba(3,5,11,.55); display: flex; align-items: center; gap: 10px; }
+.field input, .field textarea { flex: 1; min-width: 0; width: 100%; background: none; border: 0; outline: 0; color: var(--text); font: 700 24px var(--mono); }
+.field textarea { font: 400 17px var(--body); resize: none; min-height: 90px; }
+.field .unit { font: 500 12px var(--mono); color: var(--muted); white-space: nowrap; }
+.field:focus-within { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pair > * { min-width: 0; }
+/* Character-sheet frame: a gold double border with small diamond corners. */
+.sheet { position: relative; padding: 16px; border: 1px solid var(--gold-dim); outline: 1px solid rgba(255,202,87,.12); outline-offset: 3px;
+  background: linear-gradient(rgba(14,18,34,.82), rgba(6,9,20,.9)); }
+.sheet::before, .sheet::after { content: ""; position: absolute; width: 9px; height: 9px; background: var(--gold); transform: rotate(45deg); top: -5px; }
+.sheet::before { left: -5px; } .sheet::after { right: -5px; }
+.sheet h2 { font: 800 13px var(--rune); letter-spacing: .2em; color: var(--gold); margin: 0 0 10px; padding-bottom: 8px;
+  border-bottom: 1px solid; border-image: linear-gradient(90deg, transparent, var(--gold-dim), transparent) 1; text-align: center; }
+/* The System window, for the result. */
+.win { position: relative; padding: 16px; background: linear-gradient(var(--glass), rgba(7,14,30,.88)); border: 1px solid rgba(77,186,255,.35);
+  box-shadow: 0 0 22px rgba(77,186,255,.16); }
+.win::before, .win::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--frame); }
+.win::before { top: -4px; left: -4px; border-right: 0; border-bottom: 0; }
+.win::after { bottom: -4px; right: -4px; border-left: 0; border-top: 0; }
+.win h2 { font: 900 12px var(--wide); font-stretch: 125%; letter-spacing: .25em; color: var(--frame); margin: 0 0 10px;
+  padding-bottom: 10px; border-bottom: 1px solid; border-image: linear-gradient(90deg, rgba(77,186,255,.7), transparent) 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 600 15px var(--body); color: var(--text); background: none; border: 1px solid var(--gold-dim); border-radius: 999px; padding: 8px 13px; cursor: pointer; }
+.chip.on { border: 2px solid var(--gold); background: rgba(255,202,87,.16); padding: 7px 12px; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.big { background: none; color: var(--text); border: 1px solid var(--gold-dim); padding: 18px 10px; font: 700 17px var(--body); cursor: pointer; min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.big small { font: 500 12px var(--mono); color: var(--muted); }
+.big .ico { font-size: 30px; line-height: 1; }
+.photo { display: block; max-height: 340px; max-width: 100%; margin: 0 auto; border: 1px solid var(--gold-dim); }
+.btn-file { display: block; text-align: center; border: 1px solid var(--gold); color: var(--gold); padding: 14px; font: 600 16px var(--body); cursor: pointer; }
+.btn-file input { display: none; }
+.big.on { border: 2px solid var(--gold); background: rgba(255,202,87,.14); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; font: 700 17px var(--body); cursor: pointer; }
+.toggle input { appearance: none; width: 52px; height: 32px; border-radius: 99px; background: #2a3448; position: relative; cursor: pointer; flex: none; transition: background .2s; }
+.toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .2s; }
+.toggle input:checked { background: var(--gold); }
+.toggle input:checked::after { left: 23px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--gold-dim); }
+.seg button { background: none; border: 0; color: var(--muted); padding: 10px; font: 600 15px var(--body); cursor: pointer; }
+.seg button.on { background: rgba(255,202,87,.16); color: var(--text); }
+.stepper { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font: 700 16px var(--mono); }
+.stepper div { display: flex; border: 1px solid var(--gold-dim); }
+.stepper button { width: 46px; height: 36px; background: none; border: 0; color: var(--text); font-size: 20px; cursor: pointer; }
+.note { font: 500 12px/1.5 var(--mono); color: var(--muted); }
+.gold { color: var(--gold); }
+.review { display: grid; grid-template-columns: 7.5rem 1fr; gap: 6px 10px; font: 500 13px/1.45 var(--mono); }
+.review dt { color: var(--muted); text-transform: uppercase; }
+.review dd { margin: 0; white-space: pre-line; }
+.err { border: 1px solid rgba(255,85,104,.6); color: var(--warn); padding: 10px; font: 500 13px var(--mono); }
+nav.actions { display: flex; gap: 10px; padding: 22px 0 10px; }
+nav.actions:empty { display: none; }
+nav.actions button { flex: 1; padding: 15px 8px; font: 700 17px var(--body); cursor: pointer; border: 1px solid var(--gold-dim); background: var(--void); color: var(--muted); }
+nav.actions button.go { background: var(--gold); color: #1a1405; border-color: var(--gold); }
+nav.actions button.go:disabled { background: rgba(255,202,87,.22); border-color: transparent; color: rgba(3,5,11,.7); cursor: default; }
+footer { margin-top: auto; padding: 14px 0 max(18px, env(safe-area-inset-bottom, 0px)); text-align: center; font: 500 11px/1.6 var(--mono); color: var(--muted); }
+footer a { color: var(--ice); }
+.preview { font: 500 12px var(--mono); color: var(--gold); border: 1px solid rgba(255,202,87,.5); padding: 8px 10px; }
+.promise { font: 500 13px/1.5 var(--body); color: var(--text); border-left: 2px solid var(--gold); padding: 2px 0 2px 10px; }
+/* Skill tree: a constellation like Tom's poster. */
+.tree { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.tree .ln { stroke: rgba(178,227,255,.22); stroke-width: 2; }
+.tree .ln.on { stroke: var(--ice); filter: drop-shadow(0 0 4px var(--frame)); }
+.tree .nd { cursor: pointer; }
+.tree .nd circle.dot { fill: #0b1428; stroke: rgba(178,227,255,.45); stroke-width: 2; transition: fill .2s; }
+.tree .nd.on circle.dot { fill: var(--ice); stroke: #fff; filter: drop-shadow(0 0 8px var(--frame)); }
+.tree .nd.locked { opacity: .38; }
+.tree .nd text { fill: var(--text); font: 700 9.5px var(--body); text-anchor: middle; letter-spacing: .02em; pointer-events: none; }
+.tree .nd.on text { fill: #fff; }
+.tree .root circle { fill: var(--ice); filter: drop-shadow(0 0 10px var(--frame)); }
+.picked { font: 500 13px/1.5 var(--body); color: var(--muted); text-align: center; min-height: 1.5em; }
+/* Result */
+.hex { width: 120px; height: 120px; margin: 10px auto 0; display: grid; place-items: center; font: 900 52px var(--wide); font-stretch: 125%; color: var(--ice);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: radial-gradient(rgba(77,186,255,.35), var(--void)); text-shadow: 0 0 14px var(--frame); }
+.hex.wait { color: var(--gold); background: radial-gradient(rgba(255,202,87,.35), var(--void)); text-shadow: 0 0 14px var(--gold); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 50% { filter: brightness(1.35); } }
+.stat { display: grid; grid-template-columns: 3.2rem 1fr auto auto; align-items: baseline; gap: 4px 10px; padding: 6px 0; }
+.stat b { font: 900 15px var(--wide); font-stretch: 125%; }
+.stat .nm { font: 500 12px var(--mono); color: var(--muted); }
+.stat .rk { font: 900 13px var(--wide); font-stretch: 125%; color: var(--ice); }
+.stat .val { font: 700 26px var(--mono); }
+.stat .na { color: var(--muted); }
+.bar { grid-column: 1 / -1; height: 6px; border: 1px solid var(--frame-dim); background: rgba(3,5,11,.8); }
+.bar > div { height: 100%; background: linear-gradient(90deg, rgba(77,186,255,.5), var(--frame)); box-shadow: 0 0 6px var(--frame); }
+.why { grid-column: 1 / -1; font: 400 13px/1.45 var(--body); color: var(--muted); white-space: pre-line; }
+.next { grid-column: 1 / -1; font: 500 13px/1.45 var(--body); color: var(--gold); border-left: 2px solid var(--gold); padding: 2px 0 2px 8px; margin-top: 2px; }
+.next b { font: 700 11px var(--mono); letter-spacing: .06em; margin-right: 6px; }
+.rankline { text-align: center; font: 900 18px var(--wide); font-stretch: 125%; letter-spacing: .04em; }
+.hero-img { display: block; width: 100%; border: 1px solid rgba(77,186,255,.5); }
+.disc { padding: 12px 0; border-top: 1px solid rgba(77,186,255,.18); }
+.disc:first-of-type { border-top: 0; padding-top: 2px; }
+.disc .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.disc .t b { font: 900 14px var(--wide); font-stretch: 125%; letter-spacing: .04em; }
+.disc .t span { font: 500 12px var(--mono); color: var(--muted); }
+.beltline { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
+.belt { position: relative; flex: none; width: 120px; height: 20px; border-radius: 3px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.18), 0 0 10px rgba(0,0,0,.4); }
+.belt .tip { position: absolute; right: 12px; top: 0; bottom: 0; width: 34px; background: #111; display: flex; align-items: center; justify-content: space-evenly; padding: 0 3px; }
+.belt .tip i { width: 3px; height: 14px; background: #fff; }
+.belt.none { background: none; border: 1px dashed var(--muted); box-shadow: none; }
+.beltname { font: 700 15px var(--body); }
+.beltname small { display: block; font: 500 12px var(--mono); color: var(--muted); }
+.draft { font: 500 11px var(--mono); color: var(--gold); }
+.levelup { margin-top: 8px; border-left: 2px solid var(--gold); padding: 2px 0 2px 10px; }
+.levelup .h { font: 700 11px var(--mono); letter-spacing: .06em; color: var(--gold); }
+.levelup ul { list-style: none; margin: 4px 0 0; padding: 0; font: 400 14px/1.5 var(--body); }
+.levelup li { display: grid; grid-template-columns: 1.3rem 1fr; }
+.levelup li .y { grid-column: 2; font: 500 12px var(--mono); color: var(--muted); }
+.levelup li.met { color: var(--done); }
+.levelup li.not_answered { color: var(--muted); }
+.maybe { margin-top: 6px; font: 500 13px/1.45 var(--body); color: var(--ice); }
+.cta { display: block; text-align: center; text-decoration: none; padding: 15px 10px; font: 700 17px var(--body); background: var(--gold); color: #1a1405; border: 0; }
+.cta.alt { background: none; color: var(--ice); border: 1px solid var(--frame); font-size: 15px; padding: 12px; }
+.rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rate .big { padding: 14px 6px; font-size: 15px; }
+.btn { display: block; width: 100%; text-align: center; border: 1px solid var(--gold); color: var(--gold); background: none; padding: 14px; font: 600 16px var(--body); cursor: pointer; }
+body.kb h1 { font-size: 19px; margin-top: 0; }
+body.kb .sub { font-size: 14px; margin-top: 4px; }
+body.kb main { gap: 12px; padding-top: 8px; }
+body.kb footer { display: none; }
+/* Selfie: the photo is shown as a canvas, and on a computer the camera's live view (mirrored, like a mirror). */
+.photo { width: auto; height: auto; object-fit: contain; }
+.cam { width: 100%; max-height: 60vh; transform: scaleX(-1); background: #000; }
+button.btn-file { width: 100%; background: none; }
+button.btn-file.go { background: var(--gold); color: #1a1405; }
+/* "What's this?" for each movement. */
+.lrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.lrow .label { margin-bottom: 0; }
+.what { flex: none; font: 600 12px var(--body); color: var(--ice); background: none; border: 1px solid var(--frame-dim); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.what.on { border-color: var(--frame); background: rgba(77,186,255,.12); }
+.demo { border: 1px solid var(--frame-dim); background: rgba(10,23,46,.6); padding: 10px 12px; margin: 0 0 8px; font: 400 14px/1.5 var(--body); }
+.demo video { display: block; width: 100%; margin-bottom: 8px; background: #000; }
+.demo iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; margin-bottom: 8px; background: #000; }
+.demo .src { font: 500 11px/1.5 var(--mono); color: var(--muted); margin-top: 6px; }
+/* Two columns on a computer. On a phone these wrappers vanish, so the phone layout is unchanged. */
+.cols, .col { display: contents; }
+@media (min-width: 900px) {
+  .app { max-width: 66rem; padding-top: 26px; padding-left: 40px; padding-right: 40px; }
+  main, nav.actions { width: 100%; max-width: 44rem; margin-left: auto; margin-right: auto; }
+  main.wide { max-width: none; }
+  main { gap: 22px; padding-top: 22px; }
+  h1 { font-size: 34px; }
+  .sub { font-size: 17px; }
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 36px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 22px; }
+  .tree { max-height: 60vh; }
+  .photo { max-height: 420px; }
+  footer { padding-top: 28px; }
+}
+.howto { margin: 0; padding-left: 20px; display: grid; gap: 6px; font: 400 14px/1.45 var(--body); color: var(--muted); }
+</style>
+<style>
+/* v3 additions (11 Nov 2026): a time hint per screen, multi-pick chips, and the "What Tom sees" sheet. */
+.eta { font: 500 11px var(--mono); color: var(--muted); }
+.chip.multi.on::before { content: "✓ "; }
+.skip { display: block; width: 100%; text-align: center; background: none; border: 1px dashed var(--frame-dim); color: var(--ice); padding: 12px; font: 600 15px var(--body); cursor: pointer; }
+.skip.on { border-style: solid; border-color: var(--frame); background: rgba(77,186,255,.12); }
+.optlist { display: grid; gap: 10px; }
+.opt { text-align: left; background: none; color: var(--text); border: 1px solid var(--gold-dim); padding: 14px 14px; font: 700 16px var(--body); cursor: pointer; display: flex; gap: 12px; align-items: center; }
+.opt small { display: block; font: 400 13px var(--body); color: var(--muted); margin-top: 2px; }
+.opt .ico { font-size: 24px; flex: none; width: 30px; text-align: center; }
+.opt.on { border: 2px solid var(--gold); background: rgba(255,202,87,.14); padding: 13px; }
+.tomrow { display: grid; grid-template-columns: 8rem 1fr; gap: 6px 10px; font: 500 13px/1.45 var(--mono); }
+.tomrow dt { color: var(--muted); text-transform: uppercase; }
+.tomrow dd { margin: 0; white-space: pre-line; }
+.tomrow dd.new { color: var(--gold); }
+.flag { display: inline-block; font: 700 11px var(--mono); letter-spacing: .05em; color: #1a1405; background: var(--gold); padding: 2px 6px; margin-right: 6px; }
+.newtag { font: 700 10px var(--mono); letter-spacing: .08em; color: var(--gold); border: 1px solid var(--gold-dim); padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+.field select { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: 700 20px var(--mono); }
+.field select option { background: var(--deep); }
+</style>
+</head>
+<body>
+<div class="motes" id="motes" aria-hidden="true"></div>
+<div class="app">
+  <div class="top"><span class="brand">BODY IMPROVEMENT CLUB</span><span class="count" id="count"></span></div>
+  <div class="gauge" aria-hidden="true"><div id="gauge"></div></div>
+  <main id="main" aria-live="polite"></main>
+  <nav class="actions" id="nav"></nav>
+  <footer id="foot">Prototype of version 3 · made with Hero Made Fit</footer>
+</div>
+<script src="catalog.js"></script>
+<script>
+(function () {
+  "use strict";
+  // Tom's assessment, version 3: a clickable PROTOTYPE (11 Nov 2026). Nothing is sent or saved: no endpoint, no
+  // photo upload, no AI. Plan: docs/club/assessment-v3-plan-2026-11-04.md. Tom's three changes from his call with
+  // Luke on 10-11 Nov: time to train, equipment, and a cardio question that branches.
+  var C = window.HERO_CATALOG, K = C.club;
+  var TEST = {}; K.tests.forEach(function (t) { TEST[t.key] = t; });
+
+  var s = { step: 0, name: "", adult: false, toTom: false, age: "", sex: null, hFt: "", hIn: "", weight: "",
+    exp: null, does: {}, days: null, mins: null, gear: {}, goals: {}, ownGoal: "", note: "",
+    pushups: "", pullups: "", lifts: {}, tests: {}, kbUnit: "kg",
+    cardio: null, jFt: "", jIn: "", sprint: "", sprintDist: "40yd", runDist: "1_mile", runMin: "", runSec: "", far: "", farKind: "Run",
+    enjoy: {}, canJog: null, trains: {}, health: {}, healthNote: "", sleep: null, stress: null, nemesis: {}, whyNow: "", style: null, checkins: null, food: {}, allergy: "", budget: null, likes: "", dislikes: "", way: null, outfit: null, skipped: {}, done: false };
+
+  // --- Tom's new questions ------------------------------------------------------------------------
+  var DAYS = ["1–2", "3–4", "5–6", "Every day"];
+  var MINS = ["Under 20 min", "20–40 min", "40–60 min", "Over 60 min"];
+  // "Full gym" counts as having everything a gym usually has (not a mace).
+  var GEAR = [
+    { key: "body", name: "Just my body weight", ico: "🧍" }, { key: "bar", name: "Pull-up bar", ico: "➖" },
+    { key: "dip", name: "Dip bars or rings", ico: "⭕" }, { key: "db", name: "Dumbbells", ico: "🏋️" },
+    { key: "kb", name: "Kettlebells", ico: "🔔" }, { key: "mace", name: "Mace or club", ico: "🔨" },
+    { key: "barbell", name: "Barbell and rack", ico: "🏗️" }, { key: "machine", name: "Treadmill, bike or rower", ico: "🚴" },
+    { key: "gym", name: "A full gym", ico: "🏟️" }];
+  var IN_GYM = { bar: 1, dip: 1, db: 1, kb: 1, barbell: 1, machine: 1 };
+  function has(k) { return !!s.gear[k] || (!!s.gear.gym && !!IN_GYM[k]); }
+  var CARDIO = [
+    { key: "yes", name: "Yes, I do cardio", note: "Running, riding, swimming, rowing or similar.", ico: "🏃" },
+    { key: "want", name: "Not now, but I'd like to", note: "Tom can help you start.", ico: "🌱" },
+    { key: "no", name: "No, it's not for me", note: "No cardio questions. Endurance shows N/A.", ico: "🙅" }];
+  var ENJOY = ["Walking or hiking", "Running", "Cycling", "Swimming", "Rowing", "Jump rope", "A sport", "Not sure yet"];
+
+  // --- From the research review (Luke, 11 Nov 2026: proposals 1-6, 8 and 9) --------------------------
+  var HEALTH = ["None", "Back", "Knee", "Shoulder", "Wrist or elbow", "Hip or ankle", "Heart or blood pressure", "Chest pain or dizziness when active",
+    "Pregnant or recently had a baby", "Other"];
+  var DOCTOR = { "Heart or blood pressure": 1, "Chest pain or dizziness when active": 1, "Pregnant or recently had a baby": 1 };
+  var SLEEP = ["Under 6 h", "6–7 h", "7–8 h", "8+ h"], STRESS = ["Low", "Medium", "High"];
+  var NEMESIS = ["Not enough time", "Motivation", "Staying consistent", "Injury or pain", "Not knowing what to do", "Boredom", "Life got busy", "Nothing yet: I'm new"];
+  var STYLE = ["Tough love", "Encouraging", "Numbers and data"], CHECKINS = ["Daily", "A few times a week", "Weekly"];
+  // Quest stages instead of "11 / 17" (proposal 5); the bar starts a little filled.
+  var STAGES = [["Origin", ["start", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching"]],
+    ["Trials", ["strength", "belts", "cardio", "agility", "endurance", "start_cardio"]], ["Fuel", ["food", "budget", "likes"]],
+    ["Your hero", ["hero", "outfit"]], ["Send", ["review"]]];
+  function stageOf(st) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i][1].indexOf(st) !== -1) return i; return 0; }
+
+  // --- The rest of the v3 list (4 Nov 2026) ------------------------------------------------------
+  var EXP = ["New", "Under 1 year", "1–3 years", "3+ years"];
+  var DOES = ["Calisthenics", "Weights", "Running", "Martial arts", "A sport", "Other"];
+  var GOALS = ["Build muscle", "Lose fat", "Get stronger", "Calisthenics skills", "Endurance", "Mobility", "Perform better in my sport"];
+  var FOOD = ["None", "Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher", "Gluten-free", "Dairy-free", "Nut allergy", "Shellfish allergy", "Other"];
+  var BUDGET = ["Under $75", "$75–125", "$125–200", "Over $200", "Not sure"];
+  var OUTFITS = [
+    { key: "gi", name: "Martial artist", note: "A gi with wrapped hands, in your highest belt (white if none).", ico: "🥋" },
+    { key: "gear", name: "Training gear", note: "A fitted top, shorts or leggings, trainers.", ico: "👟" },
+    { key: "street", name: "Street hero", note: "A hoodie or bomber, joggers, trainers.", ico: "🧥" },
+    { key: "knight", name: "Armoured knight", note: "Light plate armour with a cloak.", ico: "🛡️" },
+    { key: "shadow", name: "Shadow runner", note: "A dark wrap outfit, hood and arm guards.", ico: "🌑" },
+    { key: "wanderer", name: "Wanderer", note: "A long travel coat, scarf and boots.", ico: "🧭" }];
+  var WAYS = [
+    { key: "body", name: "Full-body photo", note: "Looks most like you.", ico: "🧍" },
+    { key: "selfie", name: "Selfie plus a short description", note: "Your face, and you tell us the rest.", ico: "📷" },
+    { key: "describe", name: "Description only", note: "No photo.", ico: "✍️" }];
+
+  // --- Belts: only the tests at the person's level and for the gear they have -----------------------
+  // Level: Tom's tier-2 tests open at 8 pull-ups or 25 push-ups (v2's rule, K.tier2_from); below that, tier 1 only.
+  // Gear (new in v3): no pull-up bar, no pulling tests; dumbbell, kettlebell and mace tests only with that gear.
+  var NEEDS = { db_press: "db", lateral_raise: "db", weighted_pullup: "bar", weighted_dip: "dip",
+    kb_swing: "kb", goblet_squat: "kb", kb_catch: "kb", kb_press: "kb", one_arm_swing: "kb", hand_to_hand: "kb", mace_360: "mace" };
+  var BELT_GROUPS = [
+    { key: "pulling", name: "Pulling · Monkey 🐒", base: "pullups", need: "bar",
+      tests: ["dead_hang_s", "scap_pullups", "assisted_pullups", "aus_rows", "one_arm_hang_s", "hanging_l_sit_s", "skin_the_cat", "l_sit_chinups", "muscle_ups"] },
+    { key: "pushing", name: "Pushing · Tiger 🐅", base: "pushups", tests: ["kneeling_pushups", "single_arm_plank_s", "db_press", "pike_pushups", "diamond_pushups", "lateral_raise", "one_arm_pushups"] },
+    { key: "legs", name: "Legs · Panda 🐼", tests: ["squats", "lunges", "calf_raises", "pistols"] },
+    { key: "weighted", name: "Weighted calisthenics", base: "pullups", tier2only: true, gate: "Do you train with added weight, like a dip belt or a vest?", tests: ["weighted_pullup", "weighted_dip"] },
+    { key: "kb", name: "Kettlebell 🔔", need: "kb", gate: "Do you train with kettlebells?", tests: ["kb_swing", "goblet_squat", "kb_catch"] },
+    { key: "mace", name: "Mace 🔨", need: "mace", gate: "Do you train with a mace or club?", tests: ["mace_360"] }];
+  // Weighted, kettlebell and mace tests sit behind a yes/no (Luke, 11 Nov 2026: most people have no numbers for
+  // these). Weighted only comes up at Tom's tier-2 pull-up number, and only with a bar or dip bars.
+  function gateShown(g) {
+    if (!g.gate) return false;
+    if (g.key === "weighted") return tier2("pullups") && (has("bar") || has("dip"));
+    return has(g.need);
+  }
+  // Tests far below the person's level are left out (proposal 9; cut-offs for Tom to confirm).
+  var BELOW = { kneeling_pushups: ["pushups", 10], assisted_pullups: ["pullups", 5], scap_pullups: ["pullups", 5] };
+  function tier2(base) { return !!base && parseInt(s[base], 10) >= K.tier2_from[base]; }
+  function beltTests(g) {
+    if (g.need && !has(g.need)) return [];
+    if (g.tier2only && !tier2(g.base)) return [];
+    if (g.gate && (!gateShown(g) || s.trains[g.key] !== "yes")) return [];
+    return g.tests.filter(function (k) {
+      var t = TEST[k]; if (!t) return false;
+      if (NEEDS[k] && !has(NEEDS[k])) return false;
+      if (!g.base || g.tier2only) return true;
+      if (BELOW[k] && parseInt(s[BELOW[k][0]], 10) >= BELOW[k][1]) return false;
+      return tier2(g.base) ? t.tier === 2 || k === "dead_hang_s" || k === "single_arm_plank_s" : t.tier === 1;
+    });
+  }
+  function beltCount() { return BELT_GROUPS.reduce(function (n, g) { return n + beltTests(g).length; }, 0); }
+
+  // --- Flow ---------------------------------------------------------------------------------------
+  // Seconds per screen, for the "about N min left" hint.
+  var ETA = { start: 30, basics: 30, health: 20, recovery: 10, nemesis: 20, coaching: 10, training: 15, time: 10, gear: 15, goals: 20, strength: 30, belts: 60, cardio: 5, agility: 20,
+    endurance: 20, start_cardio: 15, food: 20, budget: 10, likes: 30, hero: 30, outfit: 15, review: 15 };
+  function steps() {
+    var out = ["start", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching", "strength", "belts", "cardio", "agility"];
+    if (s.cardio === "yes") out.push("endurance");
+    if (s.cardio === "want") out.push("start_cardio");
+    return out.concat(["food", "budget", "likes", "hero", "outfit", "review"]);
+  }
+  // The skip button sits right under the title, so nobody thinks they must fill everything in (Luke, 11 Nov 2026).
+  var SKIPPABLE = { strength: "I don't know: skip", belts: "Skip the belt tests", agility: "I don't know: skip", endurance: "I don't know: skip", start_cardio: "Skip this" };
+  function lifts() { return !!s.does.Weights || has("barbell"); }
+  function canGo() {
+    var st = steps()[s.step];
+    if (s.skipped[st]) return true;
+    switch (st) {
+      case "start": return s.adult && s.toTom && s.name.trim().length > 0;
+      case "basics": var a = parseInt(s.age, 10); return a >= 18 && a <= 100 && !!s.sex;
+      case "training": return !!s.exp && Object.keys(s.does).length > 0;
+      case "time": return !!s.days && !!s.mins;
+      case "gear": return Object.keys(s.gear).length > 0;
+      case "goals": return Object.keys(s.goals).length > 0 || s.ownGoal.trim().length > 0;
+      case "health": return Object.keys(s.health).length > 0;
+      case "recovery": return !!s.sleep && !!s.stress;
+      case "nemesis": return Object.keys(s.nemesis).length > 0;
+      case "coaching": return !!s.style && !!s.checkins;
+      case "cardio": return !!s.cardio;
+      case "food": return Object.keys(s.food).length > 0;
+      case "budget": return !!s.budget;
+      case "hero": return !!s.way;
+      case "outfit": return !!s.outfit;
+      default: return true;
+    }
+  }
+
+  // --- Little builders (as v2) -----------------------------------------------------------------------
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    for (var k in (attrs || {})) { var v = attrs[k]; if (v == null || v === false) continue;
+      if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), v); else if (k === "text") e.textContent = v; else e.setAttribute(k, v === true ? "" : v); }
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+  function head(area, title, sub, isNew) { return h("div", {}, [area ? h("div", { class: "area" }, [area, isNew ? h("span", { class: "newtag", text: "NEW FOR TOM" }) : null]) : null,
+    h("h1", { text: title }), sub ? h("p", { class: "sub", text: sub }) : null]); }
+  function label(t) { return h("div", { class: "label", text: t }); }
+  function field(lbl, input, unit) { return h("div", {}, [label(lbl), h("div", { class: "field" }, [input, unit ? h("span", { class: "unit", text: unit }) : null])]); }
+  function numIn(key, opts) {
+    opts = opts || {};
+    var i = h("input", { type: "text", inputmode: opts.decimal ? "decimal" : "numeric", placeholder: opts.ph || "0", value: s[key] || "", autocomplete: "off", "aria-label": opts.aria || key,
+      oninput: function () { var v = i.value.replace(opts.decimal ? /[^0-9.]/g : /[^0-9]/g, "").slice(0, opts.max || 4); if (v !== i.value) i.value = v; s[key] = v; delete s.skipped[steps()[s.step]]; bar(); } });
+    return i;
+  }
+  function num(key, lbl, unit, opts) { return field(lbl, numIn(key, opts), unit); }
+  function textIn(key, ph, max) {
+    var i = h("input", { type: "text", placeholder: ph, value: s[key], maxlength: max || 120, autocomplete: "off",
+      oninput: function () { s[key] = i.value; bar(); } });
+    i.style.font = "400 17px var(--body)";
+    return i;
+  }
+  function one(lbl, options, key) {
+    return h("div", {}, [lbl ? label(lbl) : null, h("div", { class: "chips" }, options.map(function (o) {
+      return h("button", { type: "button", class: "chip" + (s[key] === o ? " on" : ""), "aria-pressed": s[key] === o ? "true" : "false", text: o,
+        onclick: function () { s[key] = o; render(); } }); }))]);
+  }
+  // "None" clears the others, and any other pick clears "None".
+  function many(lbl, options, key, none) {
+    return h("div", {}, [lbl ? label(lbl) : null, h("div", { class: "chips" }, options.map(function (o) {
+      var on = !!s[key][o];
+      return h("button", { type: "button", class: "chip multi" + (on ? " on" : ""), "aria-pressed": on ? "true" : "false", text: o,
+        onclick: function () { if (on) delete s[key][o]; else { if (o === none) s[key] = {}; else delete s[key][none]; s[key][o] = true; } render(); } }); }))]);
+  }
+  function opts(list, key, multi) {
+    return h("div", { class: "optlist" }, list.map(function (o) {
+      var on = multi ? !!s[key][o.key] : s[key] === o.key;
+      return h("button", { type: "button", class: "opt" + (on ? " on" : ""), "aria-pressed": on ? "true" : "false",
+        onclick: function () {
+          if (!multi) s[key] = o.key;
+          else if (on) delete s[key][o.key];
+          else { if (o.key === "body") s[key] = {}; else delete s[key].body; s[key][o.key] = true; }
+          if (key === "cardio") { delete s.skipped.endurance; delete s.skipped.start_cardio; }
+          render(); } },
+        [h("span", { class: "ico", text: o.ico }), h("span", {}, [o.name, o.note ? h("small", { text: o.note }) : null])]); }));
+  }
+  function skipBtn(st, text) {
+    var on = !!s.skipped[st];
+    return h("button", { type: "button", class: "skip" + (on ? " on" : ""), text: on ? "Skipped: shows N/A (tap to undo)" : text || "I don't know: skip",
+      onclick: function () { if (on) delete s.skipped[st]; else s.skipped[st] = true; render(); } });
+  }
+  function testField(k) {
+    var t = TEST[k], v = s.tests[k];
+    if (t.kind === "check") {
+      return h("div", {}, [label(t.name), h("p", { class: "how", text: t.how }), h("div", { class: "chips" }, [[true, "Yes"], [false, "Not yet"]].map(function (o) {
+        return h("button", { type: "button", class: "chip" + (v === o[0] ? " on" : ""), text: o[1], onclick: function () { s.tests[k] = v === o[0] ? null : o[0]; render(); } }); }))]);
+    }
+    function box(sub, unit, dec, max) {
+      var cur = t.kind === "set" ? (s.tests[k] = s.tests[k] || { weight: "", reps: "" }) : null;
+      var i = h("input", { type: "text", inputmode: dec ? "decimal" : "numeric", placeholder: "0", autocomplete: "off", "aria-label": t.name + (sub ? " " + sub : ""),
+        value: cur ? cur[sub] : (v != null ? v : ""),
+        oninput: function () { var x = i.value.replace(dec ? /[^0-9.]/g : /[^0-9]/g, "").slice(0, max); if (x !== i.value) i.value = x; if (cur) cur[sub] = x; else s.tests[k] = x; } });
+      return h("div", { class: "field" }, [i, h("span", { class: "unit", text: unit })]);
+    }
+    var unit = t.unit === "kg" ? s.kbUnit : t.unit;
+    return h("div", {}, [label(t.name), h("p", { class: "how", text: t.how }),
+      t.kind === "set" ? h("div", { class: "pair" }, [box("weight", unit, true, 5), box("reps", "reps", false, 3)]) : box(null, t.kind === "seconds" ? "sec" : "reps", false, 4)]);
+  }
+
+  function screen() {
+    var st = steps()[s.step], out = screenBody(st);
+    if (SKIPPABLE[st]) out.splice(1, 0, skipBtn(st, SKIPPABLE[st]));
+    return out;
+  }
+  function screenBody(st) {
+    switch (st) {
+      case "start":
+        var nm = textIn("name", "First name or nickname", 40); nm.style.font = "700 22px var(--body)";
+        return [h("div", { class: "preview", text: "Prototype of version 3 for Luke and Tom. Nothing you type is sent or saved." }),
+          head("Coach Tom", "Your fitness assessment", "About 5 minutes. See your stats, belts and rank, get your own anime hero, and get Coach Tom's course picks."),
+          field("First name or nickname", nm),
+          h("p", { class: "promise", text: "Don't know a number? Skip it. Every stats question has a skip button, and a skipped stat just doesn't count." }),
+          h("label", { class: "toggle" }, ["I confirm I'm 18 or older", h("input", { type: "checkbox", checked: s.adult, onchange: function (e) { s.adult = e.target.checked; bar(); } })]),
+          h("label", { class: "toggle", style: "font:600 15px/1.4 var(--body)" }, ["I agree my answers go to Coach Tom, who uses them to coach me",
+            h("input", { type: "checkbox", checked: s.toTom, onchange: function (e) { s.toTom = e.target.checked; bar(); } })])];
+      case "basics":
+        return [head("Basics", "About you", "Weight is optional. It makes Strength fairer."),
+          h("div", { class: "pair" }, [num("age", "Age", "yrs", { max: 3 }), h("div", {}, [label("Sex"), h("div", { class: "seg" }, ["Male", "Female"].map(function (x) {
+            return h("button", { type: "button", class: s.sex === x ? "on" : "", text: x, onclick: function () { s.sex = x; render(); } }); }))])]),
+          h("div", { class: "pair" }, [num("hFt", "Height", "ft", { max: 1 }), num("hIn", " ", "in", { max: 2 })]),
+          num("weight", "Weight (optional)", "lb", { decimal: true, max: 5 })];
+      case "training":
+        return [head("Training", "Your training so far"), one("How long have you trained?", EXP, "exp"), many("What do you mostly do? Tap any.", DOES, "does")];
+      case "time":
+        return [head("Training time", "How much time do you have?", "So Tom can build a plan that fits your week.", true),
+          one("Days a week you can train", DAYS, "days"), one("Time per workout", MINS, "mins")];
+      case "gear":
+        return [head("Equipment", "What can you train with?", "Tap everything you have at home or at your gym. Your tests and Tom's plan only use what you have.", true),
+          opts(GEAR, "gear", true)];
+      case "goals":
+        var own = textIn("ownGoal", "Or write your own", 80), nt = textIn("note", "One line, optional", 160);
+        return [head("Goals", "What do you want?", "Tap as many as you like."), many(null, GOALS, "goals"), own, field("Anything else Tom should know?", nt)];
+      case "health":
+        var hn = textIn("healthNote", "e.g. old knee injury, sore on stairs", 160), doc = Object.keys(s.health).some(function (k) { return DOCTOR[k]; });
+        return [head("Health", "Injuries and health", "So Tom can keep you safe. Tap any that apply.", true), many(null, HEALTH, "health", "None"),
+          s.health.None ? null : field("Anything Tom should know about it? (optional)", hn),
+          doc ? h("div", { class: "promise", text: "Please check with your doctor before starting a new training plan. Tom will see this and adjust." }) : null];
+      case "recovery":
+        return [head("Recovery", "Sleep and stress", "Both change how hard Tom should push you.", true), one("Usual sleep a night", SLEEP, "sleep"), one("Stress lately", STRESS, "stress")];
+      case "nemesis":
+        return [head("Your nemesis", "Every hero has a nemesis", "What's gotten in the way before? Tap any.", true), many(null, NEMESIS, "nemesis", "Nothing yet: I'm new"),
+          field("Why now? (optional)", textIn("whyNow", "One line", 160))];
+      case "coaching":
+        return [head("Coaching", "How should Tom coach you?", null, true), one("Coaching style", STYLE, "style"), one("Check-ins", CHECKINS, "checkins")];
+      case "strength":
+        var kids = [head("Strength", "Your strength", "Your best set, done strictly, in the last 3 months. A good guess is fine."),
+          h("div", { class: "pair" }, [num("pushups", "Push-ups in a row", "reps"), num("pullups", "Strict pull-ups", "reps")])];
+        if (lifts()) {
+          kids.push(h("p", { class: "note", text: "You lift: add a best bench, squat or deadlift (one is enough)." }));
+          kids.push(h("div", { class: "pair" }, C.lifts.map(function (l) {
+            var i = h("input", { type: "text", inputmode: "decimal", placeholder: "0", value: s.lifts[l.key] || "", "aria-label": l.name,
+              oninput: function () { var x = i.value.replace(/[^0-9.]/g, "").slice(0, 5); if (x !== i.value) i.value = x; s.lifts[l.key] = x; } });
+            return field(l.name, i, "lb"); })));
+        }
+        return kids;
+      case "belts":
+        var groups = BELT_GROUPS.filter(function (g) { return beltTests(g).length || gateShown(g); });
+        var out = [head("Tom's belts", "Quick belt tests", "Only tests at your level and for your equipment. Your best in the last 3 months; a good guess is fine. Leave blank anything you haven't tried.")];
+        if (!tier2("pullups") && !tier2("pushups")) out.push(h("p", { class: "note", text: "Harder tests appear at " + K.tier2_from.pullups + " pull-ups or " + K.tier2_from.pushups + " push-ups." }));
+        groups.forEach(function (g) {
+          var gate = g.gate ? [h("div", { style: "margin-bottom:10px" }, [label(g.gate), h("div", { class: "chips" }, [["yes", "Yes"], ["no", "No"]].map(function (o) {
+            return h("button", { type: "button", class: "chip" + (s.trains[g.key] === o[0] ? " on" : ""), "aria-pressed": s.trains[g.key] === o[0] ? "true" : "false", text: o[1],
+              onclick: function () { s.trains[g.key] = o[0]; render(); } }); }))])] : [];
+          out.push(h("div", { class: "sheet" }, [h("h2", { text: g.name.toUpperCase() })].concat(gate,
+            g.key === "kb" && s.trains.kb === "yes" ? [h("div", { style: "margin-bottom:10px" }, [label("Kettlebells in"), h("div", { class: "seg" }, ["kg", "lb"].map(function (u) {
+              return h("button", { type: "button", class: s.kbUnit === u ? "on" : "", text: u, onclick: function () { s.kbUnit = u; render(); } }); }))])] : [],
+            [h("div", { style: "display:grid;gap:14px" }, beltTests(g).map(testField))])));
+        });
+        return out;
+      case "cardio":
+        return [head("Cardio", "Do you do cardio?", "If not, we skip the cardio questions for you.", true), opts(CARDIO, "cardio")];
+      case "agility":
+        var k2 = [head("Agility", s.cardio === "yes" ? "Jump or sprint" : "Standing broad jump", s.cardio === "yes" ? "Either one scores Agility. A good guess is fine." : "No running. Try it now if you have a little space, or give a good guess."),
+          h("div", { class: "sheet" }, [h("h2", { text: "TRY IT NOW" }), h("ol", { class: "howto" }, [
+            h("li", { text: "Stand with your toes behind a line." }), h("li", { text: "Swing your arms and jump forward as far as you can, landing on both feet." }),
+            h("li", { text: "Measure from the line to the back of your heels. Best of three." })])]),
+          h("div", { class: "pair" }, [num("jFt", "Broad jump", "ft", { max: 1 }), num("jIn", " ", "in", { max: 2 })])];
+        if (s.cardio === "yes") {
+          k2.push(h("div", {}, [label("Or a sprint time"), h("div", { class: "seg" }, [["40yd", "40 yards"], ["100m", "100 m"]].map(function (o) {
+            return h("button", { type: "button", class: s.sprintDist === o[0] ? "on" : "", text: o[1], onclick: function () { s.sprintDist = o[0]; render(); } }); }))]));
+          k2.push(num("sprint", "Sprint time", "sec", { decimal: true, max: 5 }));
+        }
+        return k2;
+      case "endurance":
+        var dist = h("div", { class: "seg" }, C.runs.map(function (r) { return h("button", { type: "button", class: s.runDist === r.key ? "on" : "", text: r.name, onclick: function () { s.runDist = r.key; render(); } }); }));
+        var kind = h("div", { class: "seg" }, ["Run", "Ride", "Swim"].map(function (x) { return h("button", { type: "button", class: s.farKind === x ? "on" : "", text: x, onclick: function () { s.farKind = x; render(); } }); }));
+        return [head("Endurance", "Your cardio", "A timed run in the last 3 months, or your longest session in the past year. Either one scores Endurance. A good guess is fine."),
+          h("div", {}, [label("A timed run"), dist]),
+          h("div", { class: "pair" }, [num("runMin", "Time", "min", { max: 3 }), num("runSec", " ", "sec", { max: 2 })]),
+          h("p", { class: "note", text: "Or:" }),
+          h("div", {}, [label("Your longest in the past year"), kind]), num("far", "Distance", "mi", { decimal: true, max: 5 })];
+      case "start_cardio":
+        return [head("Cardio", "Getting started", "No times or stats. This just tells Tom where to begin.", true),
+          many("What would you enjoy? Tap any.", ENJOY, "enjoy"),
+          one("Can you walk briskly or jog for 20 minutes without stopping?", ["Yes", "Not yet", "Not sure"], "canJog")];
+      case "food":
+        var al = textIn("allergy", "e.g. sesame, eggs", 120);
+        return [head("Food", "Restrictions and allergies", "Tom's nutrition plan never includes these."), many(null, FOOD, "food", "None"),
+          field("Other allergies or foods you can't eat", al)];
+      case "budget":
+        return [head("Food", "Weekly grocery budget"), one(null, BUDGET, "budget")];
+      case "likes":
+        return [head("Food", "Likes and dislikes", "One line each. Both are optional."), field("Foods you like", textIn("likes", "e.g. steak, rice, berries")),
+          field("Foods you don't like", textIn("dislikes", "e.g. mushrooms"))];
+      case "hero":
+        return [head("Your hero", "How should we draw you?", "Your anime-style hero. A photo needs your OK on the next screen in the real version."), opts(WAYS, "way"),
+          h("p", { class: "note", text: "Prototype: the consent, photo release and camera steps from version 2 go here. The full-body photo wording needs Luke's OK before it goes live." })];
+      case "outfit":
+        return [head("Your hero", "Pick an outfit", "Each one is drawn to fit your body."), opts(OUTFITS, "outfit")];
+      case "review":
+        return [head(null, "Ready, " + (s.name.trim() || "hero") + "?", "Check your answers, then send."), h("div", { class: "sheet" }, [h("h2", { text: "CHARACTER SHEET" }), tomSheet(false)])];
+    }
+  }
+
+  // --- What Tom gets: one row per person on his dashboard (here, as a list) -------------------------
+  function list(o) { return Object.keys(o).join(", "); }
+  function ftIn(f, i) { return f ? f + " ft " + (i || 0) + " in" : null; }
+  function tomSheet(forTom) {
+    var rows = [];
+    function row(k, v, isNew) { if (v == null || v === "") v = "–"; rows.push(h("dt", { text: k }), h("dd", { class: isNew && forTom ? "new" : null, text: v })); }
+    function sk(st, v) { return s.skipped[st] ? "skipped (N/A)" : v; }
+    row("Name", s.name.trim());
+    row("Basics", [s.age && s.age + " yrs", s.sex, ftIn(s.hFt, s.hIn), s.weight && s.weight + " lb"].filter(Boolean).join(", "));
+    row("Training", [s.exp, list(s.does)].filter(Boolean).join("\n"));
+    row("Time", s.days && s.mins ? s.days + " days a week, " + s.mins.toLowerCase() + " each" : null, true);
+    row("Equipment", GEAR.filter(function (g) { return s.gear[g.key]; }).map(function (g) { return g.name; }).join("\n"), true);
+    row("Goals", [list(s.goals), s.ownGoal.trim()].filter(Boolean).join(", ") + (s.note.trim() ? "\nNote: " + s.note.trim() : ""));
+    row("Health", list(s.health) + (s.healthNote.trim() && !s.health.None ? "\n" + s.healthNote.trim() : ""), true);
+    row("Recovery", s.sleep && s.stress ? "Sleep " + s.sleep.toLowerCase() + " · stress " + s.stress.toLowerCase() : null, true);
+    row("Nemesis", list(s.nemesis) + (s.whyNow.trim() ? "\nWhy now: " + s.whyNow.trim() : ""), true);
+    row("Coaching", s.style && s.checkins ? s.style + " · check-ins " + s.checkins.toLowerCase() : null, true);
+    var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; }).map(function (l) { return l.name + " " + s.lifts[l.key] + " lb"; });
+    row("Strength", sk("strength", [s.pushups && s.pushups + " push-ups", s.pullups && s.pullups + " pull-ups"].concat(lf).filter(Boolean).join("\n")));
+    var bt = Object.keys(s.tests).filter(function (k) { var v = s.tests[k]; return v != null && v !== "" && !(v.weight === "" && v.reps === ""); }).length;
+    var tr = BELT_GROUPS.filter(function (g) { return gateShown(g) && s.trains[g.key]; }).map(function (g) { return { weighted: "Added weight", kb: "Kettlebells", mace: "Mace" }[g.key] + ": " + s.trains[g.key]; });
+    row("Belt tests", sk("belts", (bt ? bt + " answered" : "none answered") + (tr.length ? "\n" + tr.join(" · ") : "")));
+    var cardio = { yes: "Does cardio", want: "Doesn't yet, wants to start", no: "Not into cardio" }[s.cardio];
+    row("Cardio", cardio + (s.cardio === "want" && !s.skipped.start_cardio ? "\nWould enjoy: " + (list(s.enjoy) || "–") + "\n20 min without stopping: " + (s.canJog || "–") : ""), true);
+    var sp = s.cardio === "yes" && s.sprint ? (s.sprintDist === "100m" ? "100 m " : "40 yd ") + s.sprint + " s" : null;
+    row("Agility", sk("agility", [s.jFt && "Broad jump " + ftIn(s.jFt, s.jIn), sp].filter(Boolean).join("\n")));
+    var run = s.runMin ? (C.runs.filter(function (r) { return r.key === s.runDist; })[0] || {}).name + " in " + s.runMin + ":" + ("0" + (s.runSec || 0)).slice(-2) : null;
+    row("Endurance", s.cardio === "no" ? "N/A (not into cardio)" : s.cardio === "want" ? "N/A (not doing cardio yet)" : sk("endurance", [run, s.far && "Longest " + s.farKind.toLowerCase() + " " + s.far + " mi"].filter(Boolean).join("\n")));
+    row("Food", [list(s.food), s.allergy.trim() && "Also: " + s.allergy.trim(), s.budget && "Budget " + s.budget + " a week",
+      s.likes.trim() && "Likes: " + s.likes.trim(), s.dislikes.trim() && "Dislikes: " + s.dislikes.trim()].filter(Boolean).join("\n"));
+    row("Hero", [(WAYS.filter(function (w) { return w.key === s.way; })[0] || {}).name, (OUTFITS.filter(function (o) { return o.key === s.outfit; })[0] || {}).name].filter(Boolean).join(" · "));
+    return h("dl", { class: "tomrow" }, rows);
+  }
+  // --- The person's result: a SAMPLE layout (11 Nov 2026) -------------------------------------------
+  // Luke, 11 Nov: a stat that wasn't done is hidden, not N/A; a rank from fewer stats says which ("ranked on
+  // Strength"), with no "add more" line. The numbers here are rough stand-ins so each run looks different; the real
+  // scores, ranks, percentiles and belts come from the Mac's scoring (club.py), as in version 2.
+  function clamp(v) { return Math.max(5, Math.min(95, Math.round(v))); }
+  function letter(v) { return v < 20 ? "E" : v < 35 ? "D" : v < 50 ? "C" : v < 65 ? "B" : v < 80 ? "A" : "S"; }
+  function stats() {
+    var out = [], p = parseInt(s.pushups, 10) || 0, u = parseInt(s.pullups, 10) || 0;
+    var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; });
+    if (!s.skipped.strength && (s.pushups !== "" || s.pullups !== "" || lf.length)) {
+      out.push({ key: "STR", name: "Strength", value: clamp(p * 0.6 + u * 2.5 + (lf.length ? 5 : 0)),
+        parts: [s.pushups !== "" && p + " push-ups in a row", s.pullups !== "" && u + " strict pull-ups"].concat(lf.map(function (l) { return l.name + " " + s.lifts[l.key] + " lb"; })).filter(Boolean),
+        next: [s.pushups !== "" && (p + 1) + (p + 1 === 1 ? " push-up" : " push-ups"), s.pullups !== "" && (u + 1) + (u + 1 === 1 ? " strict pull-up" : " pull-ups")].filter(Boolean) });
+    }
+    var j = (parseInt(s.jFt, 10) || 0) * 12 + (parseInt(s.jIn, 10) || 0), sp = s.cardio === "yes" ? parseFloat(s.sprint) : NaN;
+    if (!s.skipped.agility && (j > 0 || sp > 0)) {
+      var av = Math.max(j > 0 ? (j - 48) : 0, sp > 0 ? (s.sprintDist === "100m" ? (18 - sp) * 8 : (7 - sp) * 30) : 0);
+      out.push({ key: "AGI", name: "Agility", value: clamp(av),
+        parts: [j > 0 && "Broad jump " + Math.floor(j / 12) + " ft " + (j % 12) + " in", sp > 0 && (s.sprintDist === "100m" ? "100 m" : "40 yards") + " in " + sp + " s"].filter(Boolean),
+        next: [j > 0 && "Broad jump " + Math.floor((j + 1) / 12) + " ft " + ((j + 1) % 12) + " in"].filter(Boolean) });
+    }
+    var m = (parseInt(s.runMin, 10) || 0) + (parseInt(s.runSec, 10) || 0) / 60, far = parseFloat(s.far);
+    if (s.cardio === "yes" && !s.skipped.endurance && (m > 0 || far > 0)) {
+      var ev = Math.max(m > 0 ? (s.runDist === "5k" ? (40 - m) * 2.5 : (14 - m) * 7) : 0, far > 0 ? far * 3 : 0);
+      var rn = (C.runs.filter(function (r) { return r.key === s.runDist; })[0] || {}).name;
+      out.push({ key: "END", name: "Endurance", value: clamp(ev),
+        parts: [m > 0 && rn + " in " + s.runMin + ":" + ("0" + (s.runSec || 0)).slice(-2), far > 0 && "Longest " + s.farKind.toLowerCase() + " " + far + " mi"].filter(Boolean),
+        next: [m > 0 && rn + " a little faster"].filter(Boolean) });
+    }
+    return out;
+  }
+  var BELT_COLOUR = { White: "#f2f2ee", Yellow: "#f2c11d" };
+  function beltRow(g) {
+    var b = tier2(g.base) ? { belt: "Yellow", level: 25, stripes: 0 } : { belt: "White", level: 10, stripes: 2 };
+    var tip = h("div", { class: "tip" }); for (var i = 0; i < b.stripes; i++) tip.appendChild(h("i"));
+    var bar = h("div", { class: "belt", "aria-hidden": "true" }, [tip]); bar.style.background = BELT_COLOUR[b.belt];
+    return h("div", { class: "disc" }, [h("div", { class: "t" }, [h("b", { text: g.name.split(" · ")[0].replace(/ [🔔🔨]$/u, "").toUpperCase() }), h("span", { text: (g.name.split(" · ")[1] || "") })]),
+      h("div", { class: "beltline" }, [bar, h("div", { class: "beltname" }, [b.belt + " Belt", h("small", { text: "Level " + b.level + (b.stripes ? " · " + b.stripes + " stripes" : "") + " (sample)" })])])]);
+  }
+  // "Built around you" (proposal 8): the answers Tom's plan uses, so the person sees they were read.
+  function builtAround() {
+    var items = [];
+    if (s.days && s.mins) items.push(s.days + " days a week, " + s.mins.toLowerCase().replace("min", "minutes") + " each");
+    var gear = GEAR.filter(function (g) { return s.gear[g.key]; }).map(function (g) { return g.name.toLowerCase(); });
+    if (gear.length) items.push(s.gear.body ? "Body weight only, no equipment" : "Your equipment: " + gear.join(", "));
+    var hurt = Object.keys(s.health).filter(function (k) { return k !== "None" && k !== "Other"; });
+    if (hurt.length) items.push("Going easy on: " + hurt.join(", ").toLowerCase());
+    var food = Object.keys(s.food).filter(function (k) { return k !== "None" && k !== "Other"; }).concat(s.allergy.trim() ? [s.allergy.trim()] : []);
+    if (food.length) items.push("Food: " + food.join(", ").toLowerCase());
+    if (s.cardio === "want") items.push("Starting cardio" + (Object.keys(s.enjoy).length ? " with " + list(s.enjoy).toLowerCase() : ""));
+    if (s.cardio === "no") items.push("No cardio");
+    var goals = [list(s.goals), s.ownGoal.trim()].filter(Boolean).join(", ");
+    if (goals) items.push("Goals: " + goals.toLowerCase());
+    return h("div", { class: "sheet" }, [h("h2", { text: "BUILT AROUND YOU" }), h("div", { class: "note", style: "margin-bottom:8px", text: "Coach Tom builds your plan around:" }),
+      h("ul", { class: "howto", style: "color:var(--text)" }, items.map(function (x) { return h("li", { text: x }); }))]);
+  }
+  function resultScreen() {
+    var st = stats(), names = st.map(function (x) { return x.name; });
+    var avg = st.length ? st.reduce(function (t, x) { return t + x.value; }, 0) / st.length : 0, rk = letter(avg);
+    var on = names.length === 3 ? null : names.length === 2 ? names[0] + " and " + names[1] : names[0];
+    var groups = s.skipped.belts ? [] : BELT_GROUPS.filter(function (g) { return beltTests(g).length; });
+    var outfit = OUTFITS.filter(function (o) { return o.key === s.outfit; })[0] || OUTFITS[1];
+    var top = groups.some(function (g) { return tier2(g.base); }) ? "yellow" : "white";
+    var out = [h("div", { class: "preview", text: "Sample result: the layout is real, the numbers are stand-ins. The real scores, ranks and belts come from the Mac." })];
+    var sys = [h("h2", { text: "SYSTEM · STATUS" })];
+    if (st.length) {
+      sys.push(h("div", { class: "hex", text: rk }), h("div", { class: "rankline", text: rk + "-RANK HERO" }));
+      if (on) sys.push(h("p", { class: "note", style: "text-align:center;margin:4px 0 8px", text: "Ranked on " + on }));
+      st.forEach(function (x) {
+        sys.push(h("div", { class: "stat" }, [h("b", { text: x.key }), h("span", { class: "nm", text: x.name }), h("span", { class: "rk", text: letter(x.value) }), h("span", { class: "val", text: String(x.value) }),
+          h("div", { class: "bar" }, [h("div", { style: "width:" + x.value + "%" })]),
+          h("div", { class: "why", text: x.parts.join("\n") + "\nPercentile for your age and sex shows here." }),
+          x.next.length ? h("div", { class: "next" }, [h("b", { text: "▲ NEXT" }), x.next.join(" · ")]) : null]));
+      });
+    } else {
+      sys.push(h("div", { class: "rankline", text: "YOUR HERO" }), h("p", { class: "note", style: "text-align:center", text: "No stats answered, so no rank. Your belts and hero are below." }));
+    }
+    out.push(head("Your result", (s.name.trim() || "Hero") + (st.length ? ", " + rk + "-rank hero" : "")), h("div", { class: "win" }, sys));
+    out.push(builtAround());
+    if (groups.length) out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S BELTS" })].concat(groups.map(beltRow))));
+    out.push(h("div", { class: "sheet" }, [h("h2", { text: "YOUR HERO" }),
+      h("div", { style: "aspect-ratio:2/3;max-width:100%;border:1px dashed var(--gold-dim);display:grid;place-items:center;text-align:center;padding:16px;color:var(--muted);font:500 14px/1.5 var(--body)" },
+        [h("div", {}, [h("div", { style: "font-size:44px", text: outfit.ico }), "Your anime hero, drawn as the " + outfit.name.toLowerCase() + (outfit.key === "gi" ? ", in a " + top + " belt" : "") + ".", h("br"), "About 2 minutes after you send."])])]));
+    out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S PICKS" }),
+      h("div", { style: "font:400 14px/1.5 var(--body)", text: "Tom's course recommendations for your goals (" + ([list(s.goals), s.ownGoal.trim()].filter(Boolean).join(", ") || "your goals") + ") show here." }),
+      h("p", { class: "promise", style: "margin:12px 0 0", text: "Coach Tom is reviewing your nutrition plan. It will show here once he sends it." })]));
+    return out;
+  }
+  function doneScreen() {
+    var flags = [];
+    if (s.cardio === "want") flags.push("Wants to start cardio");
+    if (s.cardio === "no") flags.push("No cardio");
+    if (s.mins === "Under 20 min" || s.days === "1–2") flags.push("Short on time");
+    if (s.gear.body && Object.keys(s.gear).length === 1) flags.push("Bodyweight only");
+    Object.keys(s.health).filter(function (k) { return k !== "None"; }).forEach(function (k) { flags.push(DOCTOR[k] ? "Check with doctor: " + k : "Injury: " + k); });
+    if (s.sleep === "Under 6 h") flags.push("Short on sleep");
+    if (s.stress === "High") flags.push("High stress");
+    return resultScreen().concat([head("Prototype", "What Coach Tom sees", "Sent to his dashboard (not really: nothing leaves this page)."),
+      h("div", { class: "win" }, [h("h2", { text: "CLIENT ROW" }),
+        flags.length ? h("div", { style: "margin-bottom:10px" }, flags.map(function (f) { return h("span", { class: "flag", text: f.toUpperCase() }); })) : null,
+        tomSheet(true),
+        h("p", { class: "note", style: "margin:10px 0 0", text: "Gold = the questions new in version 3 (Tom's and the review's). On his dashboard this is one row per person, with a CSV download, an AI summary and a nutrition draft." })]),
+      h("button", { type: "button", class: "btn", text: "Start again", onclick: function () { location.reload(); } })]);
+  }
+
+  // --- Render ---------------------------------------------------------------------------------------
+  function bar() {
+    var all = steps(), n = s.step, left = all.slice(n).reduce(function (t, k) { return t + (ETA[k] || 15); }, 0);
+    var sg = stageOf(all[n]);
+    document.getElementById("count").textContent = s.done ? "Quest complete" : "Stage " + (sg + 1) + " of " + STAGES.length + " · " + STAGES[sg][0] + " · about " + Math.max(1, Math.round(left / 60)) + " min";
+    document.getElementById("gauge").style.width = (s.done ? 100 : 8 + (n / all.length) * 92) + "%";
+    var go = document.querySelector("nav.actions .go"); if (go) go.disabled = !canGo();
+  }
+  function nav() {
+    var e = document.getElementById("nav"); e.replaceChildren();
+    if (s.done) return;
+    var all = steps(), last = s.step === all.length - 1;
+    if (s.step > 0) e.appendChild(h("button", { type: "button", text: "Back", onclick: function () { s.step--; render(); window.scrollTo(0, 0); } }));
+    e.appendChild(h("button", { type: "button", class: "go", text: last ? "Forge my hero" : "Next", disabled: !canGo(),
+      onclick: function () { if (last) s.done = true; else s.step++; render(); window.scrollTo(0, 0); } }));
+  }
+  function render() {
+    var m = document.getElementById("main");
+    m.replaceChildren.apply(m, s.done ? doneScreen() : screen());
+    nav(); bar();
+  }
+  (function () { var m = document.getElementById("motes"); for (var i = 0; i < 46; i++) { var d = document.createElement("i");
+    d.style.left = (Math.random() * 100) + "%"; d.style.top = (Math.random() * 100) + "%"; d.style.opacity = .15 + Math.random() * .5;
+    d.style.animationDuration = (3 + Math.random() * 6) + "s"; d.style.animationDelay = (-Math.random() * 6) + "s"; m.appendChild(d); } })();
+  render();
+})();
+</script>
+</body>
+</html>

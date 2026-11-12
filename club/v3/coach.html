@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Coach Tom's Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Tom's club page (28 Oct 2026). Building your character feels like an old-school RPG's character sheet: gold
+   frames on a starry night, like Tom's skill tree poster. The result is the Hero app's System status screen
+   (ios/Hunter/App/Theme.swift). Inspired by both, copied from neither: our own frames, fonts and art. */
+:root {
+  --void: #03050b; --deep: #070e1e; --glass: rgba(10, 23, 46, .72); --frame: #4dbaff; --frame-dim: rgba(77, 186, 255, .3);
+  --ice: #b2e3ff; --text: #e1edff; --muted: #8796b3; --gold: #ffca57; --gold-dim: rgba(255, 202, 87, .35); --warn: #ff5568; --done: #5fedbb;
+  --wide: "Archivo", "Arial Black", system-ui, sans-serif; --body: "Inter", -apple-system, system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; --rune: "Cinzel", Georgia, serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--void); color: var(--text); font: 16px/1.45 var(--body); }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 110% 55% at 50% 0%, rgba(77,130,255,.18), transparent 60%),
+              radial-gradient(ellipse 80% 40% at 80% 100%, rgba(255,202,87,.06), transparent 70%); }
+.motes { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.motes i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--ice); animation: twinkle ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .1; } }
+@media (prefers-reduced-motion: reduce) { .motes i { animation: none; } }
+.app { position: relative; max-width: 30rem; margin: 0 auto; min-height: 100svh; display: flex; flex-direction: column;
+  padding-block: max(14px, env(safe-area-inset-top, 0px)) 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { font: 800 12px var(--rune); letter-spacing: .16em; color: var(--gold); }
+.count { font: 500 12px var(--mono); color: var(--muted); }
+.gauge { height: 6px; margin: 10px 0 4px; border: 1px solid var(--gold-dim); background: rgba(3,5,11,.8); }
+.gauge > div { height: 100%; width: 0; background: linear-gradient(90deg, rgba(255,202,87,.45), var(--gold)); box-shadow: 0 0 8px rgba(255,202,87,.6); transition: width .3s ease; }
+main { padding: 14px 0 0; display: flex; flex-direction: column; gap: 18px; }
+.area { font: 500 11px var(--mono); letter-spacing: .16em; color: var(--gold); text-transform: uppercase; }
+h1 { font: 800 25px/1.15 var(--rune); letter-spacing: .02em; margin: 4px 0 0; color: #f4e7c8; text-shadow: 0 0 16px rgba(255,202,87,.35); }
+.sub { color: var(--muted); margin: 6px 0 0; }
+.label { font: 500 12px var(--mono); color: var(--gold); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.how { font: 400 13px/1.4 var(--body); color: var(--muted); margin: -2px 0 6px; }
+.field { border: 1px solid var(--gold-dim); padding: 12px; background: rgba(3,5,11,.55); display: flex; align-items: center; gap: 10px; }
+.field input, .field textarea { flex: 1; min-width: 0; width: 100%; background: none; border: 0; outline: 0; color: var(--text); font: 700 24px var(--mono); }
+.field textarea { font: 400 17px var(--body); resize: none; min-height: 90px; }
+.field .unit { font: 500 12px var(--mono); color: var(--muted); white-space: nowrap; }
+.field:focus-within { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pair > * { min-width: 0; }
+/* Character-sheet frame: a gold double border with small diamond corners. */
+.sheet { position: relative; padding: 16px; border: 1px solid var(--gold-dim); outline: 1px solid rgba(255,202,87,.12); outline-offset: 3px;
+  background: linear-gradient(rgba(14,18,34,.82), rgba(6,9,20,.9)); }
+.sheet::before, .sheet::after { content: ""; position: absolute; width: 9px; height: 9px; background: var(--gold); transform: rotate(45deg); top: -5px; }
+.sheet::before { left: -5px; } .sheet::after { right: -5px; }
+.sheet h2 { font: 800 13px var(--rune); letter-spacing: .2em; color: var(--gold); margin: 0 0 10px; padding-bottom: 8px;
+  border-bottom: 1px solid; border-image: linear-gradient(90deg, transparent, var(--gold-dim), transparent) 1; text-align: center; }
+/* The System window, for the result. */
+.win { position: relative; padding: 16px; background: linear-gradient(var(--glass), rgba(7,14,30,.88)); border: 1px solid rgba(77,186,255,.35);
+  box-shadow: 0 0 22px rgba(77,186,255,.16); }
+.win::before, .win::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--frame); }
+.win::before { top: -4px; left: -4px; border-right: 0; border-bottom: 0; }
+.win::after { bottom: -4px; right: -4px; border-left: 0; border-top: 0; }
+.win h2 { font: 900 12px var(--wide); font-stretch: 125%; letter-spacing: .25em; color: var(--frame); margin: 0 0 10px;
+  padding-bottom: 10px; border-bottom: 1px solid; border-image: linear-gradient(90deg, rgba(77,186,255,.7), transparent) 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 600 15px var(--body); color: var(--text); background: none; border: 1px solid var(--gold-dim); border-radius: 999px; padding: 8px 13px; cursor: pointer; }
+.chip.on { border: 2px solid var(--gold); background: rgba(255,202,87,.16); padding: 7px 12px; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.big { background: none; color: var(--text); border: 1px solid var(--gold-dim); padding: 18px 10px; font: 700 17px var(--body); cursor: pointer; min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.big small { font: 500 12px var(--mono); color: var(--muted); }
+.big .ico { font-size: 30px; line-height: 1; }
+.photo { display: block; max-height: 340px; max-width: 100%; margin: 0 auto; border: 1px solid var(--gold-dim); }
+.btn-file { display: block; text-align: center; border: 1px solid var(--gold); color: var(--gold); padding: 14px; font: 600 16px var(--body); cursor: pointer; }
+.btn-file input { display: none; }
+.big.on { border: 2px solid var(--gold); background: rgba(255,202,87,.14); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; font: 700 17px var(--body); cursor: pointer; }
+.toggle input { appearance: none; width: 52px; height: 32px; border-radius: 99px; background: #2a3448; position: relative; cursor: pointer; flex: none; transition: background .2s; }
+.toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .2s; }
+.toggle input:checked { background: var(--gold); }
+.toggle input:checked::after { left: 23px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--gold-dim); }
+.seg button { background: none; border: 0; color: var(--muted); padding: 10px; font: 600 15px var(--body); cursor: pointer; }
+.seg button.on { background: rgba(255,202,87,.16); color: var(--text); }
+.stepper { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font: 700 16px var(--mono); }
+.stepper div { display: flex; border: 1px solid var(--gold-dim); }
+.stepper button { width: 46px; height: 36px; background: none; border: 0; color: var(--text); font-size: 20px; cursor: pointer; }
+.note { font: 500 12px/1.5 var(--mono); color: var(--muted); }
+.gold { color: var(--gold); }
+.review { display: grid; grid-template-columns: 7.5rem 1fr; gap: 6px 10px; font: 500 13px/1.45 var(--mono); }
+.review dt { color: var(--muted); text-transform: uppercase; }
+.review dd { margin: 0; white-space: pre-line; }
+.err { border: 1px solid rgba(255,85,104,.6); color: var(--warn); padding: 10px; font: 500 13px var(--mono); }
+nav.actions { display: flex; gap: 10px; padding: 22px 0 10px; }
+nav.actions:empty { display: none; }
+nav.actions button { flex: 1; padding: 15px 8px; font: 700 17px var(--body); cursor: pointer; border: 1px solid var(--gold-dim); background: var(--void); color: var(--muted); }
+nav.actions button.go { background: var(--gold); color: #1a1405; border-color: var(--gold); }
+nav.actions button.go:disabled { background: rgba(255,202,87,.22); border-color: transparent; color: rgba(3,5,11,.7); cursor: default; }
+footer { margin-top: auto; padding: 14px 0 max(18px, env(safe-area-inset-bottom, 0px)); text-align: center; font: 500 11px/1.6 var(--mono); color: var(--muted); }
+footer a { color: var(--ice); }
+.preview { font: 500 12px var(--mono); color: var(--gold); border: 1px solid rgba(255,202,87,.5); padding: 8px 10px; }
+.promise { font: 500 13px/1.5 var(--body); color: var(--text); border-left: 2px solid var(--gold); padding: 2px 0 2px 10px; }
+/* Skill tree: a constellation like Tom's poster. */
+.tree { display: block; width: 100%; height: auto; touch-action: manipulation; }
+.tree .ln { stroke: rgba(178,227,255,.22); stroke-width: 2; }
+.tree .ln.on { stroke: var(--ice); filter: drop-shadow(0 0 4px var(--frame)); }
+.tree .nd { cursor: pointer; }
+.tree .nd circle.dot { fill: #0b1428; stroke: rgba(178,227,255,.45); stroke-width: 2; transition: fill .2s; }
+.tree .nd.on circle.dot { fill: var(--ice); stroke: #fff; filter: drop-shadow(0 0 8px var(--frame)); }
+.tree .nd.locked { opacity: .38; }
+.tree .nd text { fill: var(--text); font: 700 9.5px var(--body); text-anchor: middle; letter-spacing: .02em; pointer-events: none; }
+.tree .nd.on text { fill: #fff; }
+.tree .root circle { fill: var(--ice); filter: drop-shadow(0 0 10px var(--frame)); }
+.picked { font: 500 13px/1.5 var(--body); color: var(--muted); text-align: center; min-height: 1.5em; }
+/* Result */
+.hex { width: 120px; height: 120px; margin: 10px auto 0; display: grid; place-items: center; font: 900 52px var(--wide); font-stretch: 125%; color: var(--ice);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: radial-gradient(rgba(77,186,255,.35), var(--void)); text-shadow: 0 0 14px var(--frame); }
+.hex.wait { color: var(--gold); background: radial-gradient(rgba(255,202,87,.35), var(--void)); text-shadow: 0 0 14px var(--gold); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 50% { filter: brightness(1.35); } }
+.stat { display: grid; grid-template-columns: 3.2rem 1fr auto auto; align-items: baseline; gap: 4px 10px; padding: 6px 0; }
+.stat b { font: 900 15px var(--wide); font-stretch: 125%; }
+.stat .nm { font: 500 12px var(--mono); color: var(--muted); }
+.stat .rk { font: 900 13px var(--wide); font-stretch: 125%; color: var(--ice); }
+.stat .val { font: 700 26px var(--mono); }
+.stat .na { color: var(--muted); }
+.bar { grid-column: 1 / -1; height: 6px; border: 1px solid var(--frame-dim); background: rgba(3,5,11,.8); }
+.bar > div { height: 100%; background: linear-gradient(90deg, rgba(77,186,255,.5), var(--frame)); box-shadow: 0 0 6px var(--frame); }
+.why { grid-column: 1 / -1; font: 400 13px/1.45 var(--body); color: var(--muted); white-space: pre-line; }
+.next { grid-column: 1 / -1; font: 500 13px/1.45 var(--body); color: var(--gold); border-left: 2px solid var(--gold); padding: 2px 0 2px 8px; margin-top: 2px; }
+.next b { font: 700 11px var(--mono); letter-spacing: .06em; margin-right: 6px; }
+.rankline { text-align: center; font: 900 18px var(--wide); font-stretch: 125%; letter-spacing: .04em; }
+.hero-img { display: block; width: 100%; border: 1px solid rgba(77,186,255,.5); }
+.disc { padding: 12px 0; border-top: 1px solid rgba(77,186,255,.18); }
+.disc:first-of-type { border-top: 0; padding-top: 2px; }
+.disc .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.disc .t b { font: 900 14px var(--wide); font-stretch: 125%; letter-spacing: .04em; }
+.disc .t span { font: 500 12px var(--mono); color: var(--muted); }
+.beltline { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
+.belt { position: relative; flex: none; width: 120px; height: 20px; border-radius: 3px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.18), 0 0 10px rgba(0,0,0,.4); }
+.belt .tip { position: absolute; right: 12px; top: 0; bottom: 0; width: 34px; background: #111; display: flex; align-items: center; justify-content: space-evenly; padding: 0 3px; }
+.belt .tip i { width: 3px; height: 14px; background: #fff; }
+.belt.none { background: none; border: 1px dashed var(--muted); box-shadow: none; }
+.beltname { font: 700 15px var(--body); }
+.beltname small { display: block; font: 500 12px var(--mono); color: var(--muted); }
+.draft { font: 500 11px var(--mono); color: var(--gold); }
+.levelup { margin-top: 8px; border-left: 2px solid var(--gold); padding: 2px 0 2px 10px; }
+.levelup .h { font: 700 11px var(--mono); letter-spacing: .06em; color: var(--gold); }
+.levelup ul { list-style: none; margin: 4px 0 0; padding: 0; font: 400 14px/1.5 var(--body); }
+.levelup li { display: grid; grid-template-columns: 1.3rem 1fr; }
+.levelup li .y { grid-column: 2; font: 500 12px var(--mono); color: var(--muted); }
+.levelup li.met { color: var(--done); }
+.levelup li.not_answered { color: var(--muted); }
+.maybe { margin-top: 6px; font: 500 13px/1.45 var(--body); color: var(--ice); }
+.cta { display: block; text-align: center; text-decoration: none; padding: 15px 10px; font: 700 17px var(--body); background: var(--gold); color: #1a1405; border: 0; }
+.cta.alt { background: none; color: var(--ice); border: 1px solid var(--frame); font-size: 15px; padding: 12px; }
+.rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rate .big { padding: 14px 6px; font-size: 15px; }
+.btn { display: block; width: 100%; text-align: center; border: 1px solid var(--gold); color: var(--gold); background: none; padding: 14px; font: 600 16px var(--body); cursor: pointer; }
+body.kb h1 { font-size: 19px; margin-top: 0; }
+body.kb .sub { font-size: 14px; margin-top: 4px; }
+body.kb main { gap: 12px; padding-top: 8px; }
+body.kb footer { display: none; }
+/* Selfie: the photo is shown as a canvas, and on a computer the camera's live view (mirrored, like a mirror). */
+.photo { width: auto; height: auto; object-fit: contain; }
+.cam { width: 100%; max-height: 60vh; transform: scaleX(-1); background: #000; }
+button.btn-file { width: 100%; background: none; }
+button.btn-file.go { background: var(--gold); color: #1a1405; }
+/* "What's this?" for each movement. */
+.lrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.lrow .label { margin-bottom: 0; }
+.what { flex: none; font: 600 12px var(--body); color: var(--ice); background: none; border: 1px solid var(--frame-dim); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.what.on { border-color: var(--frame); background: rgba(77,186,255,.12); }
+.demo { border: 1px solid var(--frame-dim); background: rgba(10,23,46,.6); padding: 10px 12px; margin: 0 0 8px; font: 400 14px/1.5 var(--body); }
+.demo video { display: block; width: 100%; margin-bottom: 8px; background: #000; }
+.demo iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; margin-bottom: 8px; background: #000; }
+.demo .src { font: 500 11px/1.5 var(--mono); color: var(--muted); margin-top: 6px; }
+/* Two columns on a computer. On a phone these wrappers vanish, so the phone layout is unchanged. */
+.cols, .col { display: contents; }
+@media (min-width: 900px) {
+  .app { max-width: 66rem; padding-top: 26px; padding-left: 40px; padding-right: 40px; }
+  main, nav.actions { width: 100%; max-width: 44rem; margin-left: auto; margin-right: auto; }
+  main.wide { max-width: none; }
+  main { gap: 22px; padding-top: 22px; }
+  h1 { font-size: 34px; }
+  .sub { font-size: 17px; }
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 36px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 22px; }
+  .tree { max-height: 60vh; }
+  .photo { max-height: 420px; }
+  footer { padding-top: 28px; }
+}
+.howto { margin: 0; padding-left: 20px; display: grid; gap: 6px; font: 400 14px/1.45 var(--body); color: var(--muted); }
+</style>
+<style>
+/* v3 additions (11 Nov 2026): a time hint per screen, multi-pick chips, and the "What Tom sees" sheet. */
+.eta { font: 500 11px var(--mono); color: var(--muted); }
+.chip.multi.on::before { content: "✓ "; }
+.skip { display: block; width: 100%; text-align: center; background: none; border: 1px dashed var(--frame-dim); color: var(--ice); padding: 12px; font: 600 15px var(--body); cursor: pointer; }
+.skip.on { border-style: solid; border-color: var(--frame); background: rgba(77,186,255,.12); }
+.optlist { display: grid; gap: 10px; }
+.opt { text-align: left; background: none; color: var(--text); border: 1px solid var(--gold-dim); padding: 14px 14px; font: 700 16px var(--body); cursor: pointer; display: flex; gap: 12px; align-items: center; }
+.opt small { display: block; font: 400 13px var(--body); color: var(--muted); margin-top: 2px; }
+.opt .ico { font-size: 24px; flex: none; width: 30px; text-align: center; }
+.opt.on { border: 2px solid var(--gold); background: rgba(255,202,87,.14); padding: 13px; }
+.tomrow { display: grid; grid-template-columns: 8rem 1fr; gap: 6px 10px; font: 500 13px/1.45 var(--mono); }
+.tomrow dt { color: var(--muted); text-transform: uppercase; }
+.tomrow dd { margin: 0; white-space: pre-line; }
+.tomrow dd.new { color: var(--gold); }
+.flag { display: inline-block; font: 700 11px var(--mono); letter-spacing: .05em; color: #1a1405; background: var(--gold); padding: 2px 6px; margin-right: 6px; }
+.newtag { font: 700 10px var(--mono); letter-spacing: .08em; color: var(--gold); border: 1px solid var(--gold-dim); padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+.field select { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: 700 20px var(--mono); }
+.field select option { background: var(--deep); }
+</style></head>
+<body>
+<style>
+/* Coach Tom's dashboard, DEMO (12 Nov 2026): three made-up example clients from docs/club/v3-example-clients.md. */
+.app.wide { max-width: 72rem; }
+.demo-banner { font: 600 13px/1.5 var(--body); color: #1a1405; background: var(--gold); padding: 10px 12px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
+.toolbar button { flex: 1 1 10rem; }
+.clients { display: grid; gap: 14px; }
+.client { text-align: left; width: 100%; background: linear-gradient(var(--glass), rgba(7,14,30,.88)); border: 1px solid rgba(77,186,255,.35); color: var(--text); padding: 14px; cursor: pointer; display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 6px 14px; align-items: center; font: inherit; }
+.client .status { grid-column: 2; }
+@media (min-width: 640px) { .client { grid-template-columns: 68px minmax(0, 1fr) auto; } .client .status { grid-column: auto; } }
+.client:focus-visible, .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.client .mini { width: 56px; height: 56px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); display: grid; place-items: center; font: 900 24px var(--wide); font-stretch: 125%; color: var(--ice); background: radial-gradient(rgba(77,186,255,.35), var(--void)); }
+.face { position: relative; width: 64px; height: 64px; }
+.face img { display: block; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--frame); box-shadow: 0 0 12px rgba(77,186,255,.35); background: var(--deep); }
+.face .rk { position: absolute; right: -5px; bottom: -5px; width: 26px; height: 26px; border-radius: 50%; background: var(--void); border: 2px solid var(--gold);
+  color: var(--gold); font: 900 12px var(--wide); font-stretch: 125%; display: grid; place-items: center; }
+.heroart { display: block; width: 100%; max-width: 100%; border: 1px solid rgba(77,186,255,.5); }
+.client .who { min-width: 0; }
+.client .who b { font: 700 18px var(--body); display: block; }
+.client .who span { font: 500 12px/1.5 var(--mono); color: var(--muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.client .tags { grid-column: 1 / -1; }
+.client .open { font: 600 13px var(--body); color: var(--ice); }
+.tag { font: 700 10px var(--mono); letter-spacing: .05em; padding: 3px 6px; border: 1px solid var(--gold-dim); color: var(--gold); }
+.tag.warn { border-color: rgba(255,85,104,.6); color: var(--warn); }
+.tag.ex { border-color: var(--frame-dim); color: var(--ice); }
+.status { font: 700 11px var(--mono); letter-spacing: .05em; color: var(--gold); white-space: nowrap; }
+.status.sent { color: var(--done); }
+.two { display: grid; gap: 18px; }
+@media (min-width: 900px) { .two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.pics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pic { aspect-ratio: 2 / 3; max-width: 100%; border: 1px dashed var(--gold-dim); display: grid; place-items: center; text-align: center; padding: 10px; font: 500 12px/1.45 var(--mono); color: var(--muted); }
+.pic b { display: block; font-size: 30px; margin-bottom: 6px; }
+.summary { font: 400 15px/1.6 var(--body); white-space: pre-line; }
+textarea.plan { width: 100%; min-height: 22rem; background: rgba(3,5,11,.6); color: var(--text); border: 1px solid var(--gold-dim); padding: 12px; font: 400 14px/1.55 var(--body); resize: vertical; }
+textarea.plan:focus { outline: 0; border-color: var(--gold); }
+.statrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.statrow span { font: 700 13px var(--mono); border: 1px solid var(--frame-dim); padding: 6px 10px; }
+.statrow span i { font-style: normal; color: var(--muted); font-weight: 500; }
+.back { background: none; border: 0; color: var(--ice); font: 600 15px var(--body); padding: 0; cursor: pointer; text-align: left; }
+.empty { text-align: center; padding: 30px 10px; color: var(--muted); }
+</style>
+<div class="motes" id="motes" aria-hidden="true"></div>
+<div class="app wide">
+  <div class="top"><span class="brand">BODY IMPROVEMENT CLUB</span><span class="count">Coach dashboard</span></div>
+  <main id="main" aria-live="polite"></main>
+  <footer>Demo of Coach Tom's dashboard · made with Hero Made Fit</footer>
+</div>
+<script>
+(function () {
+  "use strict";
+  // Coach Tom's dashboard, a DEMO with three made-up example clients (Luke, 11-12 Nov 2026). Nothing here is a real
+  // person; their answers match docs/club/v3-example-clients.md. Stats, ranks and belts are sample values; the real
+  // ones come from the Mac's scoring. The summaries and nutrition drafts were written as examples of what the AI
+  // would draft for Tom to edit. Nothing is sent or saved.
+  var CLIENTS = [
+    { id: "marcus", name: "Marcus", age: 32, sex: "Male", sent: "Mon 9 Nov", rank: "B", stats: [["STR", 56], ["AGI", 54], ["END", 41]],
+      tags: [], belts: "Pulling Yellow · Pushing Yellow · Legs White · Weighted Yellow · Kettlebell White",
+      outfit: "Armoured knight", way: "Full-body photo",
+      answers: [["Basics", "32 yrs, Male, 5 ft 11 in, 185 lb"], ["Health", "None"], ["Recovery", "Sleep 7–8 h · stress medium"],
+        ["Training", "3+ years · Weights, Running"], ["Time", "5–6 days a week, 40–60 min each"], ["Equipment", "A full gym"],
+        ["Goals", "Get stronger, Endurance\nNote: Training for a half marathon in March."], ["Nemesis", "Staying consistent\nWhy now: Half marathon in March."],
+        ["Coaching", "Numbers and data · check-ins a few times a week"], ["Strength", "35 push-ups · 12 pull-ups\nBench 225 · Squat 275 · Deadlift 345 lb"],
+        ["Belt tests", "19 answered · Added weight: yes · Kettlebells: yes"], ["Cardio", "Does cardio"], ["Agility", "Broad jump 8 ft 0 in · 40 yd 5.2 s"],
+        ["Endurance", "5K 23:40 · Longest run 13.1 mi"], ["Food", "No restrictions · Budget $125–200 a week\nLikes: steak, eggs, rice, berries\nDislikes: tofu"]],
+      summary: "Experienced lifter and runner, B-rank, no injuries. Strong upper body: Yellow belts in Pulling, Pushing and Weighted. Legs and kettlebell sit at White, so lower-body strength is the gap.\n\nGoal: get stronger while training for a half marathon in March. He trains 5–6 days at a full gym, so time isn't the issue; staying consistent is. He likes numbers and data and wants check-ins a few times a week.\n\nWhere to start: 3 strength days (legs first in the week) plus 2–3 runs, building weekly mileage toward March. Track his lifts and run paces so he can see the numbers move.",
+      plan: "Daily targets\n• Protein: about 150–185 g a day (a palm or two at each meal).\n• Carbs around runs and leg days: rice, potatoes, fruit.\n• Water: about 3 litres, more on long-run days.\n\nTom's staples\n• Grass-fed red meat 3–4 times a week (steak, ground beef).\n• Eggs most mornings.\n• Season with salt, black pepper, garlic, smoked paprika and fresh herbs.\n\nSample recipe: steak and rice bowl\n• 8 oz grass-fed sirloin, seasoned with salt, pepper, garlic powder and smoked paprika.\n• Sear 3–4 min a side in a hot cast-iron pan; rest 5 min, slice.\n• Serve over 1 cup jasmine rice with sautéed peppers and a handful of berries on the side.\n\nNo tofu, as he asked.\n\nNot medical or dietitian advice." },
+    { id: "priya", name: "Priya", age: 41, sex: "Female", sent: "Tue 10 Nov", rank: "E", stats: [["STR", 5]],
+      tags: [["Injury: knee", "warn"], ["High stress", ""], ["No cardio", ""], ["Bodyweight only", ""], ["Short on time", ""]],
+      belts: "Pushing White · Legs White", outfit: "Wanderer", way: "Description only",
+      answers: [["Basics", "41 yrs, Female, 5 ft 4 in"], ["Health", "Knee\nOld left knee injury, sore on stairs."], ["Recovery", "Sleep 6–7 h · stress high"],
+        ["Training", "New · Other"], ["Time", "3–4 days a week, under 20 min each"], ["Equipment", "Just my body weight"],
+        ["Goals", "Lose fat, Mobility\nNote: Go easy on jumping."], ["Nemesis", "Not enough time, Not knowing what to do\nWhy now: My 40s are a fresh start."],
+        ["Coaching", "Encouraging · check-ins weekly"], ["Strength", "5 push-ups · 0 pull-ups"], ["Belt tests", "6 answered"],
+        ["Cardio", "Not into cardio"], ["Agility", "Skipped"], ["Endurance", "N/A (not into cardio)"],
+        ["Food", "Vegetarian · Budget under $75 a week\nLikes: lentils, paneer, mango\nDislikes: mushrooms"]],
+      summary: "Brand new to training, 41, ranked on Strength only (E). An old left knee injury, sore on stairs, so no jumping and no deep knee bends to start. High stress and 6–7 hours of sleep.\n\nGoals: lose fat and move better. She has under 20 minutes, 3–4 days a week, with no equipment. Her nemesis is time and not knowing what to do, so short, clear sessions matter most. She wants encouragement and a weekly check-in. Not into cardio.\n\nWhere to start: three 15–20 minute home sessions: kneeling push-ups, glute bridges, squats to a chair (pain-free range), planks and a mobility flow. Celebrate small wins, like her first full push-up.",
+      plan: "Daily targets\n• Protein at every meal: a palm-sized portion of paneer, Greek yoghurt, eggs, lentils or beans.\n• Half the plate vegetables; a fist of rice or roti.\n• Easy, cheap staples to stay under $75 a week: dry lentils, eggs, frozen vegetables, oats, bananas, mango in season.\n\nVegetarian, so no red meat in this plan.\n\nSeasonings: cumin, turmeric, garam masala, ginger, garlic, chilli and lemon.\n\nSample recipe: 20-minute lentil and paneer curry\n• Fry 1 onion, 2 garlic cloves and a thumb of ginger in a spoon of oil.\n• Add 1 tsp each cumin and turmeric, 1 tsp garam masala, 1 can chopped tomatoes and 1 cup red lentils with 2 cups water.\n• Simmer 15 min, add 150 g cubed paneer for the last 5. Finish with lemon and coriander. Serves 3.\n\nNo mushrooms, as she asked.\n\nNot medical or dietitian advice." },
+    { id: "jordan", name: "Jordan", age: 26, sex: "Male", sent: "Wed 11 Nov", rank: "D", stats: [["STR", 28], ["AGI", 36]],
+      tags: [["Injury: shoulder", "warn"], ["Allergies: nuts, shellfish, sesame", "warn"], ["Wants to start cardio", ""], ["Short on sleep", ""]],
+      belts: "Pulling White · Pushing White · Legs White · Kettlebell White", outfit: "Martial artist (white belt)", way: "Selfie plus a short description",
+      answers: [["Basics", "26 yrs, Male, 5 ft 8 in, 160 lb"], ["Health", "Shoulder\nLeft shoulder gets sore after BJJ."], ["Recovery", "Sleep under 6 h · stress medium"],
+        ["Training", "Under 1 year · Martial arts"], ["Time", "3–4 days a week, 20–40 min each"], ["Equipment", "Pull-up bar, Kettlebells"],
+        ["Goals", "Build muscle, Perform better in my sport\nNote: I train BJJ twice a week."], ["Nemesis", "Motivation, Boredom"],
+        ["Coaching", "Tough love · check-ins daily"], ["Strength", "22 push-ups · 6 pull-ups"], ["Belt tests", "11 answered · Kettlebells: yes"],
+        ["Cardio", "Doesn't yet, wants to start\nWould enjoy: Cycling, Swimming\n20 min without stopping: Not yet"], ["Agility", "Broad jump 7 ft 0 in"],
+        ["Endurance", "N/A (not doing cardio yet)"], ["Food", "Nut allergy, Shellfish allergy · Also: sesame · Budget $75–125 a week\nLikes: chicken, rice, bananas\nDislikes: fish"]],
+      summary: "BJJ twice a week, under a year of training, 26. D-rank, ranked on Strength and Agility; White belts so far. Left shoulder gets sore after BJJ, so build pulling volume slowly and add shoulder prep. Under 6 hours of sleep.\n\nGoals: build muscle and perform better on the mats. Pull-up bar and kettlebells, 3–4 days, 20–40 minutes. His nemesis is motivation and boredom; he wants tough love and a daily check-in. Wants to start cardio (cycling or swimming) but can't go 20 minutes yet.\n\nWhere to start: 3 kettlebell and pull-up sessions that change every few weeks to beat boredom, plus 2 easy 15-minute rides on non-BJJ days. Allergies: nuts, shellfish and sesame.",
+      plan: "ALLERGIES: no nuts, no shellfish, no sesame (no tahini, sesame oil or sesame seeds; check sauces and bread).\n\nDaily targets\n• Protein: about 130–160 g a day to build muscle.\n• Carbs before BJJ and lifting: rice, bananas, oats.\n• Sleep is the big one: aim for 7+ hours.\n\nTom's staples\n• Grass-fed red meat 2–3 times a week, chicken on the other days.\n• Season with salt, pepper, garlic, cumin, chilli flakes and lime.\n\nSample recipe: grass-fed beef and rice skillet\n• Brown 1 lb grass-fed ground beef with 1 diced onion.\n• Season with salt, pepper, 2 tsp cumin, 1 tsp chilli flakes and 2 garlic cloves.\n• Stir in 2 cups cooked rice and a can of black beans; finish with lime and coriander. Serves 3.\n\nNo fish, as he asked.\n\nNot medical or dietitian advice." }
+  ];
+  var s = { open: null, cleared: false, sent: {}, plans: {} };
+  var BANNER = "Demo: Marcus, Priya and Jordan are made-up example clients, not real people. Nothing here is sent or saved.";
+
+  function h(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    for (var k in (attrs || {})) { var v = attrs[k]; if (v == null || v === false) continue;
+      if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), v); else if (k === "text") e.textContent = v; else e.setAttribute(k, v === true ? "" : v); }
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+  function tags(c) { return h("div", { class: "tags" }, [h("span", { class: "tag ex", text: "EXAMPLE" })].concat(c.tags.map(function (t) { return h("span", { class: "tag " + t[1], text: t[0].toUpperCase() }); }))); }
+  function ranked(c) { return c.stats.length === 3 ? "" : " · ranked on " + c.stats.map(function (x) { return { STR: "Strength", AGI: "Agility", END: "Endurance" }[x[0]]; }).join(" and "); }
+
+  function csv() {
+    var head = ["Name", "Example", "Rank"].concat(CLIENTS[0].answers.map(function (a) { return a[0]; }));
+    var rows = CLIENTS.map(function (c) { return [c.name, "yes", c.rank].concat(c.answers.map(function (a) { return a[1].replace(/\n/g, " | "); })); });
+    return [head].concat(rows).map(function (r) { return r.map(function (x) { return '"' + String(x).replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
+  }
+  function list() {
+    var out = [h("div", { class: "demo-banner", text: BANNER }),
+      h("div", {}, [h("div", { class: "area", text: "Coach Tom" }), h("h1", { text: "Your clients" }),
+        h("p", { class: "sub", text: "Everyone who sent the assessment, newest first. Tap a client for their answers, an AI summary and a nutrition draft you can edit and send." })])];
+    if (s.cleared) return out.concat([h("div", { class: "sheet empty" }, ["No clients yet. Your clients show up here after they send the assessment.",
+      h("br"), h("br"), h("button", { type: "button", class: "btn", text: "Bring back the examples", onclick: function () { s.cleared = false; render(); } })])]);
+    out.push(h("div", { class: "toolbar" }, [
+      h("button", { type: "button", class: "btn", text: "Download sheet (CSV)", onclick: function () {
+        var a = h("a", { href: URL.createObjectURL(new Blob([csv()], { type: "text/csv" })), download: "coach-tom-clients-EXAMPLE.csv" }); document.body.appendChild(a); a.click(); a.remove(); } }),
+      h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--muted)", text: "Clear examples", onclick: function () { s.cleared = true; render(); } })]));
+    out.push(h("div", { class: "clients" }, CLIENTS.slice().reverse().map(function (c) {
+      return h("button", { type: "button", class: "client", onclick: function () { s.open = c.id; render(); window.scrollTo(0, 0); } }, [
+        h("div", { class: "face" }, [h("img", { src: "img/" + c.id + "-head.jpg", alt: c.name + "'s hero (example)", width: "64", height: "64" }), h("span", { class: "rk", "aria-label": "Rank " + c.rank, text: c.rank })]),
+        h("div", { class: "who" }, [h("b", { text: c.name }), h("span", { text: c.age + " · " + c.sex + " · sent " + c.sent + ranked(c) })]),
+        h("span", { class: "status" + (s.sent[c.id] ? " sent" : ""), text: s.sent[c.id] ? "PLAN SENT" : "PLAN TO REVIEW" }),
+        tags(c)]); })));
+    return out;
+  }
+  function detail(c) {
+    var plan = h("textarea", { class: "plan", id: "plan-" + c.id, "aria-label": "Nutrition plan for " + c.name, oninput: function (e) { s.plans[c.id] = e.target.value; } });
+    plan.value = s.plans[c.id] != null ? s.plans[c.id] : c.plan;
+    var dl = h("dl", { class: "tomrow" }, [].concat.apply([], c.answers.map(function (a) { return [h("dt", { text: a[0] }), h("dd", { text: a[1] })]; })));
+    return [h("div", { class: "demo-banner", text: BANNER }),
+      h("button", { type: "button", class: "back", text: "← All clients", onclick: function () { s.open = null; render(); window.scrollTo(0, 0); } }),
+      h("div", {}, [h("div", { class: "area", text: "Example client" }), h("h1", { text: c.name + ", " + c.rank + "-rank hero" }),
+        h("p", { class: "sub", text: c.age + " · " + c.sex + " · sent " + c.sent + ranked(c) })]),
+      tags(c),
+      h("div", { class: "two" }, [
+        h("div", { style: "display:grid;gap:18px" }, [
+          h("div", { class: "win" }, [h("h2", { text: "AI SUMMARY" }), h("div", { class: "summary", text: c.summary }),
+            h("p", { class: "note", style: "margin:12px 0 0", text: "Drafted by AI from the answers, for you only." })]),
+          h("div", { class: "win" }, [h("h2", { text: "STATS AND BELTS" }),
+            h("div", { class: "statrow" }, c.stats.map(function (x) { return h("span", {}, [x[0] + " ", h("i", { text: String(x[1]) })]); })),
+            h("p", { class: "note", style: "margin:10px 0 0", text: c.belts + ". Sample values." })]),
+          h("div", { class: "sheet" }, [h("h2", { text: "THEIR HERO" }), h("div", { class: "pics" }, [
+            h("div", { class: "pic" }, [h("b", { text: c.way === "Description only" ? "✍️" : "📷" }), c.way === "Description only" ? "No photo: drawn from her description" : c.way + " (made-up example image goes here)"]),
+            h("figure", { style: "margin:0" }, [h("img", { class: "heroart", src: "img/" + c.id + "-hero.jpg", alt: c.name + "'s anime hero, " + c.outfit.toLowerCase() + " (example)" }),
+              h("figcaption", { class: "note", style: "margin-top:6px", text: "Hero: " + c.outfit.toLowerCase() + " (example art)" })])])])]),
+        h("div", { style: "display:grid;gap:18px" }, [
+          h("div", { class: "win" }, [h("h2", { text: "NUTRITION DRAFT" }),
+            h("p", { class: "note", style: "margin:0 0 8px", text: "Drafted by AI with your rules, and checked against their allergies. Edit anything, then send. Nothing reaches the client until you do." }),
+            plan,
+            h("div", { style: "display:grid;gap:10px;margin-top:12px" }, s.sent[c.id] ?
+              [h("p", { class: "promise", text: "Sent (demo). In the real version it now shows on " + c.name + "'s results link." }),
+                h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--muted)", text: "Undo (demo)", onclick: function () { delete s.sent[c.id]; render(); } })] :
+              [h("button", { type: "button", class: "btn", style: "background:var(--gold);color:#1a1405", text: "Send to " + c.name, onclick: function () { s.sent[c.id] = true; render(); } })])]),
+          h("div", { class: "sheet" }, [h("h2", { text: "ALL ANSWERS" }), dl])])])];
+  }
+  function render() {
+    var c = CLIENTS.filter(function (x) { return x.id === s.open; })[0], m = document.getElementById("main");
+    m.replaceChildren.apply(m, c && !s.cleared ? detail(c) : list());
+  }
+  (function () { var m = document.getElementById("motes"); for (var i = 0; i < 46; i++) { var d = document.createElement("i");
+    d.style.left = (Math.random() * 100) + "%"; d.style.top = (Math.random() * 100) + "%"; d.style.opacity = .15 + Math.random() * .5;
+    d.style.animationDuration = (3 + Math.random() * 6) + "s"; d.style.animationDelay = (-Math.random() * 6) + "s"; m.appendChild(d); } })();
+  render();
+})();
+</script>
+</body>
+</html>
