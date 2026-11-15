@@ -98,6 +98,15 @@
     .nets { grid-template-columns: repeat(2, 1fr); }
     .bosses { grid-template-columns: repeat(2, 1fr); }
   }
+  /* Phones: a join bar that stays at the bottom once the top button has scrolled away, until the form is on screen. */
+  .joinbar { display: none; }
+  @media (max-width: 760px) {
+    .joinbar { display: block; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 20;
+               padding: 15px 0; text-align: center; font-weight: 900; letter-spacing: .14em; text-decoration: none;
+               color: var(--void); background: var(--frame); box-shadow: 0 0 24px rgba(77, 186, 255, .45);
+               transform: translateY(160%); transition: transform .25s; }
+    .joinbar.on { transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -197,6 +206,7 @@
 
   <footer>Hero Made Fit is an original world and isn't affiliated with any anime, manhwa or game. © 2026 Hero Made Labs · <a href="privacy.html">Privacy</a></footer>
 </div>
+<a class="joinbar display" id="joinbar" href="#waitlist">JOIN THE WAITLIST</a>
 <script>
   // Waitlist form endpoint.
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyX83Ryu58CiiIqLsA4dRBuer61dut4snrgFtH9TzAk1MEh_GkYId4fkrXN_4Pn4cGW/exec';
@@ -209,6 +219,14 @@
     try { if (localStorage.getItem('hmf-counted') === today) return; localStorage.setItem('hmf-counted', today); } catch (_) {}
     const body = new URLSearchParams({ visit: '1', source: document.getElementById('source').value });
     fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body, keepalive: true }).catch(() => {});
+  })();
+  // The phone join bar: shown once the top button is off screen, hidden while the form is on screen (and after joining).
+  (() => {
+    const bar = document.getElementById('joinbar'), seen = { top: true, form: false };
+    if (!bar || !('IntersectionObserver' in window)) return;
+    const update = () => bar.classList.toggle('on', !seen.top && !seen.form && !document.getElementById('form').dataset.joined);
+    new IntersectionObserver(([e]) => { seen.top = e.isIntersecting; update(); }).observe(document.querySelector('.hero .cta'));
+    new IntersectionObserver(([e]) => { seen.form = e.isIntersecting; update(); }).observe(document.getElementById('form'));
   })();
   document.getElementById('form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -225,6 +243,12 @@
       }
       thanks.style.display = 'block';
       document.getElementById('follow').style.display = 'block';
+      // On a phone the button sits at the bottom of the screen, so the thank-you would land below the fold:
+      // say it on the button too, close the keyboard and bring the message into view.
+      button.textContent = "YOU'RE ON THE LIST ✓";
+      form.dataset.joined = '1';
+      if (document.activeElement) document.activeElement.blur();
+      thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (_) {
       oops.style.display = 'block';
       button.disabled = false;
