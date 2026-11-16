@@ -1,4 +1,4 @@
-// Made by `fitcoach demo web-catalog` from sync/src/fitcoach/demo.py and club.py. Don't edit by hand.
+// Made by `fitcoach demo web-catalog` from sync/src/fitcoach/demo.py, club.py and v3.py. Don't edit by hand.
 window.HERO_CATALOG = {
  "consent_version": "2026-10-28club-d-web",
  "consent": {
@@ -971,5 +971,37 @@ window.HERO_CATALOG = {
     "by": "PureGym"
    }
   }
+ },
+ "v3_consent": {
+  "version": "2026-11-15club-v3-web",
+  "intro": [
+   "Your answers, stats and hero go to Coach Tom (Fire Physical), who uses them to coach you, and to Hero Made Fit (run by Luke H.), which runs this assessment for him.",
+   "Some questions are about your health: injuries, heart or blood pressure, pregnancy, sleep, stress, food allergies and restrictions. We collect those only to help Tom coach you safely. We never sell them or use them for ads.",
+   "Claude, an AI from Anthropic, reads your answers to write Tom a short summary and a nutrition draft. Tom checks and edits anything before you see it. It isn't medical or dietitian advice.",
+   "On the way to us, your answers pass through Luke's private Google account. The copy Coach Tom's dashboard reads (all your answers, including your health answers, and the AI notes) and any plan Tom sends you stay in that account until you or Tom ask us to delete them.",
+   "Coach Tom can download a copy of your answers, without your photo or health details, for his own records.",
+   "You can ask to see or delete your data at any time: privacy@heromadefit.com. We reply within 30 days.",
+   "Full policy: heromadefit.com/privacy.html"
+  ],
+  "boxes": [
+   "I'm 18 or older.",
+   "I agree to Hero Made Fit collecting my answers, including my health answers, to set up my coaching.",
+   "I agree to my answers going to Coach Tom, and to Anthropic's AI, as described above."
+  ],
+  "photo_release": [
+   "To draw your hero from a photo, we need your OK first. Some state laws, like Illinois' Biometric Information Privacy Act, treat face data as special.",
+   "• What we collect: the photo you take or upload (a selfie or a full-body photo). The AI service that draws your hero may map the features of your face to do it. That counts as face data (a \"biometric identifier\").",
+   "• Anything you type in the description box goes to Higgsfield and xAI with your photo, to draw your hero.",
+   "• Why: only to draw your hero picture. We don't use it to identify you or for anything else, and we never sell, rent or trade it.",
+   "• Who receives it: Hero Made Fit, run by Luke H.; Higgsfield, the AI service that draws the art; and xAI, the company behind the Grok drawing model Higgsfield uses. On its way to us, your photo passes through Luke's private Google account, where it's permanently deleted as soon as it arrives. We've turned off Higgsfield's setting that lets it train its AI on our uploads. Higgsfield couldn't confirm that the setting covers every model, and xAI handles your photo under its own terms, so we can't promise your photo will never be used to train AI.",
+   "• Coach Tom sees your hero art on his private dashboard, not your photo, and it isn't in the copy he can download.",
+   "• How long we keep it: we delete your photo from our computer within 30 days after your hero is drawn, or sooner if you ask. We also ask Higgsfield to delete it. Higgsfield reviews deletion requests under its own policy and may keep copies for a while, and xAI follows its own policy. We never keep it more than 3 years.",
+   "• Your hero art and results aren't face data. We keep them so your link keeps working, until you ask us to delete them.",
+   "• You can say no and describe yourself instead. If you change your mind later, email privacy@heromadefit.com and we'll delete your photo.",
+   "• If you describe a skill, those words are sent to Claude, an AI from Anthropic, to estimate your Skill score.",
+   "• Our face-data policy: heromadefit.com/privacy.html"
+  ],
+  "photo_agree": "I'm 18 or older. I've read this, and I agree to let Hero Made Fit, Higgsfield and xAI collect, use and keep my face data as described.",
+  "describe": "Only these words, and anything you type in the drawing box, are sent to Higgsfield, an AI image service, and to xAI, the company behind its Grok drawing model, to draw your hero. No photo is taken. We've turned off Higgsfield's setting that lets it train on our uploads, but xAI handles them under its own terms. Your hero may look less like you than a selfie would. When you ask, I delete your answers and hero art here and ask Higgsfield to remove the art too. If you describe a skill, those words are sent to Claude, an AI from Anthropic, to estimate your Skill score. Your results and hero art are kept in my private Google account so your link can show them to you, until you ask me to delete them."
  }
 };

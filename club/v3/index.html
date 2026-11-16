@@ -214,6 +214,11 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
 .field select { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: 700 20px var(--mono); }
 .field select option { background: var(--deep); }
 </style>
+<style>
+/* Real build (15 Nov 2026): the results link box. */
+.linkfield input { font: 500 13px var(--mono) !important; color: var(--ice) !important; }
+.closed-note { font: 500 13px/1.5 var(--body); color: var(--muted); }
+</style>
 </head>
 <body>
 <div class="motes" id="motes" aria-hidden="true"></div>
@@ -222,23 +227,40 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   <div class="gauge" aria-hidden="true"><div id="gauge"></div></div>
   <main id="main" aria-live="polite"></main>
   <nav class="actions" id="nav"></nav>
-  <footer id="foot">Prototype of version 3 · made with Hero Made Fit</footer>
+  <footer id="foot">Made with Hero Made Fit</footer>
 </div>
 <script src="catalog.js"></script>
 <script>
 (function () {
   "use strict";
-  // Tom's assessment, version 3: a clickable PROTOTYPE (11 Nov 2026). Nothing is sent or saved: no endpoint, no
-  // photo upload, no AI. Plan: docs/club/assessment-v3-plan-2026-11-04.md. Tom's three changes from his call with
-  // Luke on 10-11 Nov: time to train, equipment, and a cardio question that branches.
-  var C = window.HERO_CATALOG, K = C.club;
-  var TEST = {}; K.tests.forEach(function (t) { TEST[t.key] = t; });
+  // Tom's assessment, version 3: the real page (15 Nov 2026). Contract: docs/club/v3-build-contract-2026-11-15.md.
+  // Sending, the signed photo release, the camera, result polling and the hero art are ported from the live v2 club
+  // page (business/landing/club/index.html). The questions, stages and look are the 11 Nov prototype's.
+  // Modes: #t=<token> = a one-time link from Luke; no token = Tom's shared link (action v3_send, which mints a token);
+  // ?preview=1 = the prototype, where nothing is sent or saved.
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbxQ6Q1wlhdCfulUkrFy5s0O0AaOgTHzVqmrI041qGEObuh-0-LXdc3r3a2hA9jnSKrsCg/exec";
+  var C = window.HERO_CATALOG, K = C && C.club;
+  var preview = (new URLSearchParams(location.search)).get("preview") === "1";
+  function hashToken() { return (new URLSearchParams(location.hash.slice(1))).get("t") || ""; }
+  var token = preview ? "" : hashToken();
+  var TOKEN_KEY = "hmf-v3-token";  // the last link this device got back, so the shared link can find it again
+  var FULL = "Coach Tom's assessment is full for today. Please try again tomorrow.";
+  // Preview only, when the catalog has no v3 consent yet: stand-in boxes. The real page never uses these.
+  var PREVIEW_CONSENT = { version: "preview", intro: ["Preview: the consent text from the catalog shows here."],
+    boxes: ["I'm 18 or older.", "I agree to my answers being collected.", "I agree to my answers going to Coach Tom."],
+    photo_release: ["Preview: the photo release from the catalog shows here."], photo_agree: "I agree" };
+  function consent() { return (C && C.v3_consent) || (preview ? PREVIEW_CONSENT : null); }
+  var TEST = {}; (K ? K.tests : []).forEach(function (t) { TEST[t.key] = t; });
 
-  var s = { step: 0, name: "", adult: false, toTom: false, age: "", sex: null, hFt: "", hIn: "", weight: "",
+  var s = { step: 0, name: "", adult: false, collect: false, share: false, age: "", sex: null, hFt: "", hIn: "", weight: "",
     exp: null, does: {}, days: null, mins: null, gear: {}, goals: {}, ownGoal: "", note: "",
     pushups: "", pullups: "", lifts: {}, tests: {}, kbUnit: "kg",
     cardio: null, jFt: "", jIn: "", sprint: "", sprintDist: "40yd", runDist: "1_mile", runMin: "", runSec: "", far: "", farKind: "Run",
-    enjoy: {}, canJog: null, trains: {}, health: {}, healthNote: "", sleep: null, stress: null, nemesis: {}, whyNow: "", style: null, checkins: null, food: {}, allergy: "", budget: null, likes: "", dislikes: "", way: null, outfit: null, skipped: {}, done: false };
+    enjoy: {}, canJog: null, trains: {}, health: {}, healthNote: "", sleep: null, stress: null, nemesis: {}, whyNow: "", style: null, checkins: null, food: {}, allergy: "", budget: null, likes: "", dislikes: "", way: null, outfit: null, skipped: {},
+    // The hero step, as v2: the signed release, the photo (a canvas plus its base64 JPEG), the camera, the description.
+    photoAgreed: false, signedName: "", photo: null, cam: null, look: { extra: "" }, drawNote: "", describeAgreed: false,
+    // Sending and results, as v2.
+    sending: false, error: "", done: false, sentHere: false, checking: !!token, closed: "", result: null, avatar: null, copied: false };
 
   // --- Tom's new questions ------------------------------------------------------------------------
   var DAYS = ["1–2", "3–4", "5–6", "Every day"];
@@ -266,9 +288,9 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var NEMESIS = ["Not enough time", "Motivation", "Staying consistent", "Injury or pain", "Not knowing what to do", "Boredom", "Life got busy", "Nothing yet: I'm new"];
   var STYLE = ["Tough love", "Encouraging", "Numbers and data"], CHECKINS = ["Daily", "A few times a week", "Weekly"];
   // Quest stages instead of "11 / 17" (proposal 5); the bar starts a little filled.
-  var STAGES = [["Origin", ["start", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching"]],
+  var STAGES = [["Origin", ["start", "consent", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching"]],
     ["Trials", ["strength", "belts", "cardio", "agility", "endurance", "start_cardio"]], ["Fuel", ["food", "budget", "likes"]],
-    ["Your hero", ["hero", "outfit"]], ["Send", ["review"]]];
+    ["Your hero", ["hero", "release", "photo", "describe", "outfit"]], ["Send", ["review"]]];
   function stageOf(st) { for (var i = 0; i < STAGES.length; i++) if (STAGES[i][1].indexOf(st) !== -1) return i; return 0; }
 
   // --- The rest of the v3 list (4 Nov 2026) ------------------------------------------------------
@@ -288,6 +310,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     { key: "body", name: "Full-body photo", note: "Looks most like you.", ico: "🧍" },
     { key: "selfie", name: "Selfie plus a short description", note: "Your face, and you tell us the rest.", ico: "📷" },
     { key: "describe", name: "Description only", note: "No photo.", ico: "✍️" }];
+  function photoWay() { return s.way === "body" || s.way === "selfie"; }
 
   // --- Belts: only the tests at the person's level and for the gear they have -----------------------
   // Level: Tom's tier-2 tests open at 8 pull-ups or 25 push-ups (v2's rule, K.tier2_from); below that, tier 1 only.
@@ -296,7 +319,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     kb_swing: "kb", goblet_squat: "kb", kb_catch: "kb", kb_press: "kb", one_arm_swing: "kb", hand_to_hand: "kb", mace_360: "mace" };
   var BELT_GROUPS = [
     { key: "pulling", name: "Pulling · Monkey 🐒", base: "pullups", need: "bar",
-      tests: ["dead_hang_s", "scap_pullups", "assisted_pullups", "aus_rows", "one_arm_hang_s", "hanging_l_sit_s", "skin_the_cat", "l_sit_chinups", "muscle_ups"] },
+      tests: ["dead_hang_s", "scap_pullups", "assisted_pullups", "knee_raises", "aus_rows", "one_arm_hang_s", "hanging_l_sit_s", "skin_the_cat", "l_sit_chinups", "muscle_ups"] },
     { key: "pushing", name: "Pushing · Tiger 🐅", base: "pushups", tests: ["kneeling_pushups", "single_arm_plank_s", "db_press", "pike_pushups", "diamond_pushups", "lateral_raise", "one_arm_pushups"] },
     { key: "legs", name: "Legs · Panda 🐼", tests: ["squats", "lunges", "calf_raises", "pistols"] },
     { key: "weighted", name: "Weighted calisthenics", base: "pullups", tier2only: true, gate: "Do you train with added weight, like a dip belt or a vest?", tests: ["weighted_pullup", "weighted_dip"] },
@@ -324,26 +347,33 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       return tier2(g.base) ? t.tier === 2 || k === "dead_hang_s" || k === "single_arm_plank_s" : t.tier === 1;
     });
   }
-  function beltCount() { return BELT_GROUPS.reduce(function (n, g) { return n + beltTests(g).length; }, 0); }
 
   // --- Flow ---------------------------------------------------------------------------------------
   // Seconds per screen, for the "about N min left" hint.
-  var ETA = { start: 30, basics: 30, health: 20, recovery: 10, nemesis: 20, coaching: 10, training: 15, time: 10, gear: 15, goals: 20, strength: 30, belts: 60, cardio: 5, agility: 20,
-    endurance: 20, start_cardio: 15, food: 20, budget: 10, likes: 30, hero: 30, outfit: 15, review: 15 };
+  var ETA = { start: 20, consent: 30, basics: 30, health: 20, recovery: 10, nemesis: 20, coaching: 10, training: 15, time: 10, gear: 15, goals: 20, strength: 30, belts: 60, cardio: 5, agility: 20,
+    endurance: 20, start_cardio: 15, food: 20, budget: 10, likes: 30, hero: 15, release: 40, photo: 30, describe: 30, outfit: 15, review: 15 };
   function steps() {
-    var out = ["start", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching", "strength", "belts", "cardio", "agility"];
+    var out = ["start", "consent", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching", "strength", "belts", "cardio", "agility"];
     if (s.cardio === "yes") out.push("endurance");
     if (s.cardio === "want") out.push("start_cardio");
-    return out.concat(["food", "budget", "likes", "hero", "outfit", "review"]);
+    out = out.concat(["food", "budget", "likes", "hero"]);
+    // A photo needs the signed release first (v2's order: release, then the camera). Describing needs no release.
+    if (photoWay()) out.push("release", "photo");
+    if (s.way === "describe") out.push("describe");
+    return out.concat(["outfit", "review"]);
   }
   // The skip button sits right under the title, so nobody thinks they must fill everything in (Luke, 11 Nov 2026).
   var SKIPPABLE = { strength: "I don't know: skip", belts: "Skip the belt tests", agility: "I don't know: skip", endurance: "I don't know: skip", start_cardio: "Skip this" };
   function lifts() { return !!s.does.Weights || has("barbell"); }
+  function signedOk() { var n = s.signedName.trim(); return n.length >= 3 && n.length <= 80 && n.indexOf(" ") > 0; }
+  function lookDone() { return ["hair_style", "hair_colour", "skin_tone", "eye_colour", "facial_hair", "glasses"].every(function (k) { return !!s.look[k]; }); }
   function canGo() {
     var st = steps()[s.step];
     if (s.skipped[st]) return true;
+    if (problem(st)) return false;
     switch (st) {
-      case "start": return s.adult && s.toTom && s.name.trim().length > 0;
+      case "start": return s.name.trim().length > 0;
+      case "consent": return !!consent() && s.adult && s.collect && s.share;
       case "basics": var a = parseInt(s.age, 10); return a >= 18 && a <= 100 && !!s.sex;
       case "training": return !!s.exp && Object.keys(s.does).length > 0;
       case "time": return !!s.days && !!s.mins;
@@ -357,10 +387,134 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       case "food": return Object.keys(s.food).length > 0;
       case "budget": return !!s.budget;
       case "hero": return !!s.way;
+      case "release": return s.photoAgreed && signedOk();
+      case "photo": return !!s.photo;
+      case "describe": return lookDone() && (!(consent() || {}).describe || s.describeAgreed);
       case "outfit": return !!s.outfit;
+      case "review": return !s.sending;
       default: return true;
     }
   }
+  // A number the Mac would turn down (demo.validate / club.validate), said on the screen instead of a dead Next.
+  function problem(st) {
+    var w = parseFloat(s.weight), sp = parseFloat(s.sprint);
+    switch (st) {
+      case "basics":
+        if (s.weight !== "" && !(w >= 70 && w <= 500)) return "Weight should be between 70 and 500 lb, or leave it blank.";
+        if (s.hFt !== "" && heightIn() == null) return "Height should be between 4 ft and 7 ft 6 in.";
+        return null;
+      case "strength":
+        if (parseInt(s.pushups, 10) > 300) return "Push-ups should be 300 or fewer.";
+        if (parseInt(s.pullups, 10) > 100) return "Pull-ups should be 100 or fewer.";
+        if (C.lifts.some(function (l) { return parseFloat(s.lifts[l.key]) > 1500; })) return "That lift weight doesn't look right.";
+        return null;
+      case "belts":
+        var bad = null;
+        BELT_GROUPS.forEach(function (g) { beltTests(g).forEach(function (k) {
+          var t = TEST[k], v = s.tests[k];
+          if (bad || v == null || v === "") return;
+          if (t.kind === "set") { if (parseFloat(v.weight) > 300 || parseInt(v.reps, 10) > 500) bad = t.name + ": up to 300 for the weight and 500 reps."; }
+          else if (t.kind === "seconds" && parseInt(v, 10) > 3600) bad = t.name + ": up to 3600 seconds.";
+        }); });
+        return bad;
+      case "agility":
+        if (s.jFt !== "" && jumpIn() == null) return "Broad jump should be between 1 ft and 13 ft 4 in.";
+        if (s.cardio === "yes" && s.sprint !== "" && sprintS() == null) return s.sprintDist === "100m" ? "A 100 m time should be between 9 and 40 seconds." : "A 40-yard time should be between 3.5 and 15 seconds.";
+        return null;
+      case "endurance":
+        if (s.runMin !== "" && runSecs() == null) return "That run time doesn't look right.";
+        if (s.far !== "" && farMiles() == null) return "Your longest " + s.farKind.toLowerCase() + " should be up to " + FAR_MAX[s.farKind] + " miles.";
+        return null;
+      default: return null;
+    }
+  }
+
+  // --- The answers as the Mac reads them (demo.validate, demo.score, club.validate) -------------------
+  function heightIn() { var f = parseInt(s.hFt, 10); if (!(f >= 4 && f <= 7)) return null; var t = f * 12 + Math.min(parseInt(s.hIn || "0", 10) || 0, 11); return t <= 90 ? t : null; }
+  function weightLb() { var w = parseFloat(s.weight); return w >= 70 && w <= 500 ? w : null; }
+  // The prototype asks for a best lift (one rep, a barbell), as v2 does before its reps stepper is touched.
+  function liftList() { return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); return w > 0 ? { exercise: l.key, weight_lb: w, reps: 1 } : null; }).filter(Boolean); }
+  function jumpIn() { var f = parseInt(s.jFt, 10); if (isNaN(f)) return null; var t = f * 12 + (parseInt(s.jIn || "0", 10) || 0); return t >= 12 && t <= 160 ? t : null; }
+  function sprintS() { var t = parseFloat(s.sprint), lo = s.sprintDist === "100m" ? 9 : 3.5, hi = s.sprintDist === "100m" ? 40 : 15; return t >= lo && t <= hi ? Math.round(t * 100) / 100 : null; }
+  function runSecs() { var m = parseInt(s.runMin, 10); if (isNaN(m)) return null; var t = m * 60 + (parseInt(s.runSec || "0", 10) || 0), floor = s.runDist === "5k" ? 720 : 200;
+    return t >= floor && t <= 4 * 3600 ? t : null; }
+  var FAR_MAX = { Run: 250, Ride: 1000, Swim: 60 };
+  function farMiles() { var m = parseFloat(s.far); if (!(m > 0 && m <= FAR_MAX[s.farKind])) return null; var o = {}; o[s.farKind.toLowerCase()] = Math.round(m * 100) / 100; return o; }
+  // Tom's belt tests: numbers, sets as {weight, reps} (kettlebells in kg), only the tests the page showed.
+  function clubTests() {
+    var out = {};
+    if (s.skipped.belts) return out;
+    BELT_GROUPS.forEach(function (g) { beltTests(g).forEach(function (k) {
+      var t = TEST[k], v = s.tests[k];
+      if (v == null || v === "") return;
+      if (t.kind === "set") {
+        var w = parseFloat(v.weight), r = parseInt(v.reps, 10);
+        if (!(w > 0) || !(r > 0)) return;
+        if (t.unit === "kg" && s.kbUnit === "lb") w = Math.round(w / 2.2046 * 10) / 10;
+        out[k] = { weight: w, reps: r };
+      } else if (t.kind === "check") { if (v === true || v === false) out[k] = v; }
+      else { var n = parseInt(v, 10); if (!isNaN(n)) out[k] = n; }
+    }); });
+    return out;
+  }
+  // v3 has no skill tree, so the skills come from the answers: everyone does Tom's calisthenics belts; the rest open
+  // from the person's lifting, a yes to kettlebells or a mace, and whatever skill asks each test that was sent.
+  function clubSkills(tests) {
+    var on = { calisthenics: true };
+    if (lifts()) on.weightlifting = true;
+    BELT_GROUPS.forEach(function (g) { if ((g.key === "kb" || g.key === "mace") && gateShown(g) && s.trains[g.key] === "yes") on.kb_mace = true; });
+    Object.keys(tests).forEach(function (k) { on[TEST[k].skills[0]] = true; });
+    return K.skills.map(function (x) { return x.key; }).filter(function (k) { return on[k]; });
+  }
+  function picked(o, list) { return list.filter(function (x) { return !!o[x]; }); }  // in the list's own order
+  function cap(t, n) { return (t || "").trim().slice(0, n || 300); }
+  function form() {
+    var a = { age: parseInt(s.age, 10) }, w = weightLb(), hi = heightIn();
+    if (hi) a.height_in = hi;
+    if (w != null) a.bodyweight_lb = w;
+    if (!s.skipped.strength) {
+      if (s.pushups !== "") a.pushups = parseInt(s.pushups, 10);
+      if (s.pullups !== "") a.pullups = parseInt(s.pullups, 10);
+      var lf = lifts() ? liftList() : [];
+      if (lf.length && w != null) a.lifts = lf;  // lifts are measured for bodyweight, so only with it (as v2)
+    }
+    if (!s.skipped.agility) {
+      if (jumpIn()) a.broad_jump_in = jumpIn();
+      if (s.cardio === "yes" && sprintS()) a[s.sprintDist === "100m" ? "sprint_100m_s" : "sprint_40yd_s"] = sprintS();
+    }
+    if (s.cardio === "yes" && !s.skipped.endurance) {
+      if (runSecs()) a.run = { distance: s.runDist, seconds: runSecs() };
+      if (farMiles()) a.longest = farMiles();
+    }
+    var tests = clubTests(), club = { skills: clubSkills(tests), tests: tests };
+    a.club = club;  // where demo.validate and club.card read it, as v2
+    var photo = photoWay(), f = { page: "club-v3", consent_version: consent().version, consent_method: "web_link", first_name: s.name.trim(), adult: s.adult,
+      agreed: s.collect && s.share && (photo ? s.photoAgreed : !consent().describe || s.describeAgreed), agreed_collect: s.collect, agreed_share: s.share,
+      way_in: photo ? "selfie" : "describe" };
+    if (photo) f.face_release = { signed_name: s.signedName.trim() };
+    f.sex = s.sex === "Female" ? "female" : "male";
+    if (s.way === "describe") f.description = Object.assign({}, s.look, { extra: cap(s.look.extra, C.extra_max || 120) });
+    if (photo && s.drawNote.trim()) f.drawing_note = cap(s.drawNote, C.extra_max || 120);
+    f.answers = a;
+    f.club = club;  // the contract's top-level copy, for v3.validate
+    var goalNote = [s.ownGoal.trim() && "Own goal: " + s.ownGoal.trim(), s.note.trim()].filter(Boolean).join(". ");
+    f.v3 = { health: { tags: picked(s.health, HEALTH), note: s.health.None ? "" : cap(s.healthNote) },
+      sleep: s.sleep, stress: s.stress,
+      training: { years: s.exp, kinds: picked(s.does, DOES) },
+      time: { days: s.days, minutes: s.mins },
+      gear: GEAR.filter(function (g) { return s.gear[g.key]; }).map(function (g) { return g.key; }),
+      goals: { tags: picked(s.goals, GOALS), note: cap(goalNote) },
+      nemesis: { tags: picked(s.nemesis, NEMESIS), why: cap(s.whyNow) },
+      coaching: { style: s.style, checkins: s.checkins },
+      cardio: s.cardio,
+      start_cardio: s.cardio === "want" && !s.skipped.start_cardio ? { likes: picked(s.enjoy, ENJOY), can_20min: s.canJog } : null,
+      food: { tags: picked(s.food, FOOD), other: cap(s.allergy) },
+      budget: s.budget, likes: cap(s.likes), dislikes: cap(s.dislikes),
+      outfit: s.outfit, photo_kind: s.way === "body" ? "full_body" : s.way === "selfie" ? "selfie" : null };
+    return f;
+  }
+  // Preview only: a hook for checking the form the page would send.
+  if (preview) window.__v3Form = form;
 
   // --- Little builders (as v2) -----------------------------------------------------------------------
   function h(tag, attrs, kids) {
@@ -370,10 +524,12 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
     return e;
   }
-  function head(area, title, sub, isNew) { return h("div", {}, [area ? h("div", { class: "area" }, [area, isNew ? h("span", { class: "newtag", text: "NEW FOR TOM" }) : null]) : null,
+  // "NEW FOR TOM" tags are for Luke and Tom's preview, not for clients.
+  function head(area, title, sub, isNew) { return h("div", {}, [area ? h("div", { class: "area" }, [area, isNew && preview ? h("span", { class: "newtag", text: "NEW FOR TOM" }) : null]) : null,
     h("h1", { text: title }), sub ? h("p", { class: "sub", text: sub }) : null]); }
   function label(t) { return h("div", { class: "label", text: t }); }
   function field(lbl, input, unit) { return h("div", {}, [label(lbl), h("div", { class: "field" }, [input, unit ? h("span", { class: "unit", text: unit }) : null])]); }
+  function lines(x) { return Array.isArray(x) ? x : String(x || "").split("\n").filter(function (l) { return l.trim(); }); }
   function numIn(key, opts) {
     opts = opts || {};
     var i = h("input", { type: "text", inputmode: opts.decimal ? "decimal" : "numeric", placeholder: opts.ph || "0", value: s[key] || "", autocomplete: "off", "aria-label": opts.aria || key,
@@ -404,6 +560,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       var on = multi ? !!s[key][o.key] : s[key] === o.key;
       return h("button", { type: "button", class: "opt" + (on ? " on" : ""), "aria-pressed": on ? "true" : "false",
         onclick: function () {
+          // A new way in starts the release and photo again (as v2).
+          if (key === "way" && s.way !== o.key) { s.photoAgreed = false; s.signedName = ""; s.photo = null; s.describeAgreed = false; }
           if (!multi) s[key] = o.key;
           else if (on) delete s[key][o.key];
           else { if (o.key === "body") s[key] = {}; else delete s[key].body; s[key][o.key] = true; }
@@ -426,35 +584,54 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       var cur = t.kind === "set" ? (s.tests[k] = s.tests[k] || { weight: "", reps: "" }) : null;
       var i = h("input", { type: "text", inputmode: dec ? "decimal" : "numeric", placeholder: "0", autocomplete: "off", "aria-label": t.name + (sub ? " " + sub : ""),
         value: cur ? cur[sub] : (v != null ? v : ""),
-        oninput: function () { var x = i.value.replace(dec ? /[^0-9.]/g : /[^0-9]/g, "").slice(0, max); if (x !== i.value) i.value = x; if (cur) cur[sub] = x; else s.tests[k] = x; } });
+        oninput: function () { var x = i.value.replace(dec ? /[^0-9.]/g : /[^0-9]/g, "").slice(0, max); if (x !== i.value) i.value = x; if (cur) cur[sub] = x; else s.tests[k] = x; bar(); } });
       return h("div", { class: "field" }, [i, h("span", { class: "unit", text: unit })]);
     }
     var unit = t.unit === "kg" ? s.kbUnit : t.unit;
     return h("div", {}, [label(t.name), h("p", { class: "how", text: t.how }),
       t.kind === "set" ? h("div", { class: "pair" }, [box("weight", unit, true, 5), box("reps", "reps", false, 3)]) : box(null, t.kind === "seconds" ? "sec" : "reps", false, 4)]);
   }
+  // Each description pick, as v2's chips: tap again to clear.
+  function lookChips(lbl, key) {
+    return h("div", {}, [label(lbl), h("div", { class: "chips" }, C.describe[key].map(function (o) {
+      var on = s.look[key] === o;
+      return h("button", { type: "button", class: "chip" + (on ? " on" : ""), "aria-pressed": on ? "true" : "false", text: o,
+        onclick: function () { if (on) delete s.look[key]; else s.look[key] = o; render(); } }); }))]);
+  }
 
   function screen() {
     var st = steps()[s.step], out = screenBody(st);
     if (SKIPPABLE[st]) out.splice(1, 0, skipBtn(st, SKIPPABLE[st]));
+    out.push(h("div", { class: "err", id: "problem", hidden: true }));  // bar() fills it in
     return out;
   }
+  function savedToken() { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; } }
   function screenBody(st) {
+    var c = consent();
     switch (st) {
       case "start":
         var nm = textIn("name", "First name or nickname", 40); nm.style.font = "700 22px var(--body)";
-        return [h("div", { class: "preview", text: "Prototype of version 3 for Luke and Tom. Nothing you type is sent or saved." }),
-          head("Coach Tom", "Your fitness assessment", "About 5 minutes. See your stats, belts and rank, get your own anime hero, and get Coach Tom's course picks."),
+        var saved = !preview && !token && savedToken();
+        return [preview ? h("div", { class: "preview", text: "Preview of version 3 for Luke and Tom. Nothing you type is sent or saved." }) : null,
+          head("Coach Tom", "Your fitness assessment", "About 5 minutes. See your stats, belts and rank, get your own anime hero, and get a plan from Coach Tom."),
           field("First name or nickname", nm),
           h("p", { class: "promise", text: "Don't know a number? Skip it. Every stats question has a skip button, and a skipped stat just doesn't count." }),
-          h("label", { class: "toggle" }, ["I confirm I'm 18 or older", h("input", { type: "checkbox", checked: s.adult, onchange: function (e) { s.adult = e.target.checked; bar(); } })]),
-          h("label", { class: "toggle", style: "font:600 15px/1.4 var(--body)" }, ["I agree my answers go to Coach Tom, who uses them to coach me",
-            h("input", { type: "checkbox", checked: s.toTom, onchange: function (e) { s.toTom = e.target.checked; bar(); } })])];
+          saved ? h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--ice)", text: "Already sent yours? See your results",
+            onclick: function () { location.hash = "t=" + saved; } }) : null];
+      case "consent":
+        // The catalog's v3 consent (docs/club/v3-consent-draft-2026-11-15.md): the bullets, then three unticked boxes.
+        if (!c) return [head("Coach Tom", "Before you start"), h("div", { class: "err", text: "This page didn't load properly. Please reload it." })];
+        function box(i, key) { return h("label", { class: "toggle", style: "font:600 15px/1.4 var(--body)" }, [c.boxes[i],
+          h("input", { type: "checkbox", checked: s[key], onchange: function (e) { s[key] = e.target.checked; bar(); } })]); }
+        return [head("Coach Tom", "Before you start", "Please read this first."),
+          h("div", { class: "sheet" }, [h("h2", { text: "WHAT HAPPENS TO YOUR ANSWERS" }),
+            h("ul", { class: "howto", style: "color:var(--text)" }, lines(c.intro).map(function (l) { return h("li", { text: l }); }))]),
+          box(0, "adult"), box(1, "collect"), box(2, "share")];
       case "basics":
         return [head("Basics", "About you", "Weight is optional. It makes Strength fairer."),
           h("div", { class: "pair" }, [num("age", "Age", "yrs", { max: 3 }), h("div", {}, [label("Sex"), h("div", { class: "seg" }, ["Male", "Female"].map(function (x) {
             return h("button", { type: "button", class: s.sex === x ? "on" : "", text: x, onclick: function () { s.sex = x; render(); } }); }))])]),
-          h("div", { class: "pair" }, [num("hFt", "Height", "ft", { max: 1 }), num("hIn", " ", "in", { max: 2 })]),
+          h("div", { class: "pair" }, [num("hFt", "Height", "ft", { max: 1 }), num("hIn", " ", "in", { max: 2 })]),
           num("weight", "Weight (optional)", "lb", { decimal: true, max: 5 })];
       case "training":
         return [head("Training", "Your training so far"), one("How long have you trained?", EXP, "exp"), many("What do you mostly do? Tap any.", DOES, "does")];
@@ -483,10 +660,10 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         var kids = [head("Strength", "Your strength", "Your best set, done strictly, in the last 3 months. A good guess is fine."),
           h("div", { class: "pair" }, [num("pushups", "Push-ups in a row", "reps"), num("pullups", "Strict pull-ups", "reps")])];
         if (lifts()) {
-          kids.push(h("p", { class: "note", text: "You lift: add a best bench, squat or deadlift (one is enough)." }));
+          kids.push(h("p", { class: "note", text: "You lift: add a best bench, squat or deadlift (one is enough)." + (weightLb() == null ? " Lifts count once your weight is in, on the Basics screen." : "") }));
           kids.push(h("div", { class: "pair" }, C.lifts.map(function (l) {
             var i = h("input", { type: "text", inputmode: "decimal", placeholder: "0", value: s.lifts[l.key] || "", "aria-label": l.name,
-              oninput: function () { var x = i.value.replace(/[^0-9.]/g, "").slice(0, 5); if (x !== i.value) i.value = x; s.lifts[l.key] = x; } });
+              oninput: function () { var x = i.value.replace(/[^0-9.]/g, "").slice(0, 5); if (x !== i.value) i.value = x; s.lifts[l.key] = x; bar(); } });
             return field(l.name, i, "lb"); })));
         }
         return kids;
@@ -511,7 +688,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           h("div", { class: "sheet" }, [h("h2", { text: "TRY IT NOW" }), h("ol", { class: "howto" }, [
             h("li", { text: "Stand with your toes behind a line." }), h("li", { text: "Swing your arms and jump forward as far as you can, landing on both feet." }),
             h("li", { text: "Measure from the line to the back of your heels. Best of three." })])]),
-          h("div", { class: "pair" }, [num("jFt", "Broad jump", "ft", { max: 1 }), num("jIn", " ", "in", { max: 2 })])];
+          h("div", { class: "pair" }, [num("jFt", "Broad jump", "ft", { max: 1 }), num("jIn", " ", "in", { max: 2 })])];
         if (s.cardio === "yes") {
           k2.push(h("div", {}, [label("Or a sprint time"), h("div", { class: "seg" }, [["40yd", "40 yards"], ["100m", "100 m"]].map(function (o) {
             return h("button", { type: "button", class: s.sprintDist === o[0] ? "on" : "", text: o[1], onclick: function () { s.sprintDist = o[0]; render(); } }); }))]));
@@ -523,7 +700,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         var kind = h("div", { class: "seg" }, ["Run", "Ride", "Swim"].map(function (x) { return h("button", { type: "button", class: s.farKind === x ? "on" : "", text: x, onclick: function () { s.farKind = x; render(); } }); }));
         return [head("Endurance", "Your cardio", "A timed run in the last 3 months, or your longest session in the past year. Either one scores Endurance. A good guess is fine."),
           h("div", {}, [label("A timed run"), dist]),
-          h("div", { class: "pair" }, [num("runMin", "Time", "min", { max: 3 }), num("runSec", " ", "sec", { max: 2 })]),
+          h("div", { class: "pair" }, [num("runMin", "Time", "min", { max: 3 }), num("runSec", " ", "sec", { max: 2 })]),
           h("p", { class: "note", text: "Or:" }),
           h("div", {}, [label("Your longest in the past year"), kind]), num("far", "Distance", "mi", { decimal: true, max: 5 })];
       case "start_cardio":
@@ -540,16 +717,106 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         return [head("Food", "Likes and dislikes", "One line each. Both are optional."), field("Foods you like", textIn("likes", "e.g. steak, rice, berries")),
           field("Foods you don't like", textIn("dislikes", "e.g. mushrooms"))];
       case "hero":
-        return [head("Your hero", "How should we draw you?", "Your anime-style hero. A photo needs your OK on the next screen in the real version."), opts(WAYS, "way"),
-          h("p", { class: "note", text: "Prototype: the consent, photo release and camera steps from version 2 go here. The full-body photo wording needs Luke's OK before it goes live." })];
+        return [head("Your hero", "How should we draw you?", "Your anime-style hero. A photo needs your signed OK on the next screen."), opts(WAYS, "way")];
+      case "release":
+        // v2's signed face data release, widened to any photo: the catalog's lines, the box, then the typed full name.
+        if (!c) return [head("Your hero", "Before you add a photo"), h("div", { class: "err", text: "This page didn't load properly. Please reload it." })];
+        var sig = h("input", { type: "text", placeholder: "Your full name", value: s.signedName, autocomplete: "name", maxlength: 80,
+          oninput: function () { s.signedName = sig.value; bar(); } });
+        sig.style.font = "400 20px var(--body)";
+        return [head("Your hero", "Before you add a photo", "Please read and sign before your photo is taken."),
+          h("div", { class: "sheet" }, [h("h2", { text: "PHOTO RELEASE" }), h("div", { style: "font:400 14px/1.55 var(--body)" }, lines(c.photo_release).map(function (l) { return h("p", { style: "margin:0 0 9px", text: l }); }))]),
+          h("label", { class: "toggle", style: "font:600 15px/1.4 var(--body)" }, [c.photo_agree, h("input", { type: "checkbox", checked: s.photoAgreed, onchange: function (e) { s.photoAgreed = e.target.checked; bar(); } })]),
+          field("Type your full name to sign", sig),
+          h("p", { class: "note", text: "Your full name is kept with this agreement as proof of your consent. It's never sent to the AI." }),
+          h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--ice)", text: "Describe myself instead",
+            onclick: function () { s.way = "describe"; s.photoAgreed = false; s.signedName = ""; s.photo = null; render(); window.scrollTo(0, 0); } })];
+      case "photo":
+        if (s.cam) return camScreen();
+        var body = s.way === "body";
+        // Two buttons: with `capture` an iPhone opens the camera only and never offers the photo library (v2).
+        // Computer browsers ignore `capture`, so there "Take a photo" opens the camera itself.
+        function pick(text, camera) {
+          return h("label", { class: "btn-file" }, [text, h("input", { type: "file", accept: "image/*", capture: camera ? (body ? "environment" : "user") : null,
+            onchange: function (e) { var f = e.target.files[0]; e.target.value = ""; if (f) toJpeg(f); } })]);
+        }
+        var take = s.photo ? "Take another" : body ? "Take a photo" : "Take a selfie";
+        var dn = textIn("drawNote", body ? "e.g. I usually wear glasses" : "e.g. short black twists, medium build", C.extra_max || 120);
+        return [head("Your hero", body ? "Your full-body photo" : "Your selfie",
+            body ? "Head to toe, standing straight, in good light. Just you in the photo. A friend or a timer helps." : "Face the camera in good light. Just you in the photo."),
+          s.photo ? s.photo.cv : null,
+          h("div", { class: "pair" }, [desktopCam() ? h("button", { type: "button", class: "btn-file", text: take, onclick: startCam }) : pick(take, true), pick("Choose a photo", false)]),
+          h("p", { class: "note", text: "The photo is resized on your " + (desktopCam() ? "computer" : "phone") + " first, and its location data is removed." }),
+          field(body ? "Anything the drawing should get right? (optional)" : "A short description: your build, hair, anything the selfie doesn't show", dn),
+          h("p", { class: "note", text: "These words go to Higgsfield and xAI with your photo to draw your hero. Don't include names or anything private." }),
+          s.error ? h("div", { class: "err", text: s.error }) : null];
+      case "describe":
+        var L = s.look, extra = h("input", { type: "text", placeholder: "e.g. freckles, a friendly smile", value: L.extra, maxlength: C.extra_max || 120, oninput: function () { L.extra = extra.value; } });
+        extra.style.font = "400 17px var(--body)";
+        return [head("Your hero", "Describe your hero", "Pick what fits you. No photo is used: only these words are sent to draw your hero."),
+          lookChips("Hair", "hair_style"), lookChips("Hair colour", "hair_colour"), lookChips("Skin tone", "skin_tone"), lookChips("Eyes", "eye_colour"),
+          lookChips("Facial hair", "facial_hair"), lookChips("Glasses", "glasses"),
+          field("Anything else? (optional)", extra), h("p", { class: "note", text: "Don't include names or anything private." }),
+          // The words stored with a described hero (catalog v3_consent.describe: they go to Higgsfield and xAI), then a tick, as v2.
+          c && c.describe ? h("div", { class: "sheet" }, [h("h2", { text: "ABOUT YOUR HERO ART" }), h("div", { style: "font:400 14px/1.55 var(--body)", text: c.describe })]) : null,
+          c && c.describe ? h("label", { class: "toggle", style: "font:600 15px/1.4 var(--body)" }, ["I agree", h("input", { type: "checkbox", checked: s.describeAgreed, onchange: function (e) { s.describeAgreed = e.target.checked; bar(); } })]) : null];
       case "outfit":
         return [head("Your hero", "Pick an outfit", "Each one is drawn to fit your body."), opts(OUTFITS, "outfit")];
       case "review":
-        return [head(null, "Ready, " + (s.name.trim() || "hero") + "?", "Check your answers, then send."), h("div", { class: "sheet" }, [h("h2", { text: "CHARACTER SHEET" }), tomSheet(false)])];
+        return [head(null, "Ready, " + (s.name.trim() || "hero") + "?", "Check your answers, then send."), h("div", { class: "sheet" }, [h("h2", { text: "CHARACTER SHEET" }), tomSheet(false)]),
+          s.error ? h("div", { class: "err", text: s.error }) : null];
     }
   }
 
-  // --- What Tom gets: one row per person on his dashboard (here, as a list) -------------------------
+  // --- Photo: resize and camera (ported from v2) -----------------------------------------------------
+  // Resize to at most 1600 px and re-encode as JPEG: smaller to send, and the photo's location data is dropped.
+  // The preview is the canvas itself, so this works under a strict Content-Security-Policy too (v2, 28 Oct 2026).
+  function keepPhoto(src, w, ht) {
+    var scale = Math.min(1, 1600 / Math.max(w, ht)), cv = document.createElement("canvas");
+    cv.width = Math.round(w * scale); cv.height = Math.round(ht * scale);
+    cv.getContext("2d").drawImage(src, 0, 0, cv.width, cv.height);
+    var data = cv.toDataURL("image/jpeg", 0.85);
+    cv.className = "photo"; cv.setAttribute("role", "img"); cv.setAttribute("aria-label", s.way === "body" ? "Your full-body photo" : "Your selfie");
+    s.photo = { cv: cv, b64: data.split(",")[1] }; s.error = ""; render();
+  }
+  function toJpeg(file) {
+    function bad() { s.error = "That photo couldn't be opened. Try another one."; render(); }
+    function viaImage() {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () { URL.revokeObjectURL(url); keepPhoto(img, img.naturalWidth, img.naturalHeight); };
+      img.onerror = function () { URL.revokeObjectURL(url); bad(); };
+      img.src = url;
+    }
+    if (!window.createImageBitmap) { viaImage(); return; }
+    createImageBitmap(file).then(function (b) { keepPhoto(b, b.width, b.height); if (b.close) b.close(); }, viaImage);
+  }
+  // The computer's camera (getUserMedia): a live view and a "Take photo" button. Phones keep the file input, which
+  // opens their own camera app.
+  function desktopCam() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && matchMedia("(hover: hover) and (pointer: fine)").matches; }
+  function startCam() {
+    s.error = "";
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false }).then(function (stream) {
+      s.cam = stream; render();
+    }, function (e) {
+      s.error = e && e.name === "NotAllowedError" ? "The camera is blocked for this page. Allow it from your browser's address bar, or choose a photo instead." :
+        "No camera could be opened. Choose a photo instead."; render();
+    });
+  }
+  function stopCam() { if (s.cam) { s.cam.getTracks().forEach(function (t) { t.stop(); }); s.cam = null; } }
+  function camScreen() {
+    var v = s.camEl || (s.camEl = h("video", { class: "photo cam", autoplay: true, muted: true, playsinline: true, "aria-label": "Camera view" }));
+    if (v.srcObject !== s.cam) v.srcObject = s.cam;
+    var p = v.play && v.play(); if (p && p.catch) p.catch(function () {});
+    return [head("Your hero", s.way === "body" ? "Your full-body photo" : "Your selfie", s.way === "body" ? "Step back until you're in the picture, head to toe." : "Face the camera in good light. Just you in the photo."), v,
+      h("div", { class: "pair" }, [
+        h("button", { type: "button", class: "btn-file go", text: "Take photo", onclick: function () {
+          if (!v.videoWidth) return;
+          var w = v.videoWidth, ht = v.videoHeight; keepPhoto(v, w, ht); stopCam(); render(); } }),
+        h("button", { type: "button", class: "btn-file", style: "border-color:var(--frame-dim);color:var(--muted)", text: "Cancel", onclick: function () { stopCam(); render(); } })]),
+      s.error ? h("div", { class: "err", text: s.error }) : null];
+  }
+
+  // --- The character sheet on the review screen (and Tom's view in the preview) ---------------------
   function list(o) { return Object.keys(o).join(", "); }
   function ftIn(f, i) { return f ? f + " ft " + (i || 0) + " in" : null; }
   function tomSheet(forTom) {
@@ -567,8 +834,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     row("Nemesis", list(s.nemesis) + (s.whyNow.trim() ? "\nWhy now: " + s.whyNow.trim() : ""), true);
     row("Coaching", s.style && s.checkins ? s.style + " · check-ins " + s.checkins.toLowerCase() : null, true);
     var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; }).map(function (l) { return l.name + " " + s.lifts[l.key] + " lb"; });
-    row("Strength", sk("strength", [s.pushups && s.pushups + " push-ups", s.pullups && s.pullups + " pull-ups"].concat(lf).filter(Boolean).join("\n")));
-    var bt = Object.keys(s.tests).filter(function (k) { var v = s.tests[k]; return v != null && v !== "" && !(v.weight === "" && v.reps === ""); }).length;
+    row("Strength", sk("strength", [s.pushups && s.pushups + " push-ups", s.pullups && s.pullups + " pull-ups"].concat(lifts() ? lf : []).filter(Boolean).join("\n")));
+    var bt = Object.keys(clubTests()).length;
     var tr = BELT_GROUPS.filter(function (g) { return gateShown(g) && s.trains[g.key]; }).map(function (g) { return { weighted: "Added weight", kb: "Kettlebells", mace: "Mace" }[g.key] + ": " + s.trains[g.key]; });
     row("Belt tests", sk("belts", (bt ? bt + " answered" : "none answered") + (tr.length ? "\n" + tr.join(" · ") : "")));
     var cardio = { yes: "Does cardio", want: "Doesn't yet, wants to start", no: "Not into cardio" }[s.cardio];
@@ -579,49 +846,13 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     row("Endurance", s.cardio === "no" ? "N/A (not into cardio)" : s.cardio === "want" ? "N/A (not doing cardio yet)" : sk("endurance", [run, s.far && "Longest " + s.farKind.toLowerCase() + " " + s.far + " mi"].filter(Boolean).join("\n")));
     row("Food", [list(s.food), s.allergy.trim() && "Also: " + s.allergy.trim(), s.budget && "Budget " + s.budget + " a week",
       s.likes.trim() && "Likes: " + s.likes.trim(), s.dislikes.trim() && "Dislikes: " + s.dislikes.trim()].filter(Boolean).join("\n"));
-    row("Hero", [(WAYS.filter(function (w) { return w.key === s.way; })[0] || {}).name, (OUTFITS.filter(function (o) { return o.key === s.outfit; })[0] || {}).name].filter(Boolean).join(" · "));
+    var look = s.way === "describe" ? ["hair_style", "hair_colour", "skin_tone", "eye_colour", "facial_hair", "glasses"].map(function (k) { return s.look[k]; }).concat(s.look.extra.trim()).filter(Boolean).join(", ") : s.drawNote.trim();
+    row("Hero", [(WAYS.filter(function (w) { return w.key === s.way; })[0] || {}).name, (OUTFITS.filter(function (o) { return o.key === s.outfit; })[0] || {}).name].filter(Boolean).join(" · ") +
+      (s.photo ? "\nPhoto added" : "") + (look ? "\n" + look : ""));
     return h("dl", { class: "tomrow" }, rows);
   }
-  // --- The person's result: a SAMPLE layout (11 Nov 2026) -------------------------------------------
-  // Luke, 11 Nov: a stat that wasn't done is hidden, not N/A; a rank from fewer stats says which ("ranked on
-  // Strength"), with no "add more" line. The numbers here are rough stand-ins so each run looks different; the real
-  // scores, ranks, percentiles and belts come from the Mac's scoring (club.py), as in version 2.
-  function clamp(v) { return Math.max(5, Math.min(95, Math.round(v))); }
-  function letter(v) { return v < 20 ? "E" : v < 35 ? "D" : v < 50 ? "C" : v < 65 ? "B" : v < 80 ? "A" : "S"; }
-  function stats() {
-    var out = [], p = parseInt(s.pushups, 10) || 0, u = parseInt(s.pullups, 10) || 0;
-    var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; });
-    if (!s.skipped.strength && (s.pushups !== "" || s.pullups !== "" || lf.length)) {
-      out.push({ key: "STR", name: "Strength", value: clamp(p * 0.6 + u * 2.5 + (lf.length ? 5 : 0)),
-        parts: [s.pushups !== "" && p + " push-ups in a row", s.pullups !== "" && u + " strict pull-ups"].concat(lf.map(function (l) { return l.name + " " + s.lifts[l.key] + " lb"; })).filter(Boolean),
-        next: [s.pushups !== "" && (p + 1) + (p + 1 === 1 ? " push-up" : " push-ups"), s.pullups !== "" && (u + 1) + (u + 1 === 1 ? " strict pull-up" : " pull-ups")].filter(Boolean) });
-    }
-    var j = (parseInt(s.jFt, 10) || 0) * 12 + (parseInt(s.jIn, 10) || 0), sp = s.cardio === "yes" ? parseFloat(s.sprint) : NaN;
-    if (!s.skipped.agility && (j > 0 || sp > 0)) {
-      var av = Math.max(j > 0 ? (j - 48) : 0, sp > 0 ? (s.sprintDist === "100m" ? (18 - sp) * 8 : (7 - sp) * 30) : 0);
-      out.push({ key: "AGI", name: "Agility", value: clamp(av),
-        parts: [j > 0 && "Broad jump " + Math.floor(j / 12) + " ft " + (j % 12) + " in", sp > 0 && (s.sprintDist === "100m" ? "100 m" : "40 yards") + " in " + sp + " s"].filter(Boolean),
-        next: [j > 0 && "Broad jump " + Math.floor((j + 1) / 12) + " ft " + ((j + 1) % 12) + " in"].filter(Boolean) });
-    }
-    var m = (parseInt(s.runMin, 10) || 0) + (parseInt(s.runSec, 10) || 0) / 60, far = parseFloat(s.far);
-    if (s.cardio === "yes" && !s.skipped.endurance && (m > 0 || far > 0)) {
-      var ev = Math.max(m > 0 ? (s.runDist === "5k" ? (40 - m) * 2.5 : (14 - m) * 7) : 0, far > 0 ? far * 3 : 0);
-      var rn = (C.runs.filter(function (r) { return r.key === s.runDist; })[0] || {}).name;
-      out.push({ key: "END", name: "Endurance", value: clamp(ev),
-        parts: [m > 0 && rn + " in " + s.runMin + ":" + ("0" + (s.runSec || 0)).slice(-2), far > 0 && "Longest " + s.farKind.toLowerCase() + " " + far + " mi"].filter(Boolean),
-        next: [m > 0 && rn + " a little faster"].filter(Boolean) });
-    }
-    return out;
-  }
-  var BELT_COLOUR = { White: "#f2f2ee", Yellow: "#f2c11d" };
-  function beltRow(g) {
-    var b = tier2(g.base) ? { belt: "Yellow", level: 25, stripes: 0 } : { belt: "White", level: 10, stripes: 2 };
-    var tip = h("div", { class: "tip" }); for (var i = 0; i < b.stripes; i++) tip.appendChild(h("i"));
-    var bar = h("div", { class: "belt", "aria-hidden": "true" }, [tip]); bar.style.background = BELT_COLOUR[b.belt];
-    return h("div", { class: "disc" }, [h("div", { class: "t" }, [h("b", { text: g.name.split(" · ")[0].replace(/ [🔔🔨]$/u, "").toUpperCase() }), h("span", { text: (g.name.split(" · ")[1] || "") })]),
-      h("div", { class: "beltline" }, [bar, h("div", { class: "beltname" }, [b.belt + " Belt", h("small", { text: "Level " + b.level + (b.stripes ? " · " + b.stripes + " stripes" : "") + " (sample)" })])])]);
-  }
-  // "Built around you" (proposal 8): the answers Tom's plan uses, so the person sees they were read.
+  // "Built around you" (proposal 8): the answers Tom's plan uses, so the person sees they were read. Only on the
+  // device that just sent them: a reopened link has the result, not the answers.
   function builtAround() {
     var items = [];
     if (s.days && s.mins) items.push(s.days + " days a week, " + s.mins.toLowerCase().replace("min", "minutes") + " each");
@@ -638,39 +869,26 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     return h("div", { class: "sheet" }, [h("h2", { text: "BUILT AROUND YOU" }), h("div", { class: "note", style: "margin-bottom:8px", text: "Coach Tom builds your plan around:" }),
       h("ul", { class: "howto", style: "color:var(--text)" }, items.map(function (x) { return h("li", { text: x }); }))]);
   }
-  function resultScreen() {
-    var st = stats(), names = st.map(function (x) { return x.name; });
-    var avg = st.length ? st.reduce(function (t, x) { return t + x.value; }, 0) / st.length : 0, rk = letter(avg);
-    var on = names.length === 3 ? null : names.length === 2 ? names[0] + " and " + names[1] : names[0];
-    var groups = s.skipped.belts ? [] : BELT_GROUPS.filter(function (g) { return beltTests(g).length; });
-    var outfit = OUTFITS.filter(function (o) { return o.key === s.outfit; })[0] || OUTFITS[1];
-    var top = groups.some(function (g) { return tier2(g.base); }) ? "yellow" : "white";
-    var out = [h("div", { class: "preview", text: "Sample result: the layout is real, the numbers are stand-ins. The real scores, ranks and belts come from the Mac." })];
-    var sys = [h("h2", { text: "SYSTEM · STATUS" })];
-    if (st.length) {
-      sys.push(h("div", { class: "hex", text: rk }), h("div", { class: "rankline", text: rk + "-RANK HERO" }));
-      if (on) sys.push(h("p", { class: "note", style: "text-align:center;margin:4px 0 8px", text: "Ranked on " + on }));
-      st.forEach(function (x) {
-        sys.push(h("div", { class: "stat" }, [h("b", { text: x.key }), h("span", { class: "nm", text: x.name }), h("span", { class: "rk", text: letter(x.value) }), h("span", { class: "val", text: String(x.value) }),
-          h("div", { class: "bar" }, [h("div", { style: "width:" + x.value + "%" })]),
-          h("div", { class: "why", text: x.parts.join("\n") + "\nPercentile for your age and sex shows here." }),
-          x.next.length ? h("div", { class: "next" }, [h("b", { text: "▲ NEXT" }), x.next.join(" · ")]) : null]));
-      });
-    } else {
-      sys.push(h("div", { class: "rankline", text: "YOUR HERO" }), h("p", { class: "note", style: "text-align:center", text: "No stats answered, so no rank. Your belts and hero are below." }));
-    }
-    out.push(head("Your result", (s.name.trim() || "Hero") + (st.length ? ", " + rk + "-rank hero" : "")), h("div", { class: "win" }, sys));
-    out.push(builtAround());
-    if (groups.length) out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S BELTS" })].concat(groups.map(beltRow))));
-    out.push(h("div", { class: "sheet" }, [h("h2", { text: "YOUR HERO" }),
-      h("div", { style: "aspect-ratio:2/3;max-width:100%;border:1px dashed var(--gold-dim);display:grid;place-items:center;text-align:center;padding:16px;color:var(--muted);font:500 14px/1.5 var(--body)" },
-        [h("div", {}, [h("div", { style: "font-size:44px", text: outfit.ico }), "Your anime hero, drawn as the " + outfit.name.toLowerCase() + (outfit.key === "gi" ? ", in a " + top + " belt" : "") + ".", h("br"), "About 2 minutes after you send."])])]));
-    out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S PICKS" }),
-      h("div", { style: "font:400 14px/1.5 var(--body)", text: "Tom's course recommendations for your goals (" + ([list(s.goals), s.ownGoal.trim()].filter(Boolean).join(", ") || "your goals") + ") show here." }),
-      h("p", { class: "promise", style: "margin:12px 0 0", text: "Coach Tom is reviewing your nutrition plan. It will show here once he sends it." })]));
+
+  // --- Preview: the 11 Nov prototype's sample result and "What Coach Tom sees" (nothing is sent) --------
+  // Luke, 11 Nov: a stat that wasn't done is hidden, not N/A; a rank from fewer stats says which ("ranked on
+  // Strength"). The numbers here are rough stand-ins; the real ones come from the Mac (club.py), as in version 2.
+  function clamp(v) { return Math.max(5, Math.min(95, Math.round(v))); }
+  function letter(v) { return v < 20 ? "E" : v < 35 ? "D" : v < 50 ? "C" : v < 65 ? "B" : v < 80 ? "A" : "S"; }
+  function sampleStats() {
+    var out = [], p = parseInt(s.pushups, 10) || 0, u = parseInt(s.pullups, 10) || 0;
+    var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; });
+    if (!s.skipped.strength && (s.pushups !== "" || s.pullups !== "" || lf.length)) out.push({ key: "STR", name: "Strength", value: clamp(p * 0.6 + u * 2.5 + (lf.length ? 5 : 0)) });
+    var j = (parseInt(s.jFt, 10) || 0) * 12 + (parseInt(s.jIn, 10) || 0), sp = s.cardio === "yes" ? parseFloat(s.sprint) : NaN;
+    if (!s.skipped.agility && (j > 0 || sp > 0)) out.push({ key: "AGI", name: "Agility", value: clamp(Math.max(j > 0 ? (j - 48) : 0, sp > 0 ? (s.sprintDist === "100m" ? (18 - sp) * 8 : (7 - sp) * 30) : 0)) });
+    var m = (parseInt(s.runMin, 10) || 0) + (parseInt(s.runSec, 10) || 0) / 60, far = parseFloat(s.far);
+    if (s.cardio === "yes" && !s.skipped.endurance && (m > 0 || far > 0)) out.push({ key: "END", name: "Endurance", value: clamp(Math.max(m > 0 ? (s.runDist === "5k" ? (40 - m) * 2.5 : (14 - m) * 7) : 0, far > 0 ? far * 3 : 0)) });
     return out;
   }
-  function doneScreen() {
+  function previewDone() {
+    var st = sampleStats(), avg = st.length ? st.reduce(function (t, x) { return t + x.value; }, 0) / st.length : 0, rk = letter(avg);
+    var sample = { first_name: s.name.trim() || "Hero", rank: rk, power: Math.round(avg), avatar_status: "queued",
+      stats: st.map(function (x) { return { key: x.key, name: x.name, value: x.value, rank: letter(x.value), in_rank: true, parts: [{ name: x.name, measured: "a stand-in number", percentile: null }], next: [] }; }) };
     var flags = [];
     if (s.cardio === "want") flags.push("Wants to start cardio");
     if (s.cardio === "no") flags.push("No cardio");
@@ -679,39 +897,222 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     Object.keys(s.health).filter(function (k) { return k !== "None"; }).forEach(function (k) { flags.push(DOCTOR[k] ? "Check with doctor: " + k : "Injury: " + k); });
     if (s.sleep === "Under 6 h") flags.push("Short on sleep");
     if (s.stress === "High") flags.push("High stress");
-    return resultScreen().concat([head("Prototype", "What Coach Tom sees", "Sent to his dashboard (not really: nothing leaves this page)."),
+    return [h("div", { class: "preview", text: "Sample result: the layout is real, the numbers are stand-ins. The real scores, ranks and belts come from the Mac." })]
+      .concat(resultScreen(sample), [head("Preview", "What Coach Tom sees", "Sent to his dashboard (not really: nothing leaves this page)."),
       h("div", { class: "win" }, [h("h2", { text: "CLIENT ROW" }),
         flags.length ? h("div", { style: "margin-bottom:10px" }, flags.map(function (f) { return h("span", { class: "flag", text: f.toUpperCase() }); })) : null,
         tomSheet(true),
-        h("p", { class: "note", style: "margin:10px 0 0", text: "Gold = the questions new in version 3 (Tom's and the review's). On his dashboard this is one row per person, with a CSV download, an AI summary and a nutrition draft." })]),
+        h("p", { class: "note", style: "margin:10px 0 0", text: "Gold = the questions new in version 3. On his dashboard this is one row per person, with a CSV download, an AI summary and a nutrition draft." })]),
       h("button", { type: "button", class: "btn", text: "Start again", onclick: function () { location.reload(); } })]);
   }
 
+  // --- After sending (ported from v2) ------------------------------------------------------------------
+  // The Mac imports every 2 minutes and the art takes about a minute, so results are usually ready in 3 to 5; we say
+  // 7 to be safe. The time is kept on this device for a reopened link.
+  var READY_MIN = 7, STATS_MIN = 3;
+  function sentAt(set) {
+    var key = "hmf-sent-" + token;
+    try { if (set) localStorage.setItem(key, String(set)); s.sentAt = s.sentAt || parseInt(localStorage.getItem(key), 10) || null; }
+    catch (e) { s.sentAt = s.sentAt || set || null; }
+    return s.sentAt;
+  }
+  function readyAt() { var t = sentAt(); return t ? t + READY_MIN * 60000 : null; }
+  function clock(ms) { return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+  function late() { var r = readyAt(); return !r || Date.now() > r; }
+  function rerenderAtReady() { var r = readyAt(); if (r && r > Date.now()) setTimeout(render, r - Date.now() + 1000); }
+  // "Save this link to see your results": the link, and a Copy button.
+  function resultsLink() { return location.origin + location.pathname + "#t=" + token; }
+  function linkBox() {
+    var url = resultsLink();
+    var inp = h("input", { type: "text", readonly: true, value: url, "aria-label": "Your results link", onfocus: function () { inp.select(); } });
+    function copied() { s.copied = true; render(); }
+    function fallback() { inp.focus(); inp.select(); try { document.execCommand("copy"); copied(); } catch (e) { s.error = "Couldn't copy. Press and hold the link to copy it."; render(); } }
+    return h("div", { class: "sheet" }, [h("h2", { text: "SAVE THIS LINK" }),
+      h("p", { style: "margin:0 0 10px;font:400 15px/1.5 var(--body)", text: "Save this link to see your results. Bookmark it or keep it somewhere safe: it's how you get back to them, and to Coach Tom's plan." }),
+      h("div", { class: "field linkfield" }, [inp]),
+      h("button", { type: "button", class: "btn", style: "margin-top:10px", text: s.copied ? "Copied ✓" : "Copy link", onclick: function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(copied, fallback); else fallback(); } })]);
+  }
+  function doneScreen() {
+    if (preview) return previewDone();
+    if (s.result) return resultScreen(s.result);
+    var r = readyAt();
+    return [head(null, "Your hero is being forged",
+        r && !late() ? "Your stats and belts: by " + clock(sentAt() + STATS_MIN * 60000) + ". Your hero art: by " + clock(r) + ". Both show up right here, by themselves, if you keep this page open." :
+        r ? "Taking a little longer than usual. It can take up to 24 hours, and it shows up right here on this link." :
+        "Your stats, rank, belts and hero art usually take a few minutes, and always under 24 hours. They show up right here on this link."),
+      linkBox(),
+      h("div", { class: "hex wait", text: "?" }),
+      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Your strength, agility and endurance set your hero rank. Your tests place you on Tom's belts, with your next level-up. Then Coach Tom reads your answers and sends your plan here." })]),
+      h("p", { class: "note", text: "Want to see or delete your data? Email privacy@heromadefit.com." })];
+  }
+
+  var BELT_COLOUR = { White: "#f2f2ee", Yellow: "#f2c11d", Blue: "#2f6fd6" };
+  function beltBar(b) {
+    if (!b.belt) return h("div", { class: "belt none", "aria-hidden": "true" });
+    var tip = h("div", { class: "tip" }); for (var i = 0; i < b.stripes; i++) tip.appendChild(h("i"));
+    var e = h("div", { class: "belt", "aria-hidden": "true" }, [tip]); e.style.background = BELT_COLOUR[b.belt] || "#888";
+    return e;
+  }
+  function stripes(n) { return n ? " · " + n + " stripe" + (n === 1 ? "" : "s") : ""; }
+  function discipline(b) {
+    var who = b.animal ? b.animal + " " + b.animal_emoji : b.animal_emoji;
+    var kids = [h("div", { class: "t" }, [h("b", { text: b.name.toUpperCase() }), h("span", { text: who })]),
+      h("div", { class: "beltline" }, [beltBar(b), h("div", { class: "beltname" }, [b.emoji + " " + b.belt + " Belt",
+        h("small", { text: (b.animal ? b.animal + " · " : "") + "Level " + b.level + stripes(b.stripes) + (b.top ? " · top of the draft" : "") })])])];
+    kids.push(h("div", { class: "draft", text: !b.source ? "Everyone starts here, at Level 1" : b.source === "draft" ? "Placed on a draft level, for Tom to confirm" : "Placed on Tom's own tests" }));
+    if (b.maybe) kids.push(h("div", { class: "maybe", text: "You may already be Level " + b.maybe + ". Tell Coach Tom your numbers for the tests marked ○ below." }));
+    if (b.next) {
+      var nx = b.next, to = nx.belt_test ? nx.belt_test.toUpperCase() + " → " + nx.belt.toUpperCase() + " BELT" :
+        "LEVEL " + nx.level + (nx.stripes ? " · " + nx.stripes + " STRIPE" + (nx.stripes === 1 ? "" : "S") : "");
+      kids.push(h("div", { class: "levelup" }, [h("div", { class: "h", text: "▲ NEXT LEVEL-UP: " + to }),
+        h("ul", {}, nx.tests.map(function (t) { return h("li", { class: t.status }, [h("span", { text: t.status === "met" ? "✓" : t.status === "not_yet" ? "▸" : "○" }), h("span", { text: t.test }),
+          h("span", { class: "y", text: t.status === "not_answered" ? "not answered yet" : "yours: " + t.yours })]); })),
+        nx.belt_test ? h("div", { class: "draft", style: "margin-top:4px;color:var(--ice)", text: "Belt tests are approved by Tom: post your video in his club." }) : null,
+        nx.source === "draft" ? h("div", { class: "draft", style: "margin-top:4px", text: "Draft level, for Tom to confirm" }) : null,
+        nx.unclear ? h("div", { class: "draft", style: "margin-top:4px", text: "Note: " + nx.unclear + "." }) : null]));
+    }
+    return h("div", { class: "disc" }, kids);
+  }
+  // The person's result card from the Mac (demo result_card, plus club belts and, once Tom sends it, his plan).
+  // Only the stats in the rank show; fewer than three says which ones it was ranked on (Luke, 11 Nov 2026).
+  function resultScreen(r) {
+    var club = r.club || {}, st = (r.stats || []).filter(function (x) { return x.in_rank && x.key !== "VIT"; });
+    var top = r.rank === "National Level", sys = [h("h2", { text: "SYSTEM · STATUS" })];
+    if (st.length) {
+      sys.push(h("div", { class: "hex", text: top ? "W" : r.rank }), h("div", { class: "rankline", text: top ? "WORLD CLASS HERO" : r.rank + "-RANK HERO" }));
+      var names = st.map(function (x) { return x.name; });
+      if (names.length < 3) sys.push(h("p", { class: "note", style: "text-align:center;margin:4px 0 8px", text: "Ranked on " + (names.length === 2 ? names[0] + " and " + names[1] : names[0]) }));
+      st.forEach(function (x) {
+        var b = h("div", { class: "bar" }, [h("div")]); b.firstChild.style.width = Math.max(0, Math.min(100, x.value)) + "%";
+        sys.push(h("div", { class: "stat" }, [h("b", { text: x.key }), h("span", { class: "nm", text: x.name }), h("span", { class: "rk", text: x.rank }), h("span", { class: "val", text: String(x.value) }), b,
+          h("div", { class: "why", text: (x.parts || []).map(function (q) { return q.name + ": " + q.measured + (q.percentile ? " · " + q.percentile : ""); }).join("\n") }),
+          x.next && x.next.length ? h("div", { class: "next" }, [h("b", { text: "▲ NEXT" }), x.next.map(function (t, i) { return i ? t.charAt(0).toLowerCase() + t.slice(1) : t; }).join(", or ")]) : null]));
+      });
+      if (r.power != null) sys.push(h("p", { class: "note", style: "text-align:center", text: "POWER " + r.power + " · 100 = world class for your sex and age" }));
+      if (r.next_rank) sys.push(h("p", { class: "note gold", style: "text-align:center", text: "NEXT RANK: " + (r.next_rank.rank === "National Level" ? "World class" : r.next_rank.rank + "-rank") + " at power " + r.next_rank.power + "." }));
+    } else {
+      sys.push(h("div", { class: "rankline", text: "YOUR HERO" }), h("p", { class: "note", style: "text-align:center", text: "No stats answered, so no rank. Your belts and hero are below." }));
+    }
+    var out = [head("Your result", r.first_name + (st.length ? ", " + (top ? "world class hero" : r.rank + "-rank hero") : ""), "Where you stand now, and your next step up."), h("div", { class: "win" }, sys)];
+    if (s.sentHere || preview) out.push(builtAround());
+    if (club.belts && club.belts.length) {
+      out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S BELTS" })].concat(club.belts.map(discipline), [
+        h("p", { class: "note", style: "margin-top:10px", text: "Belts are Tom's, from his Body Improvement Club courses. Levels marked draft are our best guess until Tom confirms them." })])));
+      if (club.skool_url) out.push(h("a", { class: "cta", href: club.skool_url, target: "_blank", rel: "noopener", text: "Train for your next belt in Tom's club →" }));
+    }
+    out.push(s.avatar ? h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("img", { class: "hero-img", src: "data:image/jpeg;base64," + s.avatar, alt: "Your anime hero" }),
+        h("p", { class: "note", text: "Press and hold the picture to save it." })]) :
+      h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: r.avatar_status === "queued" && !late() ?
+        "Your hero art is being drawn. It shows up here by " + clock(readyAt()) + "." : "Your hero art is being drawn. It shows up here within 24 hours." })]));
+    // Tom's plan, once he has checked it and sent it from his dashboard (result.plan: {text, sent_at}).
+    var p = r.plan;
+    out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S PLAN" })].concat(p && p.text ? [
+        h("div", { style: "white-space:pre-line;font:400 15px/1.55 var(--body)", text: p.text }),
+        p.sent_at ? h("p", { class: "note", style: "margin:10px 0 0", text: "From Coach Tom, " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }) + "." }) : null] :
+      [h("p", { class: "promise", style: "margin:0", text: "Coach Tom is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
+    if (!preview && token) out.push(linkBox());
+    return out;
+  }
+
+  // --- Talking to the Apps Script (ported from v2) -------------------------------------------------------
+  function post(fields) {
+    return fetch(ENDPOINT, { method: "POST", body: new URLSearchParams(Object.assign({ token: token }, fields)) }).then(function (r) { return r.json(); });
+  }
+  function send() {
+    if (preview) { s.done = true; render(); window.scrollTo(0, 0); return; }
+    if (s.sending) return;
+    s.sending = true; s.error = ""; render();
+    // A one-time link sends with its token, as v2. Tom's shared link asks the script to mint one (v3_send).
+    var body = new URLSearchParams(token ? { token: token } : { action: "v3_send" });
+    // One random id per form, kept for every resend: if the reply was lost after the script saved it, a resend gets
+    // the same token back instead of making a second submission.
+    if (!s.submitId) s.submitId = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)),
+      function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+    if (!token) body.set("submit_id", s.submitId);
+    body.set("form", JSON.stringify(form()));
+    if (photoWay() && s.photo) body.set("selfie", s.photo.b64);
+    fetch(ENDPOINT, { method: "POST", body: body }).then(function (r) { return r.json(); }).then(function (reply) {
+      s.sending = false;
+      if (reply && reply.ok && (reply.token || token)) {
+        token = reply.token || token;
+        try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
+        location.hash = "t=" + token;  // this page is now their results link
+        s.done = true; s.sentHere = true; stopCam(); sentAt(Date.now()); rerenderAtReady(); setTimeout(checkResult, 30000);
+      } else if (reply && reply.full) {
+        s.error = reply.error || FULL;
+      } else {
+        s.error = (reply && reply.error) || "That didn't send. Please try again.";
+      }
+      render(); window.scrollTo(0, 0);
+    }).catch(function () { s.sending = false; s.error = "That didn't send. Check your connection and try again."; render(); });
+  }
+  // Google's web app sometimes loses a reply with a picture in it (v2, 23 Oct 2026), so try a few times.
+  function loadAvatar(n) {
+    post({ action: "avatar" }).then(function (a) {
+      if (a && a.ok && a.jpeg) { s.avatar = a.jpeg; render(); } else if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000);
+    }).catch(function () { if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000); });
+  }
+  // A used link is the person's results page: check now, every 30 s until the art is in, then every 2 minutes
+  // until Tom's plan is in.
+  function checkResult() {
+    if (preview || !token) return;
+    post({ action: "result" }).then(function (reply) {
+      var was = s.checking; s.checking = false;
+      if (reply && reply.error && !reply.ok) { s.closed = reply.error; render(); return; }
+      if (!reply || !reply.ok) { if (was) render(); return; }
+      if (reply.result && !reply.result.held) {
+        var first = !s.result, changed = JSON.stringify(reply.result) !== JSON.stringify(s.result);
+        s.result = reply.result; s.done = true;
+        if (reply.has_avatar && !s.avatar) loadAvatar(0);
+        if (changed || was) render();
+        if (first) rerenderAtReady();
+        if (!reply.has_avatar) setTimeout(checkResult, 30000); else if (!reply.result.plan) setTimeout(checkResult, 120000);
+      } else if (reply.submitted || reply.result) { var again = !s.done; s.done = true; if (again || was) render(); if (again) rerenderAtReady(); setTimeout(checkResult, 30000); }
+      else if (was) render();
+    }).catch(function () { if (s.checking) { s.checking = false; render(); } else if (s.done) setTimeout(checkResult, 60000); });
+  }
+
   // --- Render ---------------------------------------------------------------------------------------
+  function footer() {
+    var f = document.getElementById("foot");
+    f.replaceChildren.apply(f, preview ? [h("div", { text: "Preview of version 3 · made with Hero Made Fit" })] :
+      [h("div", {}, ["Made with Hero Made Fit · ", h("a", { href: "https://heromadefit.com/privacy.html", target: "_blank", rel: "noopener", text: "Privacy" })])]);
+  }
   function bar() {
     var all = steps(), n = s.step, left = all.slice(n).reduce(function (t, k) { return t + (ETA[k] || 15); }, 0);
     var sg = stageOf(all[n]);
-    document.getElementById("count").textContent = s.done ? "Quest complete" : "Stage " + (sg + 1) + " of " + STAGES.length + " · " + STAGES[sg][0] + " · about " + Math.max(1, Math.round(left / 60)) + " min";
+    document.getElementById("count").textContent = s.closed || s.checking ? "" : s.done ? "Quest complete" : "Stage " + (sg + 1) + " of " + STAGES.length + " · " + STAGES[sg][0] + " · about " + Math.max(1, Math.round(left / 60)) + " min";
     document.getElementById("gauge").style.width = (s.done ? 100 : 8 + (n / all.length) * 92) + "%";
     var go = document.querySelector("nav.actions .go"); if (go) go.disabled = !canGo();
+    var pr = document.getElementById("problem"), msg = s.done ? null : problem(all[n]);
+    if (pr) { pr.hidden = !msg || !!s.skipped[all[n]]; pr.textContent = msg || ""; }
   }
+  function go(d) { stopCam(); s.error = ""; s.step = Math.max(0, Math.min(steps().length - 1, s.step + d)); render(); window.scrollTo(0, 0); }
   function nav() {
     var e = document.getElementById("nav"); e.replaceChildren();
-    if (s.done) return;
-    var all = steps(), last = s.step === all.length - 1;
-    if (s.step > 0) e.appendChild(h("button", { type: "button", text: "Back", onclick: function () { s.step--; render(); window.scrollTo(0, 0); } }));
-    e.appendChild(h("button", { type: "button", class: "go", text: last ? "Forge my hero" : "Next", disabled: !canGo(),
-      onclick: function () { if (last) s.done = true; else s.step++; render(); window.scrollTo(0, 0); } }));
+    if (s.done || s.checking || s.closed) return;
+    var all = steps(), st = all[s.step], last = st === "review";
+    if (s.step > 0) e.appendChild(h("button", { type: "button", text: "Back", onclick: function () { go(-1); } }));
+    e.appendChild(h("button", { type: "button", class: "go", text: last ? (s.sending ? "Sending…" : "Forge my hero") : st === "release" ? "Agree and add my photo" : "Next", disabled: !canGo(),
+      onclick: function () { if (last) send(); else go(1); } }));
   }
   function render() {
-    var m = document.getElementById("main");
-    m.replaceChildren.apply(m, s.done ? doneScreen() : screen());
-    nav(); bar();
+    var m = document.getElementById("main"), all = steps();
+    if (s.step >= all.length) s.step = all.length - 1;
+    var kids = s.closed ? [head(null, "This link is closed", s.closed), h("p", { class: "closed-note", text: "Ask Coach Tom if you'd like a new one." })] :
+      s.checking ? [head(null, "Opening your link…", "One moment.")] : s.done ? doneScreen() : screen();
+    m.replaceChildren.apply(m, kids.filter(Boolean));
+    nav(); bar(); footer();
   }
   (function () { var m = document.getElementById("motes"); for (var i = 0; i < 46; i++) { var d = document.createElement("i");
     d.style.left = (Math.random() * 100) + "%"; d.style.top = (Math.random() * 100) + "%"; d.style.opacity = .15 + Math.random() * .5;
     d.style.animationDuration = (3 + Math.random() * 6) + "s"; d.style.animationDelay = (-Math.random() * 6) + "s"; m.appendChild(d); } })();
+  // Opening a different results link in this tab (for example "See your results") starts the page again.
+  window.addEventListener("hashchange", function () { if (!preview && hashToken() !== token) location.reload(); });
+  if (!C || !K) { document.getElementById("main").textContent = "This page didn't load properly. Please reload it."; return; }
   render();
+  checkResult();
 })();
 </script>
 </body>

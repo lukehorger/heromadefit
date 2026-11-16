@@ -256,12 +256,26 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
 .statrow span i { font-style: normal; color: var(--muted); font-weight: 500; }
 .back { background: none; border: 0; color: var(--ice); font: 600 15px var(--body); padding: 0; cursor: pointer; text-align: left; }
 .empty { text-align: center; padding: 30px 10px; color: var(--muted); }
+/* Real mode (15 Nov 2026, #k=<key>): the same layout with Tom's real clients. Only classes the demo doesn't use. */
+.client .mini.big64 { width: 64px; height: 64px; }
+.status.warn { color: var(--warn); }
+.check { border: 1px solid var(--gold-dim); padding: 10px 12px; margin: 0 0 10px; font: 500 13px/1.5 var(--body); }
+.check.bad { border-color: rgba(255,85,104,.6); color: var(--warn); }
+.check.good { border-color: rgba(95,237,187,.5); color: var(--done); }
+.check b { font: 700 11px var(--mono); letter-spacing: .06em; display: block; margin-bottom: 2px; }
+.ack { display: flex; gap: 10px; align-items: flex-start; font: 500 14px/1.45 var(--body); cursor: pointer; }
+.ack input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--gold); flex: none; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.danger { border-color: rgba(255,85,104,.6); color: var(--warn); }
+.btn.solid { background: var(--gold); color: #1a1405; }
+.ok { border: 1px solid rgba(95,237,187,.5); color: var(--done); padding: 10px; font: 500 13px/1.5 var(--mono); }
+.beltlist { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; font: 500 13px/1.45 var(--mono); }
 </style>
 <div class="motes" id="motes" aria-hidden="true"></div>
 <div class="app wide">
   <div class="top"><span class="brand">BODY IMPROVEMENT CLUB</span><span class="count">Coach dashboard</span></div>
   <main id="main" aria-live="polite"></main>
-  <footer>Demo of Coach Tom's dashboard · made with Hero Made Fit</footer>
+  <footer id="foot">Demo of Coach Tom's dashboard · made with Hero Made Fit</footer>
 </div>
 <script>
 (function () {
@@ -375,10 +389,251 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
     var c = CLIENTS.filter(function (x) { return x.id === s.open; })[0], m = document.getElementById("main");
     m.replaceChildren.apply(m, c && !s.cleared ? detail(c) : list());
   }
+  // ---------------------------------------------------------------------------------------------------------------
+  // Real mode (15 Nov 2026, docs/club/v3-build-contract-2026-11-15.md section 5). Opened as coach.html#k=<key>, the
+  // page loads Tom's real clients from the Apps Script with his coach key. Everything above is the demo and runs only
+  // without a key. The key stays in the address (Tom bookmarks it) and is never shown, logged or put in a query string.
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbxQ6Q1wlhdCfulUkrFy5s0O0AaOgTHzVqmrI041qGEObuh-0-LXdc3r3a2hA9jnSKrsCg/exec"; // the v2 club page's script
+  var KEY = (new URLSearchParams(location.hash.slice(1))).get("k") || "";
+  var r = { loading: true, error: "", items: [], open: null, avatars: {}, plans: {}, ack: {}, busy: {}, err: {}, confirm: null, gone: [] };
+  var NAMES = { STR: "Strength", AGI: "Agility", END: "Endurance", SKL: "Skill" };
+
+  // Every call is a form POST like the v2 club page, with Tom's key in the field "coach".
+  function call(fields) {
+    return fetch(ENDPOINT, { method: "POST", body: new URLSearchParams(Object.assign({ coach: KEY }, fields)) }).then(function (res) { return res.json(); });
+  }
+  function why(reply, fallback) {
+    var e = reply && reply.error;
+    if (e === "not allowed") return "This dashboard link isn't working. Ask Luke for a new one.";
+    return e || fallback;
+  }
+  function load() {
+    r.loading = true; r.error = ""; renderReal();
+    call({ action: "coach_list" }).then(function (reply) {
+      r.loading = false;
+      if (!reply || !reply.ok) { r.error = why(reply, "Your clients didn't load. Please try again."); renderReal(); return; }
+      r.items = (reply.items || []).map(function (it) {
+        var card = it && it.card;
+        if (typeof card === "string") { try { card = JSON.parse(card); } catch (e) { card = null; } } // stored as card_json
+        return card && it.token ? { token: String(it.token), card: card, sent: it.sent || null, has_avatar: !!it.has_avatar } : null;
+      }).filter(Boolean).sort(function (a, b) { return String(b.card.received_at || "").localeCompare(String(a.card.received_at || "")); });
+      if (r.open && !find(r.open)) r.open = null;
+      renderReal(); loadAvatars();
+    }).catch(function () { r.loading = false; r.error = "Couldn't reach your clients. Check your connection and try again."; renderReal(); });
+  }
+  // Hero heads, one at a time. Google's web app sometimes loses a reply with a picture in it (23 Oct 2026), so retry.
+  function loadAvatars() {
+    var next = r.items.filter(function (it) { return it.has_avatar && !(it.token in r.avatars); })[0];
+    if (!next) return;
+    (function attempt(n) {
+      call({ action: "coach_avatar", token: next.token }).then(function (a) {
+        if (a && a.ok && typeof a.jpeg === "string" && /^[A-Za-z0-9+\/=\s]+$/.test(a.jpeg)) { r.avatars[next.token] = "data:image/jpeg;base64," + a.jpeg; quietRender(); loadAvatars(); }
+        else retry(n);
+      }).catch(function () { retry(n); });
+      function retry(n) { if (n < 2) setTimeout(function () { attempt(n + 1); }, 3000); else { r.avatars[next.token] = null; quietRender(); loadAvatars(); } }
+    })(0);
+  }
+  function find(token) { return r.items.filter(function (it) { return it.token === token; })[0]; }
+  function name(it) { return it.card.first_name || "this client"; }
+  function day(iso) {
+    var d = iso ? new Date(iso) : null;
+    return d && !isNaN(d) ? d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) : "";
+  }
+  function stats(c) { return (c.stats || []).filter(function (x) { return x && x.in_rank !== false; }); }
+  function rankedOn(c) {
+    var on = c.ranked_on;
+    if (Array.isArray(on)) on = on.map(function (k) { return NAMES[k] || k; }).join(" and ");
+    if (!on && stats(c).length) on = stats(c).map(function (x) { return x.name || NAMES[x.key] || x.key; }).join(" and ");
+    return on && stats(c).length < 3 ? " · ranked on " + on : "";
+  }
+  function line(it) {
+    var c = it.card;
+    return ["received " + day(c.received_at), c.power != null ? "power " + c.power : ""].filter(Boolean).join(" · ") + rankedOn(c);
+  }
+  // A flag is a string, or [text, kind]. Health and allergy flags are shown in red.
+  function flagTags(c) {
+    return h("div", { class: "tags" }, (c.flags || []).map(function (f) {
+      var t = Array.isArray(f) ? f[0] : String(f), warn = Array.isArray(f) ? f[1] === "warn" : /doctor|allerg|pain|heart|chest|pregnan|injur/i.test(t);
+      return h("span", { class: "tag" + (warn ? " warn" : ""), text: t.toUpperCase() });
+    }));
+  }
+  // The Mac's allergy check. Read loosely, so a field name it adds doesn't break the page.
+  function allergy(c) {
+    var a = c.allergy_check;
+    if (a == null) return null;
+    if (typeof a !== "object") return { flagged: false, hits: [], checked: [], note: String(a) };
+    var hits = a.hits || a.found || a.matches || a.named || [];
+    if (!Array.isArray(hits)) hits = [String(hits)];
+    var checked = a.checked || a.terms || a.allergies || a.list || [];
+    if (!Array.isArray(checked)) checked = [String(checked)];
+    return { flagged: a.flagged === true || a.ok === false || a.ready === false || hits.length > 0, hits: hits, checked: checked, note: a.note || a.message || "" };
+  }
+  function status(it) {
+    if (it.sent) return ["PLAN SENT", " sent"];
+    if (!it.card.nutrition_draft) return ["PLAN TO WRITE", ""];
+    var a = allergy(it.card);
+    return a && a.flagged ? ["CHECK ALLERGIES", " warn"] : ["PLAN TO REVIEW", ""];
+  }
+  function face(it) {
+    var c = it.card, src = r.avatars[it.token];
+    return h("div", { class: "face" }, [src ? h("img", { src: src, alt: name(it) + "'s hero", width: "64", height: "64" })
+      : h("div", { class: "mini big64", "aria-hidden": "true", text: (c.first_name || "?").charAt(0).toUpperCase() }), // no art yet: their initial
+      h("span", { class: "rk", "aria-label": "Rank " + (c.rank || "unknown"), text: c.rank || "?" })]);
+  }
+
+  // The sheet: one row per client with every column the Mac put in card.csv (no photo, health or food details).
+  function realCsv() {
+    var cols = [];
+    r.items.forEach(function (it) { Object.keys(it.card.csv || {}).forEach(function (k) { if (cols.indexOf(k) === -1) cols.push(k); }); });
+    function cell(v) {
+      var t = v == null ? "" : Array.isArray(v) ? v.join(", ") : String(v);
+      if (/^[=+@\t\r]/.test(t) || /^-[^\d]/.test(t)) t = "'" + t; // a spreadsheet won't run it as a formula
+      return '"' + t.replace(/"/g, '""') + '"';
+    }
+    return [cols.map(cell).join(",")].concat(r.items.map(function (it) {
+      return cols.map(function (k) { return cell((it.card.csv || {})[k]); }).join(",");
+    })).join("\n");
+  }
+  function download() {
+    var d = new Date(), stamp = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); // Tom's own date
+    // The BOM makes Excel read it as UTF-8, so "$75–125" doesn't come out garbled.
+    var a = h("a", { href: URL.createObjectURL(new Blob(["﻿" + realCsv()], { type: "text/csv;charset=utf-8" })), download: "coach-tom-clients-" + stamp + ".csv" });
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function realList() {
+    var out = [h("div", {}, [h("div", { class: "area", text: "Coach Tom" }), h("h1", { text: "Your clients" }),
+      h("p", { class: "sub", text: "Everyone who sent the assessment, newest first. Tap a client for their answers, an AI summary and a nutrition draft you can edit and send." })])];
+    r.gone.forEach(function (n) { out.push(h("div", { class: "ok", text: "Delete requested for " + n + ". Their answers, photo, hero and plan are removed when the Mac next checks in, usually within a few minutes." })); });
+    if (r.loading && !r.items.length) return out.concat([h("div", { class: "sheet empty", text: "Loading your clients…" })]);
+    if (r.error) out.push(h("div", { class: "err", text: r.error }));
+    out.push(h("div", { class: "toolbar" }, [
+      h("button", { type: "button", class: "btn", text: "Download sheet (CSV)", disabled: !r.items.length, onclick: download }),
+      h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--muted)", text: r.loading ? "Refreshing…" : "Refresh", disabled: r.loading, onclick: load })]));
+    if (!r.items.length) return out.concat(r.error ? [] : [h("div", { class: "sheet empty", text: "No clients yet. Your clients show up here after they send the assessment and the Mac has scored it." })]);
+    out.push(h("div", { class: "clients" }, r.items.map(function (it) {
+      var st = status(it);
+      return h("button", { type: "button", class: "client", onclick: function () { r.open = it.token; r.confirm = null; renderReal(); window.scrollTo(0, 0); } }, [
+        face(it),
+        h("div", { class: "who" }, [h("b", { text: name(it) }), h("span", { text: line(it) })]),
+        h("span", { class: "status" + st[1], text: st[0] }),
+        flagTags(it.card)]);
+    })));
+    return out;
+  }
+
+  function realDetail(it) {
+    var c = it.card, t = it.token, a = allergy(c), busy = r.busy[t];
+    var sentPlan = it.sent && it.sent.plan, start = r.plans[t] != null ? r.plans[t] : sentPlan != null ? sentPlan : (c.nutrition_draft || "");
+    var plan = h("textarea", { class: "plan", id: "plan-" + t, maxlength: "10000", "aria-label": "Nutrition plan for " + name(it),
+      placeholder: c.nutrition_draft ? "" : "Write their nutrition plan here.", oninput: function (e) { r.plans[t] = e.target.value; sendBtn.disabled = !canSend(); } });
+    plan.value = start;
+    function canSend() {
+      var v = (r.plans[t] != null ? r.plans[t] : start).trim();
+      if (!v || busy) return false;
+      if (a && a.flagged && !r.ack[t] && !it.sent) return false; // a flagged draft isn't offered as ready
+      return !(it.sent && v === String(sentPlan || "").trim());   // nothing new to send
+    }
+    var sendBtn = h("button", { type: "button", class: "btn solid", text: busy === "send" ? "Sending…" : it.sent ? "Send the changes to " + name(it) : "Send to " + name(it), onclick: function () { send(it); } });
+    sendBtn.disabled = !canSend();
+
+    var check = null;
+    if (!c.nutrition_draft) check = h("div", { class: "check", text: "The AI draft isn't ready for this client yet; the Mac tries again on its next import. You can write the plan yourself." });
+    else if (a && a.flagged) check = h("div", { class: "check bad" }, [h("b", { text: "ALLERGY CHECK: FIX BEFORE SENDING" }),
+      "The draft names " + (a.hits.length ? a.hits.join(", ") : "something") + ", which is on their allergy or restriction list. Edit the plan, then tick the box below." + (a.note ? " " + a.note : "")]);
+    else if (a) check = h("div", { class: "check good" }, [h("b", { text: "ALLERGY CHECK: PASSED" }),
+      (a.checked.length ? "Checked against: " + a.checked.join(", ") + "." : "Nothing on their allergy or restriction list is named in the draft.") + (a.note ? " " + a.note : "")]);
+    var ack = a && a.flagged && !it.sent ? h("label", { class: "ack" }, [h("input", { type: "checkbox", checked: !!r.ack[t], onchange: function (e) { r.ack[t] = e.target.checked; sendBtn.disabled = !canSend(); } }),
+      "I've fixed the plan for their allergies and checked it myself."]) : null;
+
+    var art = r.avatars[t];
+    var hero = art ? h("figure", { style: "margin:0" }, [h("img", { class: "heroart", src: art, alt: name(it) + "'s anime hero" }),
+      h("figcaption", { class: "note", style: "margin-top:6px", text: "Their hero, as shown on their results link." })])
+      : h("p", { class: "note", style: "margin:0", text: it.has_avatar ? (art === null ? "The hero art didn't load. Refresh to try again." : "Loading their hero…") : "Their hero art isn't drawn yet. It shows here once it's ready." });
+
+    var belts = c.belts && !Array.isArray(c.belts) && c.belts.belts ? c.belts.belts : c.belts; // the belts list, or the club card holding it
+    var beltRows = Array.isArray(belts) ? belts.map(function (b) {
+      return h("li", { text: typeof b === "string" ? b : (b.animal_emoji || b.emoji || "") + " " + b.name + ": " + b.belt + " Belt, Level " + b.level + (b.stripes ? " · " + b.stripes + " stripe" + (b.stripes === 1 ? "" : "s") : "") });
+    }) : typeof belts === "string" && belts ? [h("li", { text: belts })] : [];
+
+    var del = r.confirm === t
+      ? h("div", { style: "display:grid;gap:10px" }, [h("p", { class: "promise", text: "Delete " + name(it) + "? Their answers, photo, hero and plan are removed for good, and their results link stops working. This can't be undone." }),
+          r.err["del" + t] ? h("div", { class: "err", text: r.err["del" + t] }) : null,
+          h("button", { type: "button", class: "btn danger", text: busy === "delete" ? "Deleting…" : "Yes, delete " + name(it), disabled: !!busy, onclick: function () { remove(it); } }),
+          h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--muted)", text: "Cancel", disabled: !!busy, onclick: function () { r.confirm = null; delete r.err["del" + t]; renderReal(); } })])
+      : h("button", { type: "button", class: "btn danger", text: "Delete " + name(it), onclick: function () { r.confirm = t; renderReal(); } });
+
+    return [h("button", { type: "button", class: "back", text: "← All clients", onclick: function () { r.open = null; r.confirm = null; renderReal(); window.scrollTo(0, 0); } }),
+      h("div", {}, [h("div", { class: "area", text: "Client" }), h("h1", { text: name(it) + (c.rank ? ", " + c.rank + "-rank hero" : "") }),
+        h("p", { class: "sub", text: line(it) })]),
+      flagTags(c),
+      h("div", { class: "two" }, [
+        h("div", { style: "display:grid;gap:18px" }, [
+          h("div", { class: "win" }, [h("h2", { text: "AI SUMMARY" }),
+            c.summary ? h("div", { class: "summary", text: c.summary }) : h("p", { class: "note", style: "margin:0", text: "The AI summary isn't ready yet; the Mac tries again on its next import." }),
+            c.summary ? h("p", { class: "note", style: "margin:12px 0 0", text: "Drafted by AI from the answers, for you only." }) : null]),
+          h("div", { class: "win" }, [h("h2", { text: "STATS AND BELTS" }),
+            h("div", { class: "statrow" }, stats(c).map(function (x) { return h("span", {}, [x.key + " ", h("i", { text: String(x.value) + (x.rank ? " · " + x.rank : "") })]); })),
+            stats(c).length ? null : h("p", { class: "note", style: "margin:0", text: "No ranked stats." }),
+            beltRows.length ? h("ul", { class: "beltlist" }, beltRows) : h("p", { class: "note", style: "margin:10px 0 0", text: "No belts: they didn't take Tom's belt tests." })]),
+          h("div", { class: "sheet" }, [h("h2", { text: "THEIR HERO" }), hero])]),
+        h("div", { style: "display:grid;gap:18px" }, [
+          h("div", { class: "win" }, [h("h2", { text: "NUTRITION DRAFT" }),
+            h("p", { class: "note", style: "margin:0 0 8px", text: "Drafted by AI with your rules, and checked against their allergies. Edit anything, then send. Nothing reaches " + name(it) + " until you do." }),
+            check, plan,
+            h("div", { style: "display:grid;gap:10px;margin-top:12px" }, [
+              it.sent ? h("p", { class: "promise", text: "Sent" + (day(it.sent.sent_at) ? " " + day(it.sent.sent_at) : "") + ". It shows on " + name(it) + "'s results link. Edit and send again to replace it." }) : null,
+              ack, r.err["send" + t] ? h("div", { class: "err", text: r.err["send" + t] }) : null, sendBtn])]),
+          h("div", { class: "sheet" }, [h("h2", { text: "ALL ANSWERS" }), h("dl", { class: "tomrow" }, [].concat.apply([], (c.rows || []).map(function (row) {
+            return [h("dt", { text: String(row[0]) }), h("dd", { class: row[2] ? "new" : null, text: row[1] == null ? "" : String(row[1]) })]; // a third value marks a v3 (gold) row
+          })))]),
+          h("div", { class: "sheet" }, [h("h2", { text: "DELETE" }), del])])])];
+  }
+
+  function send(it) {
+    var t = it.token, text = (r.plans[t] != null ? r.plans[t] : it.sent ? it.sent.plan : it.card.nutrition_draft || "").trim();
+    if (!text || r.busy[t]) return;
+    if (text.length > 10000) { r.err["send" + t] = "That plan is too long (10,000 characters at most)."; renderReal(); return; }
+    r.busy[t] = "send"; delete r.err["send" + t]; renderReal();
+    call({ action: "coach_send", token: t, plan: text }).then(function (reply) {
+      delete r.busy[t];
+      // The script replies {ok, sent: {plan, sent_at}}: keep its time, not the phone's.
+      if (reply && reply.ok) { it.sent = { plan: text, sent_at: (reply.sent && reply.sent.sent_at) || reply.sent_at || new Date().toISOString() }; r.plans[t] = text; }
+      else r.err["send" + t] = reply && reply.error && reply.error !== "not allowed" ? "That didn't send: " + reply.error : why(reply, "That didn't send. Please try again.");
+      renderReal();
+    }).catch(function () { delete r.busy[t]; r.err["send" + t] = "That didn't send. Check your connection and try again."; renderReal(); });
+  }
+  function remove(it) {
+    var t = it.token;
+    if (r.busy[t]) return;
+    r.busy[t] = "delete"; delete r.err["del" + t]; renderReal();
+    call({ action: "coach_delete", token: t }).then(function (reply) {
+      delete r.busy[t];
+      if (reply && reply.ok) {
+        r.items = r.items.filter(function (x) { return x.token !== t; });
+        r.gone.push(name(it)); r.open = null; r.confirm = null; window.scrollTo(0, 0);
+      } else r.err["del" + t] = why(reply, "That didn't go through. Please try again.");
+      renderReal();
+    }).catch(function () { delete r.busy[t]; r.err["del" + t] = "That didn't go through. Check your connection and try again."; renderReal(); });
+  }
+  // A hero arriving mustn't redraw the page while Tom is typing a plan (it would close a phone's keyboard).
+  function quietRender() {
+    var a = document.activeElement;
+    if (a && a.tagName === "TEXTAREA") return; // the art shows on the next redraw (send, back, refresh)
+    renderReal();
+  }
+  function renderReal() {
+    var it = r.open && find(r.open), m = document.getElementById("main");
+    m.replaceChildren.apply(m, it ? realDetail(it) : realList());
+  }
+
   (function () { var m = document.getElementById("motes"); for (var i = 0; i < 46; i++) { var d = document.createElement("i");
     d.style.left = (Math.random() * 100) + "%"; d.style.top = (Math.random() * 100) + "%"; d.style.opacity = .15 + Math.random() * .5;
     d.style.animationDuration = (3 + Math.random() * 6) + "s"; d.style.animationDelay = (-Math.random() * 6) + "s"; m.appendChild(d); } })();
-  render();
+  if (KEY) {
+    document.getElementById("foot").textContent = "Coach Tom's dashboard · your private link, please don't share it · made with Hero Made Fit";
+    load();
+  } else render();
 })();
 </script>
 </body>
