@@ -229,7 +229,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   <nav class="actions" id="nav"></nav>
   <footer id="foot">Made with Hero Made Fit</footer>
 </div>
-<script src="catalog.js?v=20261115-1835"></script>
+<script src="catalog.js?v=20261115-1850"></script>
 <script>
 (function () {
   "use strict";
@@ -253,7 +253,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var TEST = {}; (K ? K.tests : []).forEach(function (t) { TEST[t.key] = t; });
 
   var s = { step: 0, name: "", adult: false, collect: false, share: false, age: "", sex: null, hFt: "", hIn: "", weight: "",
-    exp: null, does: {}, days: null, mins: null, gear: {}, goals: {}, ownGoal: "", note: "",
+    exp: null, does: {}, doesNote: "", days: null, mins: null, gear: {}, goals: {}, ownGoal: "", note: "",
     pushups: "", pullups: "", lifts: {}, tests: {}, kbUnit: "kg",
     cardio: null, jFt: "", jIn: "", sprint: "", sprintDist: "40yd", runDist: "1_mile", runMin: "", runSec: "", far: "", farKind: "Run",
     enjoy: {}, canJog: null, trains: {}, health: {}, healthNote: "", sleep: null, stress: null, nemesis: {}, whyNow: "", style: null, checkins: null, food: {}, allergy: "", budget: null, likes: "", dislikes: "", way: null, outfit: null, skipped: {},
@@ -500,7 +500,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var goalNote = [s.ownGoal.trim() && "Own goal: " + s.ownGoal.trim(), s.note.trim()].filter(Boolean).join(". ");
     f.v3 = { health: { tags: picked(s.health, HEALTH), note: s.health.None ? "" : cap(s.healthNote) },
       sleep: s.sleep, stress: s.stress,
-      training: { years: s.exp, kinds: picked(s.does, DOES) },
+      training: { years: s.exp, kinds: picked(s.does, DOES), note: (s.does["A sport"] || s.does["Other"]) && s.doesNote.trim() ? s.doesNote.trim() : null },
       time: { days: s.days, minutes: s.mins },
       gear: GEAR.filter(function (g) { return s.gear[g.key]; }).map(function (g) { return g.key; }),
       goals: { tags: picked(s.goals, GOALS), note: cap(goalNote) },
@@ -634,7 +634,11 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           h("div", { class: "pair" }, [num("hFt", "Height", "ft", { max: 1 }), num("hIn", " ", "in", { max: 2 })]),
           num("weight", "Weight (optional)", "lb", { decimal: true, max: 5 })];
       case "training":
-        return [head("Training", "Your training so far"), one("How long have you trained?", EXP, "exp"), many("What do you mostly do? Tap any.", DOES, "does")];
+        // "A sport" or "Other" opens a short box for which one (Luke, 15 Nov 2026).
+        var which = s.does["A sport"] || s.does["Other"];
+        return [head("Training", "Your training so far"), one("How long have you trained?", EXP, "exp"), many("What do you mostly do? Tap any.", DOES, "does"),
+          which ? field(s.does["A sport"] && !s.does["Other"] ? "Which sport? (optional)" : s.does["Other"] && !s.does["A sport"] ? "What else? (optional)" : "Which sport, and what else? (optional)",
+            textIn("doesNote", "e.g. soccer, yoga, climbing", 80)) : null];
       case "time":
         return [head("Training time", "How much time do you have?", "So Tommy can build a plan that fits your week.", true),
           one("Days a week you can train", DAYS, "days"), one("Time per workout", MINS, "mins")];
