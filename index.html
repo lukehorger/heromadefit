@@ -73,6 +73,13 @@
   .note { font-size: 13px; color: var(--muted); }
   .note a, footer a { color: var(--muted); }
   .thanks { display: none; color: var(--done); font-weight: 600; }
+  /* The short form in the first screen (Luke, 16 Nov 2026): only email is needed; phone and price are optional. */
+  .quick { margin-top: 20px; gap: 10px; scroll-margin-top: 16px; }
+  .quick .two { display: grid; grid-template-columns: 2fr 3fr; gap: 10px; }
+  .quick select { padding: 12px 8px; }
+  .quick .hint { margin: -2px 0 0; font-size: 13px; color: var(--muted); }
+  .quick .note { margin: 0; }
+  form[data-joined] button { opacity: .85; }
   /* Social icons: Simple Icons v13.0.0 (CC0), inlined so the page loads nothing from them. */
   .ico { width: 28px; height: 28px; flex: none; }
   .nets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
@@ -95,6 +102,11 @@
     .pill { font-size: 11px; white-space: nowrap; padding: 4px 8px; }
     .pill .wide { display: none; }
     .hero, .grid3 { grid-template-columns: 1fr; }
+    /* Keep the email box and the button in the first phone screen. */
+    .hero { padding: 10px 0 32px; }
+    h1 { margin-bottom: 12px; }
+    .lead { font-size: 16px; margin: 0; }
+    .quick { margin-top: 16px; }
     .nets { grid-template-columns: repeat(2, 1fr); }
     .bosses { grid-template-columns: repeat(2, 1fr); }
   }
@@ -123,7 +135,30 @@
       <h1 class="display">Every workout clears a room. Hit your weekly targets, and you defeat a boss.</h1>
       <p class="lead">Your runs, lifts and martial arts become dungeons full of monsters and bosses. Your rank only goes up
         when you actually get stronger, measured against real people your age.</p>
-      <a class="cta display" href="#waitlist">JOIN THE WAITLIST</a>
+      <form id="join" class="signup quick" aria-label="Join the waitlist">
+        <label>Email <input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label>
+        <div class="two">
+          <select name="phone" aria-label="Your phone (optional)">
+            <option value="">Your phone</option>
+            <option>iPhone</option>
+            <option>Android</option>
+          </select>
+          <select name="price" aria-label="What would you pay for it? (optional)">
+            <option value="">What would you pay?</option>
+            <option>Only if it's free</option>
+            <option>$5 a month</option>
+            <option>$10 a month</option>
+            <option>$15+ a month</option>
+          </select>
+        </div>
+        <p class="hint">Only your email is needed. Phone and price are optional.</p>
+        <input type="hidden" name="source" value="direct">
+        <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        <button type="submit" class="display">JOIN THE WAITLIST</button>
+        <p class="thanks">You're on the list. We'll email you when the first gates open.</p>
+        <p class="oops">That didn't go through. Check your connection and try again.</p>
+        <p class="note">Hero Made Fit emails only: build updates, early access, the launch, and invites to our community or a short chat. Never sold or shared. Unsubscribe anytime. <a href="privacy.html">Privacy</a></p>
+      </form>
     </div>
     <div class="window hero-art">
       <img class="tall" src="img/avatar.jpg" alt="The founder's hero avatar">
@@ -162,7 +197,7 @@
 
   <section id="waitlist">
     <h2 class="display">Find your rank first</h2>
-    <form id="form" class="window">
+    <form id="form" class="window signup">
       <label>Email <input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label>
       <label>How do you train?
         <div class="choices">
@@ -172,15 +207,15 @@
           <label><input type="checkbox" name="training" value="other"> Other</label>
         </div>
       </label>
-      <label>What phone do you use?
+      <label>What phone do you use? (optional)
         <div class="choices">
-          <label><input type="radio" name="phone" value="iPhone" required> iPhone</label>
+          <label><input type="radio" name="phone" value="iPhone"> iPhone</label>
           <label><input type="radio" name="phone" value="Android"> Android</label>
         </div>
       </label>
       <label>What do you use today? <input type="text" name="current_apps" placeholder="Hevy, Strava, Apple Fitness, nothing..."></label>
-      <label>What would you pay for it?
-        <select name="price" required>
+      <label>What would you pay for it? (optional)
+        <select name="price">
           <option value="">Choose one</option>
           <option>Only if it's free</option>
           <option>$5 a month</option>
@@ -188,12 +223,12 @@
           <option>$15+ a month</option>
         </select>
       </label>
-      <input type="hidden" name="source" id="source" value="direct">
+      <input type="hidden" name="source" value="direct">
         <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
       <button type="submit" class="display">JOIN THE WAITLIST</button>
-      <p class="thanks" id="thanks">You're on the list. We'll email you when the first gates open.</p>
-      <div class="follow" id="follow"><p>While you wait, follow the build:</p><div class="nets"><a class="net" href="https://www.instagram.com/heromadefit/" target="_blank" rel="noopener"><svg class="ico ico-ig" aria-hidden="true"><use href="#i-ig"/></svg><span><b>Instagram</b><small>@heromadefit</small></span></a><a class="net" href="https://www.tiktok.com/@heromadefit" target="_blank" rel="noopener"><svg class="ico ico-tt" aria-hidden="true"><use href="#i-tt"/></svg><span><b>TikTok</b><small>@heromadefit</small></span></a><a class="net" href="https://www.youtube.com/@HeroMadeFit" target="_blank" rel="noopener"><svg class="ico ico-yt" aria-hidden="true"><use href="#i-yt"/></svg><span><b>YouTube</b><small>@heromadefit</small></span></a><a class="net" href="https://www.threads.com/@heromadefit" target="_blank" rel="noopener"><svg class="ico ico-th" aria-hidden="true"><use href="#i-th"/></svg><span><b>Threads</b><small>@heromadefit</small></span></a></div></div>
-      <p class="oops" id="oops">That didn't go through. Check your connection and try again.</p>
+      <p class="thanks">You're on the list. We'll email you when the first gates open.</p>
+      <div class="follow"><p>While you wait, follow the build:</p><div class="nets"><a class="net" href="https://www.instagram.com/heromadefit/" target="_blank" rel="noopener"><svg class="ico ico-ig" aria-hidden="true"><use href="#i-ig"/></svg><span><b>Instagram</b><small>@heromadefit</small></span></a><a class="net" href="https://www.tiktok.com/@heromadefit" target="_blank" rel="noopener"><svg class="ico ico-tt" aria-hidden="true"><use href="#i-tt"/></svg><span><b>TikTok</b><small>@heromadefit</small></span></a><a class="net" href="https://www.youtube.com/@HeroMadeFit" target="_blank" rel="noopener"><svg class="ico ico-yt" aria-hidden="true"><use href="#i-yt"/></svg><span><b>YouTube</b><small>@heromadefit</small></span></a><a class="net" href="https://www.threads.com/@heromadefit" target="_blank" rel="noopener"><svg class="ico ico-th" aria-hidden="true"><use href="#i-th"/></svg><span><b>Threads</b><small>@heromadefit</small></span></a></div></div>
+      <p class="oops">That didn't go through. Check your connection and try again.</p>
       <p class="note">Hero Made Fit emails only: build updates, early access, the launch, and invites to our community or a short chat. Never sold or shared. Unsubscribe anytime. <a href="privacy.html">Privacy</a></p>
     </form>
   </section>
@@ -206,32 +241,34 @@
 
   <footer>Hero Made Fit is an original world and isn't affiliated with any anime, manhwa or game. © 2026 Hero Made Labs · <a href="privacy.html">Privacy</a> · <a href="health-data.html">Consumer Health Data Privacy Policy</a></footer>
 </div>
-<a class="joinbar display" id="joinbar" href="#waitlist">JOIN THE WAITLIST</a>
+<a class="joinbar display" id="joinbar" href="#join">JOIN THE WAITLIST</a>
 <script>
   // Waitlist form endpoint.
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyX83Ryu58CiiIqLsA4dRBuer61dut4snrgFtH9TzAk1MEh_GkYId4fkrXN_4Pn4cGW/exec';
   // Where the visitor came from (?ref=...), so each channel's signups are counted apart.
   const ref = new URLSearchParams(location.search).get('ref');
-  if (ref && /^[a-z0-9-]{1,32}$/i.test(ref)) document.getElementById('source').value = ref.toLowerCase();
+  const forms = [...document.querySelectorAll('form.signup')];
+  const source = ref && /^[a-z0-9-]{1,32}$/i.test(ref) ? ref.toLowerCase() : 'direct';
+  forms.forEach(f => { f.elements.source.value = source; });
   // Count this visit once per browser per day, by source only; the date of the last count stays on this device.
   (() => {
     const today = new Date().toLocaleDateString('en-CA');  // the visitor's own date, YYYY-MM-DD
     try { if (localStorage.getItem('hmf-counted') === today) return; localStorage.setItem('hmf-counted', today); } catch (_) {}
-    const body = new URLSearchParams({ visit: '1', source: document.getElementById('source').value });
+    const body = new URLSearchParams({ visit: '1', source });
     fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body, keepalive: true }).catch(() => {});
   })();
-  // The phone join bar: shown once the top button is off screen, hidden while the form is on screen (and after joining).
+  // The phone join bar: shown once both forms are off screen, and gone after joining. It leads back to the top form.
   (() => {
-    const bar = document.getElementById('joinbar'), seen = { top: true, form: false };
+    const bar = document.getElementById('joinbar'), seen = new Map(forms.map(f => [f, f.id === 'join']));
     if (!bar || !('IntersectionObserver' in window)) return;
-    const update = () => bar.classList.toggle('on', !seen.top && !seen.form && !document.getElementById('form').dataset.joined);
-    new IntersectionObserver(([e]) => { seen.top = e.isIntersecting; update(); }).observe(document.querySelector('.hero .cta'));
-    new IntersectionObserver(([e]) => { seen.form = e.isIntersecting; update(); }).observe(document.getElementById('form'));
+    const update = () => bar.classList.toggle('on', ![...seen.values()].some(Boolean) && !forms[0].dataset.joined);
+    forms.forEach(f => new IntersectionObserver(([e]) => { seen.set(f, e.isIntersecting); update(); }).observe(f));
   })();
-  document.getElementById('form').addEventListener('submit', async (e) => {
+  forms.forEach(f => f.addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.target, button = form.querySelector('button');
-    const thanks = document.getElementById('thanks'), oops = document.getElementById('oops');
+    if (form.dataset.joined) return;
+    const thanks = form.querySelector('.thanks'), oops = form.querySelector('.oops');
     oops.style.display = 'none';
     button.disabled = true;
     try {
@@ -242,18 +279,20 @@
         await fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: new URLSearchParams(new FormData(form)) });
       }
       thanks.style.display = 'block';
-      document.getElementById('follow').style.display = 'block';
+      const follow = form.querySelector('.follow');
+      if (follow) follow.style.display = 'block';
       // On a phone the button sits at the bottom of the screen, so the thank-you would land below the fold:
       // say it on the button too, close the keyboard and bring the message into view.
-      button.textContent = "YOU'RE ON THE LIST ✓";
-      form.dataset.joined = '1';
+      // Both forms say so, so nobody signs up twice.
+      forms.forEach(f => { f.dataset.joined = '1'; const b = f.querySelector('button'); b.textContent = "YOU'RE ON THE LIST ✓"; b.disabled = true; });
+      document.getElementById('joinbar').classList.remove('on');
       if (document.activeElement) document.activeElement.blur();
       thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (_) {
       oops.style.display = 'block';
       button.disabled = false;
     }
-  });
+  }));
 </script>
 </body>
 </html>
