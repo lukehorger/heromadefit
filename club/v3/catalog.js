@@ -976,8 +976,8 @@ window.HERO_CATALOG = {
   "version": "2026-11-15club-v3-web",
   "intro": [
    "Your answers, stats and hero go to Coach Tommy Ashman to coach you, and to Hero Made Fit (run by Luke Horger), which runs this assessment.",
-   "Some answers are about your health. We use them only to help Tommy coach you safely, and never sell them or use them for ads.",
-   "An AI drafts Tommy's notes and your nutrition plan. Tommy checks everything before you see it. It isn't medical advice.",
+   "Some questions ask about your health. Your data is used only to help Tommy coach you safely, and is never sold or used for ads.",
+   "Tommy reviews your answers himself, with help from AI. Nothing here is medical advice.",
    "See or delete your data any time: privacy@heromadefit.com. Full policy: heromadefit.com/privacy.html"
   ],
   "boxes": [
