@@ -218,6 +218,11 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
 /* Real build (15 Nov 2026): the results link box. */
 .linkfield input { font: 500 13px var(--mono) !important; color: var(--ice) !important; }
 .closed-note { font: 500 13px/1.5 var(--body); color: var(--muted); }
+/* 16 Nov 2026: the small lb | kg and mi | km switch inside a number box, and the hint under free-text boxes. */
+.useg { display: flex; flex: none; border: 1px solid var(--gold-dim); }
+.useg button { background: none; border: 0; color: var(--muted); padding: 4px 9px; font: 600 12px var(--mono); cursor: pointer; }
+.useg button.on { background: rgba(255,202,87,.16); color: var(--text); }
+.hint { font: 400 12px/1.4 var(--body); color: var(--muted); margin: 6px 0 0; }
 </style>
 </head>
 <body>
@@ -229,7 +234,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   <nav class="actions" id="nav"></nav>
   <footer id="foot">Made with Hero Made Fit</footer>
 </div>
-<script src="catalog.js?v=20261115-1900"></script>
+<script src="catalog.js?v=20261116-0100"></script>
 <script>
 (function () {
   "use strict";
@@ -245,6 +250,9 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var token = preview ? "" : hashToken();
   var TOKEN_KEY = "hmf-v3-token";  // the last link this device got back, so the shared link can find it again
   var FULL = "Coach Tommy's assessment is full for today. Please try again tomorrow.";
+  // Where the redraw message sends people (Luke, 16 Nov 2026). Privacy and deleting data stay on privacy@.
+  var SUPPORT_EMAIL = "support@heromadefit.com";
+  var HEALTH_HINT = "Please keep health details in the health section.";  // under the boxes that reach Tommy's CSV
   // Preview only, when the catalog has no v3 consent yet: stand-in boxes. The real page never uses these.
   var PREVIEW_CONSENT = { version: "preview", intro: ["Preview: the consent text from the catalog shows here."],
     boxes: ["I'm 18 or older.", "I agree to my answers being collected.", "I agree to my answers going to Coach Tommy."],
@@ -254,13 +262,15 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
 
   var s = { step: 0, name: "", adult: false, collect: false, share: false, age: "", sex: null, hFt: "", hIn: "", weight: "",
     exp: null, does: {}, doesNote: "", days: null, mins: null, gear: {}, goals: {}, ownGoal: "", note: "",
-    pushups: "", pullups: "", lifts: {}, tests: {}, kbUnit: "kg",
+    pushups: "", pullups: "", lifts: {}, tests: {}, kbUnit: null, wUnit: null, farUnit: null,  // null = lb / mi, or kg / km after Metric
     metric: false, hCm: "", jCm: "", cardio: null, jFt: "", jIn: "", sprint: "", sprintDist: "40yd", runDist: "1_mile", runMin: "", runSec: "", far: "", farKind: "Run",
-    enjoy: {}, canJog: null, trains: {}, health: {}, healthNote: "", sleep: null, stress: null, nemesis: {}, whyNow: "", style: null, checkins: null, food: {}, allergy: "", budget: null, likes: "", dislikes: "", way: null, outfit: null, skipped: {},
+    enjoy: {}, canJog: null, trains: {}, health: {}, healthNote: "", sleep: null, stress: null, nemesis: {}, nemesisOther: "", style: {}, styleOther: "", checkins: null, food: {}, allergy: "", budget: null, likes: "", dislikes: "", way: null, outfit: null, skipped: {},
     // The hero step, as v2: the signed release, the photo (a canvas plus its base64 JPEG), the camera, the description.
     photoAgreed: false, signedName: "", photo: null, cam: null, look: { extra: "" }, drawNote: "", describeAgreed: false,
     // Sending and results, as v2.
-    sending: false, error: "", done: false, sentHere: false, checking: !!token, closed: "", result: null, avatar: null, copied: false };
+    sending: false, error: "", done: false, sentHere: false, checking: !!token, closed: "", result: null, avatar: null, copied: false,
+    // The one hero redraw (Luke, 15 Nov 2026): asked on this device, waiting for the reply, its error, and the last state seen.
+    redrawAsked: false, redrawBusy: false, redrawError: "", redrawWas: null };
 
   // --- Tom's new questions ------------------------------------------------------------------------
   var DAYS = ["1–2", "3–4", "5–6", "Every day"];
@@ -285,8 +295,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     "Pregnant or recently had a baby", "Other"];
   var DOCTOR = { "Heart or blood pressure": 1, "Chest pain or dizziness when active": 1, "Pregnant or recently had a baby": 1 };
   var SLEEP = ["Under 6 h", "6–7 h", "7–8 h", "8+ h"], STRESS = ["Low", "Medium", "High"];
-  var NEMESIS = ["Not enough time", "Motivation", "Staying consistent", "Injury or pain", "Not knowing what to do", "Boredom", "Life got busy", "Nothing yet: I'm new"];
-  var STYLE = ["Tough love", "Encouraging", "Numbers and data"], CHECKINS = ["Daily", "A few times a week", "Weekly"];
+  var NEMESIS = ["Not enough time", "Motivation", "Staying consistent", "Injury or pain", "Not knowing what to do", "Boredom", "Life got busy", "Nothing yet: I'm new", "Other"];
+  var STYLE = ["Tough love", "Encouraging", "Numbers and data", "Other"], CHECKINS = ["Daily", "A few times a week", "Weekly"];
   // Quest stages instead of "11 / 17" (proposal 5); the bar starts a little filled.
   var STAGES = [["Origin", ["start", "consent", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching"]],
     ["Trials", ["strength", "belts", "cardio", "agility", "endurance", "start_cardio"]], ["Fuel", ["food", "budget", "likes"]],
@@ -382,7 +392,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       case "health": return Object.keys(s.health).length > 0;
       case "recovery": return !!s.sleep && !!s.stress;
       case "nemesis": return Object.keys(s.nemesis).length > 0;
-      case "coaching": return !!s.style && !!s.checkins;
+      case "coaching": return Object.keys(s.style).length > 0 && !!s.checkins;
       case "cardio": return !!s.cardio;
       case "food": return Object.keys(s.food).length > 0;
       case "budget": return !!s.budget;
@@ -413,7 +423,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         BELT_GROUPS.forEach(function (g) { beltTests(g).forEach(function (k) {
           var t = TEST[k], v = s.tests[k];
           if (bad || v == null || v === "") return;
-          if (t.kind === "set") { if (parseFloat(v.weight) > 300 || parseInt(v.reps, 10) > 500) bad = t.name + ": up to 300 for the weight and 500 reps."; }
+          if (t.kind === "set") { if (setWeight(k, v.weight) > 300 || parseInt(v.reps, 10) > 500) bad = t.name + ": up to " + (t.unit === "kg" ? "300 kg (661 lb)" : "300 lb (136 kg)") + " and 500 reps."; }
           else if (t.kind === "seconds" && parseInt(v, 10) > 3600) bad = t.name + ": up to 3600 seconds.";
         }); });
         return bad;
@@ -423,7 +433,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         return null;
       case "endurance":
         if (s.runMin !== "" && runSecs() == null) return "That run time doesn't look right.";
-        if (s.far !== "" && farMiles() == null) return "Your longest " + s.farKind.toLowerCase() + " should be up to " + FAR_MAX[s.farKind] + " miles.";
+        if (s.far !== "" && farMiles() == null) return "Your longest " + s.farKind.toLowerCase() + " should be up to " +
+          (farUnit() === "km" ? Math.floor(FAR_MAX[s.farKind] * MI_KM) + " km." : FAR_MAX[s.farKind] + " miles.");
         return null;
       default: return null;
     }
@@ -445,8 +456,22 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   function sprintS() { var t = parseFloat(s.sprint), lo = s.sprintDist === "100m" ? 9 : 3.5, hi = s.sprintDist === "100m" ? 40 : 15; return t >= lo && t <= hi ? Math.round(t * 100) / 100 : null; }
   function runSecs() { var m = parseInt(s.runMin, 10); if (isNaN(m)) return null; var t = m * 60 + (parseInt(s.runSec || "0", 10) || 0), floor = s.runDist === "5k" ? 720 : 200;
     return t >= floor && t <= 4 * 3600 ? t : null; }
-  var FAR_MAX = { Run: 250, Ride: 1000, Swim: 60 };
-  function farMiles() { var m = parseFloat(s.far); if (!(m > 0 && m <= FAR_MAX[s.farKind])) return null; var o = {}; o[s.farKind.toLowerCase()] = Math.round(m * 100) / 100; return o; }
+  var FAR_MAX = { Run: 250, Ride: 1000, Swim: 60 }, MI_KM = 1.609344;
+  // The longest session in miles or km on screen (Luke, 15 Nov 2026: miles first, km after Metric); always miles to the Mac.
+  function farUnit() { return s.farUnit || (s.metric ? "km" : "mi"); }
+  function farMiles() { var m = parseFloat(s.far); if (farUnit() === "km") m = m / MI_KM;
+    m = Math.round(m * 100) / 100; if (!(m > 0 && m <= FAR_MAX[s.farKind])) return null; var o = {}; o[s.farKind.toLowerCase()] = m; return o; }
+  // Weighted calisthenics and kettlebells in lb or kg on screen (lb first, kg after Metric). The Mac reads weighted
+  // tests in lb added and kettlebells in kg (club.py SET_UNIT), so the page converts to those.
+  function groupOf(k) { return BELT_GROUPS.filter(function (g) { return g.tests.indexOf(k) !== -1; })[0] || {}; }
+  function shownUnit(g) { var u = g === "kb" ? s.kbUnit : g === "weighted" ? s.wUnit : null; return u || (s.metric ? "kg" : "lb"); }
+  function setWeight(k, raw) {
+    var w = parseFloat(raw), t = TEST[k], g = groupOf(k).key;
+    if (!(w > 0) || (g !== "kb" && g !== "weighted")) return w;
+    var shown = shownUnit(g), wants = t.unit === "kg" ? "kg" : "lb";
+    if (shown === wants) return w;
+    return r1(wants === "kg" ? w / KG : w * KG);
+  }
   // Tom's belt tests: numbers, sets as {weight, reps} (kettlebells in kg), only the tests the page showed.
   function clubTests() {
     var out = {};
@@ -455,9 +480,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       var t = TEST[k], v = s.tests[k];
       if (v == null || v === "") return;
       if (t.kind === "set") {
-        var w = parseFloat(v.weight), r = parseInt(v.reps, 10);
+        var w = setWeight(k, v.weight), r = parseInt(v.reps, 10);
         if (!(w > 0) || !(r > 0)) return;
-        if (t.unit === "kg" && s.kbUnit === "lb") w = Math.round(w / 2.2046 * 10) / 10;
         out[k] = { weight: w, reps: r };
       } else if (t.kind === "check") { if (v === true || v === false) out[k] = v; }
       else { var n = parseInt(v, 10); if (!isNaN(n)) out[k] = n; }
@@ -511,11 +535,11 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       time: { days: s.days, minutes: s.mins },
       gear: GEAR.filter(function (g) { return s.gear[g.key]; }).map(function (g) { return g.key; }),
       goals: { tags: picked(s.goals, GOALS), note: cap(goalNote) },
-      nemesis: { tags: picked(s.nemesis, NEMESIS), why: cap(s.whyNow) },
-      coaching: { style: s.style, checkins: s.checkins },
+      nemesis: { tags: picked(s.nemesis, NEMESIS), other: s.nemesis.Other ? cap(s.nemesisOther) : "" },
+      coaching: { style: picked(s.style, STYLE), other: s.style.Other ? cap(s.styleOther) : "", checkins: s.checkins },
       cardio: s.cardio,
       start_cardio: s.cardio === "want" && !s.skipped.start_cardio ? { likes: picked(s.enjoy, ENJOY), can_20min: s.canJog } : null,
-      food: { tags: picked(s.food, FOOD), other: cap(s.allergy) },
+      food: { tags: picked(s.food, FOOD), other: s.food.Other ? cap(s.allergy) : "" },
       budget: s.budget, likes: cap(s.likes), dislikes: cap(s.dislikes),
       outfit: s.outfit, photo_kind: s.way === "body" ? "full_body" : s.way === "selfie" ? "selfie" : null };
     return f;
@@ -535,7 +559,14 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   function head(area, title, sub, isNew) { return h("div", {}, [area ? h("div", { class: "area" }, [area, isNew && preview ? h("span", { class: "newtag", text: "NEW FOR TOM" }) : null]) : null,
     h("h1", { text: title }), sub ? h("p", { class: "sub", text: sub }) : null]); }
   function label(t) { return h("div", { class: "label", text: t }); }
-  function field(lbl, input, unit) { return h("div", {}, [label(lbl), h("div", { class: "field" }, [input, unit ? h("span", { class: "unit", text: unit }) : null])]); }
+  function field(lbl, input, unit) { return h("div", {}, [label(lbl), h("div", { class: "field" }, [input, unit ? (typeof unit === "string" ? h("span", { class: "unit", text: unit }) : unit) : null])]); }
+  // A small two-way unit switch that sits inside a number box, in place of the unit (e.g. lb | kg).
+  function unitSwitch(units, cur, pick, what) {
+    return h("div", { class: "useg", role: "group", "aria-label": what || "Units" }, units.map(function (u) {
+      return h("button", { type: "button", class: cur === u ? "on" : "", "aria-pressed": cur === u ? "true" : "false", text: u, onclick: function () { pick(u); render(); } }); }));
+  }
+  function hint() { return h("p", { class: "hint", text: HEALTH_HINT }); }
+  function withHint(el) { el.appendChild(hint()); return el; }
   function lines(x) { return Array.isArray(x) ? x : String(x || "").split("\n").filter(function (l) { return l.trim(); }); }
   function numIn(key, opts) {
     opts = opts || {};
@@ -589,13 +620,16 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     }
     function box(sub, unit, dec, max) {
       var cur = t.kind === "set" ? (s.tests[k] = s.tests[k] || { weight: "", reps: "" }) : null;
+      var g = groupOf(k).key, sw = sub === "weight" && (g === "kb" || g === "weighted");
       var i = h("input", { type: "text", inputmode: dec ? "decimal" : "numeric", placeholder: "0", autocomplete: "off", "aria-label": t.name + (sub ? " " + sub : ""),
         value: cur ? cur[sub] : (v != null ? v : ""),
         oninput: function () { var x = i.value.replace(dec ? /[^0-9.]/g : /[^0-9]/g, "").slice(0, max); if (x !== i.value) i.value = x; if (cur) cur[sub] = x; else s.tests[k] = x; bar(); } });
-      return h("div", { class: "field" }, [i, h("span", { class: "unit", text: unit })]);
+      return h("div", { class: "field" }, [i, sw ? unitSwitch(["lb", "kg"], shownUnit(g), function (u) { if (g === "kb") s.kbUnit = u; else s.wUnit = u; }, t.name + " weight in")
+        : h("span", { class: "unit", text: unit })]);
     }
-    var unit = t.unit === "kg" ? s.kbUnit : t.unit;
-    return h("div", {}, [label(t.name), h("p", { class: "how", text: t.how }),
+    var gk = groupOf(k).key, both = gk === "kb" || gk === "weighted", unit = both ? shownUnit(gk) : t.unit;
+    // With the lb | kg switch, the catalog's "(lb)" or "(kg)" in the how-to would say the wrong unit half the time.
+    return h("div", {}, [label(t.name), h("p", { class: "how", text: both ? t.how.replace(/ \((lb|kg)\)/, "") : t.how }),
       t.kind === "set" ? h("div", { class: "pair" }, [box("weight", unit, true, 5), box("reps", "reps", false, 3)]) : box(null, t.kind === "seconds" ? "sec" : "reps", false, 4)]);
   }
   // Each description pick, as v2's chips: tap again to clear.
@@ -647,7 +681,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         var which = s.does["A sport"] || s.does["Other"];
         return [head("Training", "Your training so far"), one("How long have you trained?", EXP, "exp"), many("What do you mostly do? Tap any.", DOES, "does"),
           which ? field(s.does["A sport"] && !s.does["Other"] ? "Which sport? (optional)" : s.does["Other"] && !s.does["A sport"] ? "What else? (optional)" : "Which sport, and what else? (optional)",
-            textIn("doesNote", "e.g. soccer, yoga, climbing", 80)) : null];
+            textIn("doesNote", "e.g. soccer, yoga, climbing", 80)) : null, which ? hint() : null];
       case "time":
         return [head("Training time", "How much time do you have?", "So Tommy can build a plan that fits your week.", true),
           one("Days a week you can train", DAYS, "days"), one("Time per workout", MINS, "mins")];
@@ -656,7 +690,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           opts(GEAR, "gear", true)];
       case "goals":
         var own = textIn("ownGoal", "Or write your own", 80), nt = textIn("note", "One line, optional", 160);
-        return [head("Goals", "What do you want?", "Tap as many as you like."), many(null, GOALS, "goals"), own, field("Anything else Tommy should know?", nt)];
+        return [head("Goals", "What do you want?", "Tap as many as you like."), many(null, GOALS, "goals"), own, withHint(field("Anything else Tommy should know?", nt))];
       case "health":
         var hn = textIn("healthNote", "e.g. old knee injury, sore on stairs", 160), doc = Object.keys(s.health).some(function (k) { return DOCTOR[k]; });
         return [head("Health", "Injuries and health", "So Tommy can keep you safe. Tap any that apply.", true), many(null, HEALTH, "health", "None"),
@@ -665,10 +699,15 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       case "recovery":
         return [head("Recovery", "Sleep and stress", "Both change how hard Tommy should push you.", true), one("Usual sleep a night", SLEEP, "sleep"), one("Stress lately", STRESS, "stress")];
       case "nemesis":
+        // "Other" opens a short box (Luke, 15 Nov 2026); the "Why now?" box is gone.
         return [head("Your nemesis", "Every hero has a nemesis", "What's gotten in the way before? Tap any.", true), many(null, NEMESIS, "nemesis", "Nothing yet: I'm new"),
-          field("Why now? (optional)", textIn("whyNow", "One line", 160))];
+          s.nemesis.Other ? withHint(field("What else got in the way? (optional)", textIn("nemesisOther", "One line", 160))) : null];
       case "coaching":
-        return [head("Coaching", "How should Tommy coach you?", null, true), one("Coaching style", STYLE, "style"), one("Check-ins", CHECKINS, "checkins")];
+        // Several styles at once, and "Other" opens a short box (Luke, 15 Nov 2026).
+        return [head("Coaching", "How should Tommy coach you?", null, true),
+          h("div", {}, [label("Coaching style"), h("p", { class: "how", text: "Tap all that apply." }), many(null, STYLE, "style")]),
+          s.style.Other ? withHint(field("How else do you like to be coached? (optional)", textIn("styleOther", "One line", 160))) : null,
+          one("How often would you like to check in?", CHECKINS, "checkins")];
       case "strength":
         var kids = [head("Strength", "Your strength", "Your best set, done strictly, in the last 3 months. A good guess is fine."),
           h("div", { class: "pair" }, [num("pushups", "Push-ups in a row", "reps"), num("pullups", "Strict pull-ups", "reps")])];
@@ -689,8 +728,6 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
             return h("button", { type: "button", class: "chip" + (s.trains[g.key] === o[0] ? " on" : ""), "aria-pressed": s.trains[g.key] === o[0] ? "true" : "false", text: o[1],
               onclick: function () { s.trains[g.key] = o[0]; render(); } }); }))])] : [];
           out.push(h("div", { class: "sheet" }, [h("h2", { text: g.name.toUpperCase() })].concat(gate,
-            g.key === "kb" && s.trains.kb === "yes" ? [h("div", { style: "margin-bottom:10px" }, [label("Kettlebells in"), h("div", { class: "seg" }, ["kg", "lb"].map(function (u) {
-              return h("button", { type: "button", class: s.kbUnit === u ? "on" : "", text: u, onclick: function () { s.kbUnit = u; render(); } }); }))])] : [],
             [h("div", { style: "display:grid;gap:14px" }, beltTests(g).map(testField))])));
         });
         return out;
@@ -715,7 +752,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           h("div", {}, [label("A timed run"), dist]),
           h("div", { class: "pair" }, [num("runMin", "Time", "min", { max: 3 }), num("runSec", " ", "sec", { max: 2 })]),
           h("p", { class: "note", text: "Or:" }),
-          h("div", {}, [label("Your longest in the past year"), kind]), num("far", "Distance", "mi", { decimal: true, max: 5 })];
+          h("div", {}, [label("Your longest in the past year"), kind]),
+          num("far", "Distance", unitSwitch(["mi", "km"], farUnit(), function (u) { s.farUnit = u; }, "Distance in"), { decimal: true, max: 5 })];
       case "start_cardio":
         return [head("Cardio", "Getting started", "No times or stats. This just tells Tommy where to begin.", true),
           many("What would you enjoy? Tap any.", ENJOY, "enjoy"),
@@ -723,7 +761,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       case "food":
         var al = textIn("allergy", "e.g. sesame, eggs", 120);
         return [head("Food", "Restrictions and allergies", "Tommy's nutrition plan never includes these."), many(null, FOOD, "food", "None"),
-          field("Other allergies or foods you can't eat", al)];
+          s.food.Other ? field("Which allergies or foods?", al) : null];
       case "budget":
         return [head("Food", "Weekly grocery budget"), one(null, BUDGET, "budget")];
       case "likes":
@@ -793,7 +831,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     s.photo = { cv: cv, b64: data.split(",")[1] }; s.error = ""; render();
   }
   function toJpeg(file) {
-    function bad() { s.error = "That photo couldn't be opened. Try another one."; render(); }
+    // Both the bitmap and the <img> fallback failed: the browser can't read this kind of picture (often HEIC).
+    function bad() { s.error = "Only JPEG, PNG or WebP photos work here. If your photo is HEIC (the iPhone format), save it as a JPEG first, or fill this in on your phone."; render(); }
     function viaImage() {
       var img = new Image(), url = URL.createObjectURL(file);
       img.onload = function () { URL.revokeObjectURL(url); keepPhoto(img, img.naturalWidth, img.naturalHeight); };
@@ -844,8 +883,9 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     row("Goals", [list(s.goals), s.ownGoal.trim()].filter(Boolean).join(", ") + (s.note.trim() ? "\nNote: " + s.note.trim() : ""));
     row("Health", list(s.health) + (s.healthNote.trim() && !s.health.None ? "\n" + s.healthNote.trim() : ""), true);
     row("Recovery", s.sleep && s.stress ? "Sleep " + s.sleep.toLowerCase() + " · stress " + s.stress.toLowerCase() : null, true);
-    row("Nemesis", list(s.nemesis) + (s.whyNow.trim() ? "\nWhy now: " + s.whyNow.trim() : ""), true);
-    row("Coaching", s.style && s.checkins ? s.style + " · check-ins " + s.checkins.toLowerCase() : null, true);
+    row("Nemesis", list(s.nemesis) + (s.nemesis.Other && s.nemesisOther.trim() ? "\nOther: " + s.nemesisOther.trim() : ""), true);
+    row("Coaching", [list(s.style), s.checkins && "check-ins " + s.checkins.toLowerCase()].filter(Boolean).join(" · ") +
+      (s.style.Other && s.styleOther.trim() ? "\nOther: " + s.styleOther.trim() : ""), true);
     var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; }).map(function (l) { return l.name + " " + s.lifts[l.key] + (s.metric ? " kg" : " lb"); });
     row("Strength", sk("strength", [s.pushups && s.pushups + " push-ups", s.pullups && s.pullups + " pull-ups"].concat(lifts() ? lf : []).filter(Boolean).join("\n")));
     var bt = Object.keys(clubTests()).length;
@@ -856,8 +896,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var sp = s.cardio === "yes" && s.sprint ? (s.sprintDist === "100m" ? "100 m " : "40 yd ") + s.sprint + " s" : null;
     row("Agility", sk("agility", [s.metric ? (s.jCm && "Broad jump " + s.jCm + " cm") : (s.jFt && "Broad jump " + ftIn(s.jFt, s.jIn)), sp].filter(Boolean).join("\n")));
     var run = s.runMin ? (C.runs.filter(function (r) { return r.key === s.runDist; })[0] || {}).name + " in " + s.runMin + ":" + ("0" + (s.runSec || 0)).slice(-2) : null;
-    row("Endurance", s.cardio === "no" ? "N/A (not into cardio)" : s.cardio === "want" ? "N/A (not doing cardio yet)" : sk("endurance", [run, s.far && "Longest " + s.farKind.toLowerCase() + " " + s.far + " mi"].filter(Boolean).join("\n")));
-    row("Food", [list(s.food), s.allergy.trim() && "Also: " + s.allergy.trim(), s.budget && "Budget " + s.budget + " a week",
+    row("Endurance", s.cardio === "no" ? "N/A (not into cardio)" : s.cardio === "want" ? "N/A (not doing cardio yet)" : sk("endurance", [run, s.far && "Longest " + s.farKind.toLowerCase() + " " + s.far + " " + farUnit()].filter(Boolean).join("\n")));
+    row("Food", [list(s.food), s.food.Other && s.allergy.trim() && "Also: " + s.allergy.trim(), s.budget && "Budget " + s.budget + " a week",
       s.likes.trim() && "Likes: " + s.likes.trim(), s.dislikes.trim() && "Dislikes: " + s.dislikes.trim()].filter(Boolean).join("\n"));
     var look = s.way === "describe" ? ["hair_style", "hair_colour", "skin_tone", "eye_colour", "facial_hair", "glasses"].map(function (k) { return s.look[k]; }).concat(s.look.extra.trim()).filter(Boolean).join(", ") : s.drawNote.trim();
     row("Hero", [(WAYS.filter(function (w) { return w.key === s.way; })[0] || {}).name, (OUTFITS.filter(function (o) { return o.key === s.outfit; })[0] || {}).name].filter(Boolean).join(" · ") +
@@ -873,7 +913,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     if (gear.length) items.push(s.gear.body ? "Body weight only, no equipment" : "Your equipment: " + gear.join(", "));
     var hurt = Object.keys(s.health).filter(function (k) { return k !== "None" && k !== "Other"; });
     if (hurt.length) items.push("Going easy on: " + hurt.join(", ").toLowerCase());
-    var food = Object.keys(s.food).filter(function (k) { return k !== "None" && k !== "Other"; }).concat(s.allergy.trim() ? [s.allergy.trim()] : []);
+    var food = Object.keys(s.food).filter(function (k) { return k !== "None" && k !== "Other"; }).concat(s.food.Other && s.allergy.trim() ? [s.allergy.trim()] : []);
     if (food.length) items.push("Food: " + food.join(", ").toLowerCase());
     if (s.cardio === "want") items.push("Starting cardio" + (Object.keys(s.enjoy).length ? " with " + list(s.enjoy).toLowerCase() : ""));
     if (s.cardio === "no") items.push("No cardio");
@@ -921,8 +961,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
 
   // --- After sending (ported from v2) ------------------------------------------------------------------
   // The Mac imports every 2 minutes and the art takes about a minute, so results are usually ready in 3 to 5; we say
-  // 7 to be safe. The time is kept on this device for a reopened link.
-  var READY_MIN = 7, STATS_MIN = 3;
+  // 9 to be safe (Luke, 15 Nov 2026; it was 7). The time is kept on this device for a reopened link.
+  var READY_MIN = 9, STATS_MIN = 3;
   function sentAt(set) {
     var key = "hmf-sent-" + token;
     try { if (set) localStorage.setItem(key, String(set)); s.sentAt = s.sentAt || parseInt(localStorage.getItem(key), 10) || null; }
@@ -1010,22 +1050,47 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var out = [head("Your result", r.first_name + (st.length ? ", " + (top ? "world class hero" : r.rank + "-rank hero") : ""), "Where you stand now, and your next step up."), h("div", { class: "win" }, sys)];
     if (s.sentHere || preview) out.push(builtAround());
     if (club.belts && club.belts.length) {
-      out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S BELTS" })].concat(club.belts.map(discipline), [
+      out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S BELTS" })].concat(club.belts.map(discipline), [
         h("p", { class: "note", style: "margin-top:10px", text: "Belts are Tommy's, from his Body Improvement Club courses. Levels marked draft are our best guess until Tommy confirms them." })])));
       if (club.skool_url) out.push(h("a", { class: "cta", href: club.skool_url, target: "_blank", rel: "noopener", text: "Train for your next belt in Tommy's club →" }));
     }
     out.push(s.avatar ? h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("img", { class: "hero-img", src: "data:image/jpeg;base64," + s.avatar, alt: "Your anime hero" }),
-        h("p", { class: "note", text: "Press and hold the picture to save it." })]) :
+        h("p", { class: "note", text: "Press and hold the picture to save it." }), redrawBox(r)]) :
       h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: r.avatar_status === "queued" && !late() ?
         "Your hero art is being drawn. It shows up here by " + clock(readyAt()) + "." : "Your hero art is being drawn. It shows up here within 24 hours." })]));
     // Tom's plan, once he has checked it and sent it from his dashboard (result.plan: {text, sent_at}).
     var p = r.plan;
-    out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S PLAN" })].concat(p && p.text ? [
+    out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S PLAN" })].concat(p && p.text ? [
         h("div", { style: "white-space:pre-line;font:400 15px/1.55 var(--body)", text: p.text }),
         p.sent_at ? h("p", { class: "note", style: "margin:10px 0 0", text: "From Coach Tommy, " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }) + "." }) : null] :
       [h("p", { class: "promise", style: "margin:0", text: "Coach Tommy is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
     if (!preview && token) out.push(linkBox());
     return out;
+  }
+
+  // --- The one hero redraw (Luke, 15 Nov 2026) ---------------------------------------------------------
+  // result.redraw from the script: {available, pending, used}. Shown only once the art is on screen.
+  function redrawWaiting(r) { var rd = (r && r.redraw) || {}; return !!rd.pending || (s.redrawAsked && !rd.used); }
+  function redrawBox(r) {
+    var rd = r.redraw || {};
+    if (preview || !token) return null;
+    if (redrawWaiting(r)) return h("p", { class: "promise", style: "margin:10px 0 0", text: "Redrawing your hero. The new one shows here in about 9 minutes." });
+    if (rd.used) return h("p", { class: "note", style: "margin:10px 0 0", text: "You've used your one redraw. Still not quite you? Email " + SUPPORT_EMAIL + " and we'll help." });
+    if (!rd.available) return null;
+    return h("div", { style: "display:grid;gap:6px;margin-top:10px" }, [
+      h("button", { type: "button", class: "btn", disabled: s.redrawBusy, text: s.redrawBusy ? "Asking…" : "Not quite you? Redraw once", onclick: askRedraw }),
+      h("p", { class: "note", style: "margin:0", text: "You get one redraw." }),
+      s.redrawError ? h("div", { class: "err", text: s.redrawError }) : null]);
+  }
+  function askRedraw() {
+    if (s.redrawBusy) return;
+    s.redrawBusy = true; s.redrawError = ""; render();
+    post({ action: "redraw" }).then(function (reply) {
+      s.redrawBusy = false;
+      if (reply && reply.ok) { s.redrawAsked = true; s.redrawWas = true; poll(30000); }
+      else s.redrawError = (reply && reply.error) || "That didn't go through. Please try again.";
+      render();
+    }).catch(function () { s.redrawBusy = false; s.redrawError = "That didn't go through. Check your connection and try again."; render(); });
   }
 
   // --- Talking to the Apps Script (ported from v2) -------------------------------------------------------
@@ -1051,7 +1116,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         token = reply.token || token;
         try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
         location.hash = "t=" + token;  // this page is now their results link
-        s.done = true; s.sentHere = true; stopCam(); sentAt(Date.now()); rerenderAtReady(); setTimeout(checkResult, 30000);
+        s.done = true; s.sentHere = true; stopCam(); sentAt(Date.now()); rerenderAtReady(); poll(30000);
       } else if (reply && reply.full) {
         s.error = reply.error || FULL;
       } else {
@@ -1066,8 +1131,10 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       if (a && a.ok && a.jpeg) { s.avatar = a.jpeg; render(); } else if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000);
     }).catch(function () { if (n < 5) setTimeout(function () { loadAvatar(n + 1); }, 4000); });
   }
-  // A used link is the person's results page: check now, every 30 s until the art is in, then every 2 minutes
-  // until Tom's plan is in.
+  // A used link is the person's results page: check now, every 30 s until the art is in (or while a redraw is being
+  // drawn), then every 2 minutes until Tom's plan is in. One timer at a time, so a redraw tap doesn't start a second loop.
+  var pollTimer = null;
+  function poll(ms) { clearTimeout(pollTimer); pollTimer = setTimeout(checkResult, ms); }
   function checkResult() {
     if (preview || !token) return;
     post({ action: "result" }).then(function (reply) {
@@ -1077,13 +1144,16 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       if (reply.result && !reply.result.held) {
         var first = !s.result, changed = JSON.stringify(reply.result) !== JSON.stringify(s.result);
         s.result = reply.result; s.done = true;
-        if (reply.has_avatar && !s.avatar) loadAvatar(0);
+        var waiting = redrawWaiting(reply.result);
+        if (s.redrawWas && !waiting && (reply.result.redraw || {}).used) { s.redrawAsked = false; if (reply.has_avatar) loadAvatar(0); } // the new hero is in
+        else if (reply.has_avatar && !s.avatar) loadAvatar(0);
+        s.redrawWas = waiting;
         if (changed || was) render();
         if (first) rerenderAtReady();
-        if (!reply.has_avatar) setTimeout(checkResult, 30000); else if (!reply.result.plan) setTimeout(checkResult, 120000);
-      } else if (reply.submitted || reply.result) { var again = !s.done; s.done = true; if (again || was) render(); if (again) rerenderAtReady(); setTimeout(checkResult, 30000); }
+        if (!reply.has_avatar || waiting) poll(30000); else if (!reply.result.plan) poll(120000);
+      } else if (reply.submitted || reply.result) { var again = !s.done; s.done = true; if (again || was) render(); if (again) rerenderAtReady(); poll(30000); }
       else if (was) render();
-    }).catch(function () { if (s.checking) { s.checking = false; render(); } else if (s.done) setTimeout(checkResult, 60000); });
+    }).catch(function () { if (s.checking) { s.checking = false; render(); } else if (s.done) poll(60000); });
   }
 
   // --- Render ---------------------------------------------------------------------------------------
