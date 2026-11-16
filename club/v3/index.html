@@ -229,7 +229,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   <nav class="actions" id="nav"></nav>
   <footer id="foot">Made with Hero Made Fit</footer>
 </div>
-<script src="catalog.js?v=20261115-1850"></script>
+<script src="catalog.js?v=20261115-1900"></script>
 <script>
 (function () {
   "use strict";
@@ -255,7 +255,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var s = { step: 0, name: "", adult: false, collect: false, share: false, age: "", sex: null, hFt: "", hIn: "", weight: "",
     exp: null, does: {}, doesNote: "", days: null, mins: null, gear: {}, goals: {}, ownGoal: "", note: "",
     pushups: "", pullups: "", lifts: {}, tests: {}, kbUnit: "kg",
-    cardio: null, jFt: "", jIn: "", sprint: "", sprintDist: "40yd", runDist: "1_mile", runMin: "", runSec: "", far: "", farKind: "Run",
+    metric: false, hCm: "", jCm: "", cardio: null, jFt: "", jIn: "", sprint: "", sprintDist: "40yd", runDist: "1_mile", runMin: "", runSec: "", far: "", farKind: "Run",
     enjoy: {}, canJog: null, trains: {}, health: {}, healthNote: "", sleep: null, stress: null, nemesis: {}, whyNow: "", style: null, checkins: null, food: {}, allergy: "", budget: null, likes: "", dislikes: "", way: null, outfit: null, skipped: {},
     // The hero step, as v2: the signed release, the photo (a canvas plus its base64 JPEG), the camera, the description.
     photoAgreed: false, signedName: "", photo: null, cam: null, look: { extra: "" }, drawNote: "", describeAgreed: false,
@@ -400,13 +400,13 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var w = parseFloat(s.weight), sp = parseFloat(s.sprint);
     switch (st) {
       case "basics":
-        if (s.weight !== "" && !(w >= 70 && w <= 500)) return "Weight should be between 70 and 500 lb, or leave it blank.";
-        if (s.hFt !== "" && heightIn() == null) return "Height should be between 4 ft and 7 ft 6 in.";
+        if (s.weight !== "" && weightLb() == null) return s.metric ? "Weight should be between 32 and 226 kg, or leave it blank." : "Weight should be between 70 and 500 lb, or leave it blank.";
+        if ((s.metric ? s.hCm : s.hFt) !== "" && heightIn() == null) return s.metric ? "Height should be between 122 and 228 cm." : "Height should be between 4 ft and 7 ft 6 in.";
         return null;
       case "strength":
         if (parseInt(s.pushups, 10) > 300) return "Push-ups should be 300 or fewer.";
         if (parseInt(s.pullups, 10) > 100) return "Pull-ups should be 100 or fewer.";
-        if (C.lifts.some(function (l) { return parseFloat(s.lifts[l.key]) > 1500; })) return "That lift weight doesn't look right.";
+        if (C.lifts.some(function (l) { return parseFloat(s.lifts[l.key]) > (s.metric ? 680 : 1500); })) return "That lift weight doesn't look right.";
         return null;
       case "belts":
         var bad = null;
@@ -418,7 +418,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         }); });
         return bad;
       case "agility":
-        if (s.jFt !== "" && jumpIn() == null) return "Broad jump should be between 1 ft and 13 ft 4 in.";
+        if ((s.metric ? s.jCm : s.jFt) !== "" && jumpIn() == null) return s.metric ? "Broad jump should be between 30 and 406 cm." : "Broad jump should be between 1 ft and 13 ft 4 in.";
         if (s.cardio === "yes" && s.sprint !== "" && sprintS() == null) return s.sprintDist === "100m" ? "A 100 m time should be between 9 and 40 seconds." : "A 40-yard time should be between 3.5 and 15 seconds.";
         return null;
       case "endurance":
@@ -430,11 +430,18 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   }
 
   // --- The answers as the Mac reads them (demo.validate, demo.score, club.validate) -------------------
-  function heightIn() { var f = parseInt(s.hFt, 10); if (!(f >= 4 && f <= 7)) return null; var t = f * 12 + Math.min(parseInt(s.hIn || "0", 10) || 0, 11); return t <= 90 ? t : null; }
-  function weightLb() { var w = parseFloat(s.weight); return w >= 70 && w <= 500 ? w : null; }
+  // Metric (Luke, 15 Nov 2026: for international clients): cm and kg on screen, still inches and pounds to the Mac.
+  var KG = 2.20462;
+  function r1(x) { return Math.round(x * 10) / 10; }
+  function heightIn() {
+    if (s.metric) { var c = parseFloat(s.hCm); var ti = c / 2.54; return ti >= 48 && ti <= 90 ? r1(ti) : null; }
+    var f = parseInt(s.hFt, 10); if (!(f >= 4 && f <= 7)) return null; var t = f * 12 + Math.min(parseInt(s.hIn || "0", 10) || 0, 11); return t <= 90 ? t : null; }
+  function weightLb() { var w = parseFloat(s.weight) * (s.metric ? KG : 1); return w >= 70 && w <= 500 ? r1(w) : null; }
   // The prototype asks for a best lift (one rep, a barbell), as v2 does before its reps stepper is touched.
-  function liftList() { return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); return w > 0 ? { exercise: l.key, weight_lb: w, reps: 1 } : null; }).filter(Boolean); }
-  function jumpIn() { var f = parseInt(s.jFt, 10); if (isNaN(f)) return null; var t = f * 12 + (parseInt(s.jIn || "0", 10) || 0); return t >= 12 && t <= 160 ? t : null; }
+  function liftList() { return C.lifts.map(function (l) { var w = parseFloat(s.lifts[l.key]); return w > 0 ? { exercise: l.key, weight_lb: s.metric ? r1(w * KG) : w, reps: 1 } : null; }).filter(Boolean); }
+  function jumpIn() {
+    if (s.metric) { var c = parseFloat(s.jCm); if (isNaN(c)) return null; var ji = c / 2.54; return ji >= 12 && ji <= 160 ? r1(ji) : null; }
+    var f = parseInt(s.jFt, 10); if (isNaN(f)) return null; var t = f * 12 + (parseInt(s.jIn || "0", 10) || 0); return t >= 12 && t <= 160 ? t : null; }
   function sprintS() { var t = parseFloat(s.sprint), lo = s.sprintDist === "100m" ? 9 : 3.5, hi = s.sprintDist === "100m" ? 40 : 15; return t >= lo && t <= hi ? Math.round(t * 100) / 100 : null; }
   function runSecs() { var m = parseInt(s.runMin, 10); if (isNaN(m)) return null; var t = m * 60 + (parseInt(s.runSec || "0", 10) || 0), floor = s.runDist === "5k" ? 720 : 200;
     return t >= floor && t <= 4 * 3600 ? t : null; }
@@ -631,8 +638,10 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         return [head("Basics", "About you", "Weight is optional. It makes Strength fairer."),
           h("div", { class: "pair" }, [num("age", "Age", "yrs", { max: 3 }), h("div", {}, [label("Sex"), h("div", { class: "seg" }, ["Male", "Female"].map(function (x) {
             return h("button", { type: "button", class: s.sex === x ? "on" : "", text: x, onclick: function () { s.sex = x; render(); } }); }))])]),
-          h("div", { class: "pair" }, [num("hFt", "Height", "ft", { max: 1 }), num("hIn", " ", "in", { max: 2 })]),
-          num("weight", "Weight (optional)", "lb", { decimal: true, max: 5 })];
+          h("div", {}, [label("Units"), h("div", { class: "seg" }, [["US (ft, lb)", false], ["Metric (cm, kg)", true]].map(function (u) {
+            return h("button", { type: "button", class: s.metric === u[1] ? "on" : "", text: u[0], onclick: function () { s.metric = u[1]; render(); } }); }))]),
+          s.metric ? num("hCm", "Height", "cm", { max: 3 }) : h("div", { class: "pair" }, [num("hFt", "Height", "ft", { max: 1 }), num("hIn", " ", "in", { max: 2 })]),
+          num("weight", "Weight (optional)", s.metric ? "kg" : "lb", { decimal: true, max: 5 })];
       case "training":
         // "A sport" or "Other" opens a short box for which one (Luke, 15 Nov 2026).
         var which = s.does["A sport"] || s.does["Other"];
@@ -668,7 +677,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           kids.push(h("div", { class: "pair" }, C.lifts.map(function (l) {
             var i = h("input", { type: "text", inputmode: "decimal", placeholder: "0", value: s.lifts[l.key] || "", "aria-label": l.name,
               oninput: function () { var x = i.value.replace(/[^0-9.]/g, "").slice(0, 5); if (x !== i.value) i.value = x; s.lifts[l.key] = x; bar(); } });
-            return field(l.name, i, "lb"); })));
+            return field(l.name, i, s.metric ? "kg" : "lb"); })));
         }
         return kids;
       case "belts":
@@ -692,7 +701,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           h("div", { class: "sheet" }, [h("h2", { text: "TRY IT NOW" }), h("ol", { class: "howto" }, [
             h("li", { text: "Stand with your toes behind a line." }), h("li", { text: "Swing your arms and jump forward as far as you can, landing on both feet." }),
             h("li", { text: "Measure from the line to the back of your heels. Best of three." })])]),
-          h("div", { class: "pair" }, [num("jFt", "Broad jump", "ft", { max: 1 }), num("jIn", " ", "in", { max: 2 })])];
+          s.metric ? num("jCm", "Broad jump", "cm", { max: 3 }) : h("div", { class: "pair" }, [num("jFt", "Broad jump", "ft", { max: 1 }), num("jIn", " ", "in", { max: 2 })])];
         if (s.cardio === "yes") {
           k2.push(h("div", {}, [label("Or a sprint time"), h("div", { class: "seg" }, [["40yd", "40 yards"], ["100m", "100 m"]].map(function (o) {
             return h("button", { type: "button", class: s.sprintDist === o[0] ? "on" : "", text: o[1], onclick: function () { s.sprintDist = o[0]; render(); } }); }))]));
@@ -828,7 +837,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     function row(k, v, isNew) { if (v == null || v === "") v = "–"; rows.push(h("dt", { text: k }), h("dd", { class: isNew && forTom ? "new" : null, text: v })); }
     function sk(st, v) { return s.skipped[st] ? "skipped (N/A)" : v; }
     row("Name", s.name.trim());
-    row("Basics", [s.age && s.age + " yrs", s.sex, ftIn(s.hFt, s.hIn), s.weight && s.weight + " lb"].filter(Boolean).join(", "));
+    row("Basics", [s.age && s.age + " yrs", s.sex, s.metric ? (s.hCm && s.hCm + " cm") : ftIn(s.hFt, s.hIn), s.weight && s.weight + (s.metric ? " kg" : " lb")].filter(Boolean).join(", "));
     row("Training", [s.exp, list(s.does)].filter(Boolean).join("\n"));
     row("Time", s.days && s.mins ? s.days + " days a week, " + s.mins.toLowerCase() + " each" : null, true);
     row("Equipment", GEAR.filter(function (g) { return s.gear[g.key]; }).map(function (g) { return g.name; }).join("\n"), true);
@@ -837,7 +846,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     row("Recovery", s.sleep && s.stress ? "Sleep " + s.sleep.toLowerCase() + " · stress " + s.stress.toLowerCase() : null, true);
     row("Nemesis", list(s.nemesis) + (s.whyNow.trim() ? "\nWhy now: " + s.whyNow.trim() : ""), true);
     row("Coaching", s.style && s.checkins ? s.style + " · check-ins " + s.checkins.toLowerCase() : null, true);
-    var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; }).map(function (l) { return l.name + " " + s.lifts[l.key] + " lb"; });
+    var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; }).map(function (l) { return l.name + " " + s.lifts[l.key] + (s.metric ? " kg" : " lb"); });
     row("Strength", sk("strength", [s.pushups && s.pushups + " push-ups", s.pullups && s.pullups + " pull-ups"].concat(lifts() ? lf : []).filter(Boolean).join("\n")));
     var bt = Object.keys(clubTests()).length;
     var tr = BELT_GROUPS.filter(function (g) { return gateShown(g) && s.trains[g.key]; }).map(function (g) { return { weighted: "Added weight", kb: "Kettlebells", mace: "Mace" }[g.key] + ": " + s.trains[g.key]; });
@@ -845,7 +854,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var cardio = { yes: "Does cardio", want: "Doesn't yet, wants to start", no: "Not into cardio" }[s.cardio];
     row("Cardio", cardio + (s.cardio === "want" && !s.skipped.start_cardio ? "\nWould enjoy: " + (list(s.enjoy) || "–") + "\n20 min without stopping: " + (s.canJog || "–") : ""), true);
     var sp = s.cardio === "yes" && s.sprint ? (s.sprintDist === "100m" ? "100 m " : "40 yd ") + s.sprint + " s" : null;
-    row("Agility", sk("agility", [s.jFt && "Broad jump " + ftIn(s.jFt, s.jIn), sp].filter(Boolean).join("\n")));
+    row("Agility", sk("agility", [s.metric ? (s.jCm && "Broad jump " + s.jCm + " cm") : (s.jFt && "Broad jump " + ftIn(s.jFt, s.jIn)), sp].filter(Boolean).join("\n")));
     var run = s.runMin ? (C.runs.filter(function (r) { return r.key === s.runDist; })[0] || {}).name + " in " + s.runMin + ":" + ("0" + (s.runSec || 0)).slice(-2) : null;
     row("Endurance", s.cardio === "no" ? "N/A (not into cardio)" : s.cardio === "want" ? "N/A (not doing cardio yet)" : sk("endurance", [run, s.far && "Longest " + s.farKind.toLowerCase() + " " + s.far + " mi"].filter(Boolean).join("\n")));
     row("Food", [list(s.food), s.allergy.trim() && "Also: " + s.allergy.trim(), s.budget && "Budget " + s.budget + " a week",
@@ -883,7 +892,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var out = [], p = parseInt(s.pushups, 10) || 0, u = parseInt(s.pullups, 10) || 0;
     var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; });
     if (!s.skipped.strength && (s.pushups !== "" || s.pullups !== "" || lf.length)) out.push({ key: "STR", name: "Strength", value: clamp(p * 0.6 + u * 2.5 + (lf.length ? 5 : 0)) });
-    var j = (parseInt(s.jFt, 10) || 0) * 12 + (parseInt(s.jIn, 10) || 0), sp = s.cardio === "yes" ? parseFloat(s.sprint) : NaN;
+    var j = jumpIn() || 0, sp = s.cardio === "yes" ? parseFloat(s.sprint) : NaN;
     if (!s.skipped.agility && (j > 0 || sp > 0)) out.push({ key: "AGI", name: "Agility", value: clamp(Math.max(j > 0 ? (j - 48) : 0, sp > 0 ? (s.sprintDist === "100m" ? (18 - sp) * 8 : (7 - sp) * 30) : 0)) });
     var m = (parseInt(s.runMin, 10) || 0) + (parseInt(s.runSec, 10) || 0) / 60, far = parseFloat(s.far);
     if (s.cardio === "yes" && !s.skipped.endurance && (m > 0 || far > 0)) out.push({ key: "END", name: "Endurance", value: clamp(Math.max(m > 0 ? (s.runDist === "5k" ? (40 - m) * 2.5 : (14 - m) * 7) : 0, far > 0 ? far * 3 : 0)) });
