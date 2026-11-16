@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Tom's Assessment v3</title>
+<title>Tommy's Assessment v3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
 /* Tom's club page (28 Oct 2026). Building your character feels like an old-school RPG's character sheet: gold
-   frames on a starry night, like Tom's skill tree poster. The result is the Hero app's System status screen
+   frames on a starry night, like Tommy's skill tree poster. The result is the Hero app's System status screen
    (ios/Hunter/App/Theme.swift). Inspired by both, copied from neither: our own frames, fonts and art. */
 :root {
   --void: #03050b; --deep: #070e1e; --glass: rgba(10, 23, 46, .72); --frame: #4dbaff; --frame-dim: rgba(77, 186, 255, .3);
@@ -244,10 +244,10 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   function hashToken() { return (new URLSearchParams(location.hash.slice(1))).get("t") || ""; }
   var token = preview ? "" : hashToken();
   var TOKEN_KEY = "hmf-v3-token";  // the last link this device got back, so the shared link can find it again
-  var FULL = "Coach Tom's assessment is full for today. Please try again tomorrow.";
+  var FULL = "Coach Tommy's assessment is full for today. Please try again tomorrow.";
   // Preview only, when the catalog has no v3 consent yet: stand-in boxes. The real page never uses these.
   var PREVIEW_CONSENT = { version: "preview", intro: ["Preview: the consent text from the catalog shows here."],
-    boxes: ["I'm 18 or older.", "I agree to my answers being collected.", "I agree to my answers going to Coach Tom."],
+    boxes: ["I'm 18 or older.", "I agree to my answers being collected.", "I agree to my answers going to Coach Tommy."],
     photo_release: ["Preview: the photo release from the catalog shows here."], photo_agree: "I agree" };
   function consent() { return (C && C.v3_consent) || (preview ? PREVIEW_CONSENT : null); }
   var TEST = {}; (K ? K.tests : []).forEach(function (t) { TEST[t.key] = t; });
@@ -276,7 +276,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   function has(k) { return !!s.gear[k] || (!!s.gear.gym && !!IN_GYM[k]); }
   var CARDIO = [
     { key: "yes", name: "Yes, I do cardio", note: "Running, riding, swimming, rowing or similar.", ico: "🏃" },
-    { key: "want", name: "Not now, but I'd like to", note: "Tom can help you start.", ico: "🌱" },
+    { key: "want", name: "Not now, but I'd like to", note: "Tommy can help you start.", ico: "🌱" },
     { key: "no", name: "No, it's not for me", note: "No cardio questions. Endurance shows N/A.", ico: "🙅" }];
   var ENJOY = ["Walking or hiking", "Running", "Cycling", "Swimming", "Rowing", "Jump rope", "A sport", "Not sure yet"];
 
@@ -612,18 +612,18 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       case "start":
         var nm = textIn("name", "First name or nickname", 40); nm.style.font = "700 22px var(--body)";
         var saved = !preview && !token && savedToken();
-        return [preview ? h("div", { class: "preview", text: "Preview of version 3 for Luke and Tom. Nothing you type is sent or saved." }) : null,
-          head("Coach Tom", "Your fitness assessment", "About 5 minutes. See your stats, belts and rank, get your own anime hero, and get a plan from Coach Tom."),
+        return [preview ? h("div", { class: "preview", text: "Preview of version 3 for Luke and Tommy. Nothing you type is sent or saved." }) : null,
+          head("Coach Tommy", "Your fitness assessment", "About 5 minutes. See your stats, belts and rank, get your own anime hero, and get a plan from Coach Tommy."),
           field("First name or nickname", nm),
           h("p", { class: "promise", text: "Don't know a number? Skip it. Every stats question has a skip button, and a skipped stat just doesn't count." }),
           saved ? h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--ice)", text: "Already sent yours? See your results",
             onclick: function () { location.hash = "t=" + saved; } }) : null];
       case "consent":
         // The catalog's v3 consent (docs/club/v3-consent-draft-2026-11-15.md): the bullets, then three unticked boxes.
-        if (!c) return [head("Coach Tom", "Before you start"), h("div", { class: "err", text: "This page didn't load properly. Please reload it." })];
+        if (!c) return [head("Coach Tommy", "Before you start"), h("div", { class: "err", text: "This page didn't load properly. Please reload it." })];
         function box(i, key) { return h("label", { class: "toggle", style: "font:600 15px/1.4 var(--body)" }, [c.boxes[i],
           h("input", { type: "checkbox", checked: s[key], onchange: function (e) { s[key] = e.target.checked; bar(); } })]); }
-        return [head("Coach Tom", "Before you start", "Please read this first."),
+        return [head("Coach Tommy", "Before you start", "Please read this first."),
           h("div", { class: "sheet" }, [h("h2", { text: "WHAT HAPPENS TO YOUR ANSWERS" }),
             h("ul", { class: "howto", style: "color:var(--text)" }, lines(c.intro).map(function (l) { return h("li", { text: l }); }))]),
           box(0, "adult"), box(1, "collect"), box(2, "share")];
@@ -636,26 +636,26 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       case "training":
         return [head("Training", "Your training so far"), one("How long have you trained?", EXP, "exp"), many("What do you mostly do? Tap any.", DOES, "does")];
       case "time":
-        return [head("Training time", "How much time do you have?", "So Tom can build a plan that fits your week.", true),
+        return [head("Training time", "How much time do you have?", "So Tommy can build a plan that fits your week.", true),
           one("Days a week you can train", DAYS, "days"), one("Time per workout", MINS, "mins")];
       case "gear":
-        return [head("Equipment", "What can you train with?", "Tap everything you have at home or at your gym. Your tests and Tom's plan only use what you have.", true),
+        return [head("Equipment", "What can you train with?", "Tap everything you have at home or at your gym. Your tests and Tommy's plan only use what you have.", true),
           opts(GEAR, "gear", true)];
       case "goals":
         var own = textIn("ownGoal", "Or write your own", 80), nt = textIn("note", "One line, optional", 160);
-        return [head("Goals", "What do you want?", "Tap as many as you like."), many(null, GOALS, "goals"), own, field("Anything else Tom should know?", nt)];
+        return [head("Goals", "What do you want?", "Tap as many as you like."), many(null, GOALS, "goals"), own, field("Anything else Tommy should know?", nt)];
       case "health":
         var hn = textIn("healthNote", "e.g. old knee injury, sore on stairs", 160), doc = Object.keys(s.health).some(function (k) { return DOCTOR[k]; });
-        return [head("Health", "Injuries and health", "So Tom can keep you safe. Tap any that apply.", true), many(null, HEALTH, "health", "None"),
-          s.health.None ? null : field("Anything Tom should know about it? (optional)", hn),
-          doc ? h("div", { class: "promise", text: "Please check with your doctor before starting a new training plan. Tom will see this and adjust." }) : null];
+        return [head("Health", "Injuries and health", "So Tommy can keep you safe. Tap any that apply.", true), many(null, HEALTH, "health", "None"),
+          s.health.None ? null : field("Anything Tommy should know about it? (optional)", hn),
+          doc ? h("div", { class: "promise", text: "Please check with your doctor before starting a new training plan. Tommy will see this and adjust." }) : null];
       case "recovery":
-        return [head("Recovery", "Sleep and stress", "Both change how hard Tom should push you.", true), one("Usual sleep a night", SLEEP, "sleep"), one("Stress lately", STRESS, "stress")];
+        return [head("Recovery", "Sleep and stress", "Both change how hard Tommy should push you.", true), one("Usual sleep a night", SLEEP, "sleep"), one("Stress lately", STRESS, "stress")];
       case "nemesis":
         return [head("Your nemesis", "Every hero has a nemesis", "What's gotten in the way before? Tap any.", true), many(null, NEMESIS, "nemesis", "Nothing yet: I'm new"),
           field("Why now? (optional)", textIn("whyNow", "One line", 160))];
       case "coaching":
-        return [head("Coaching", "How should Tom coach you?", null, true), one("Coaching style", STYLE, "style"), one("Check-ins", CHECKINS, "checkins")];
+        return [head("Coaching", "How should Tommy coach you?", null, true), one("Coaching style", STYLE, "style"), one("Check-ins", CHECKINS, "checkins")];
       case "strength":
         var kids = [head("Strength", "Your strength", "Your best set, done strictly, in the last 3 months. A good guess is fine."),
           h("div", { class: "pair" }, [num("pushups", "Push-ups in a row", "reps"), num("pullups", "Strict pull-ups", "reps")])];
@@ -669,7 +669,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         return kids;
       case "belts":
         var groups = BELT_GROUPS.filter(function (g) { return beltTests(g).length || gateShown(g); });
-        var out = [head("Tom's belts", "Quick belt tests", "Only tests at your level and for your equipment. Your best in the last 3 months; a good guess is fine. Leave blank anything you haven't tried.")];
+        var out = [head("Tommy's belts", "Quick belt tests", "Only tests at your level and for your equipment. Your best in the last 3 months; a good guess is fine. Leave blank anything you haven't tried.")];
         if (!tier2("pullups") && !tier2("pushups")) out.push(h("p", { class: "note", text: "Harder tests appear at " + K.tier2_from.pullups + " pull-ups or " + K.tier2_from.pushups + " push-ups." }));
         groups.forEach(function (g) {
           var gate = g.gate ? [h("div", { style: "margin-bottom:10px" }, [label(g.gate), h("div", { class: "chips" }, [["yes", "Yes"], ["no", "No"]].map(function (o) {
@@ -704,12 +704,12 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
           h("p", { class: "note", text: "Or:" }),
           h("div", {}, [label("Your longest in the past year"), kind]), num("far", "Distance", "mi", { decimal: true, max: 5 })];
       case "start_cardio":
-        return [head("Cardio", "Getting started", "No times or stats. This just tells Tom where to begin.", true),
+        return [head("Cardio", "Getting started", "No times or stats. This just tells Tommy where to begin.", true),
           many("What would you enjoy? Tap any.", ENJOY, "enjoy"),
           one("Can you walk briskly or jog for 20 minutes without stopping?", ["Yes", "Not yet", "Not sure"], "canJog")];
       case "food":
         var al = textIn("allergy", "e.g. sesame, eggs", 120);
-        return [head("Food", "Restrictions and allergies", "Tom's nutrition plan never includes these."), many(null, FOOD, "food", "None"),
+        return [head("Food", "Restrictions and allergies", "Tommy's nutrition plan never includes these."), many(null, FOOD, "food", "None"),
           field("Other allergies or foods you can't eat", al)];
       case "budget":
         return [head("Food", "Weekly grocery budget"), one(null, BUDGET, "budget")];
@@ -866,7 +866,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     if (s.cardio === "no") items.push("No cardio");
     var goals = [list(s.goals), s.ownGoal.trim()].filter(Boolean).join(", ");
     if (goals) items.push("Goals: " + goals.toLowerCase());
-    return h("div", { class: "sheet" }, [h("h2", { text: "BUILT AROUND YOU" }), h("div", { class: "note", style: "margin-bottom:8px", text: "Coach Tom builds your plan around:" }),
+    return h("div", { class: "sheet" }, [h("h2", { text: "BUILT AROUND YOU" }), h("div", { class: "note", style: "margin-bottom:8px", text: "Coach Tommy builds your plan around:" }),
       h("ul", { class: "howto", style: "color:var(--text)" }, items.map(function (x) { return h("li", { text: x }); }))]);
   }
 
@@ -898,7 +898,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     if (s.sleep === "Under 6 h") flags.push("Short on sleep");
     if (s.stress === "High") flags.push("High stress");
     return [h("div", { class: "preview", text: "Sample result: the layout is real, the numbers are stand-ins. The real scores, ranks and belts come from the Mac." })]
-      .concat(resultScreen(sample), [head("Preview", "What Coach Tom sees", "Sent to his dashboard (not really: nothing leaves this page)."),
+      .concat(resultScreen(sample), [head("Preview", "What Coach Tommy sees", "Sent to his dashboard (not really: nothing leaves this page)."),
       h("div", { class: "win" }, [h("h2", { text: "CLIENT ROW" }),
         flags.length ? h("div", { style: "margin-bottom:10px" }, flags.map(function (f) { return h("span", { class: "flag", text: f.toUpperCase() }); })) : null,
         tomSheet(true),
@@ -928,7 +928,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     function copied() { s.copied = true; render(); }
     function fallback() { inp.focus(); inp.select(); try { document.execCommand("copy"); copied(); } catch (e) { s.error = "Couldn't copy. Press and hold the link to copy it."; render(); } }
     return h("div", { class: "sheet" }, [h("h2", { text: "SAVE THIS LINK" }),
-      h("p", { style: "margin:0 0 10px;font:400 15px/1.5 var(--body)", text: "Save this link to see your results. Bookmark it or keep it somewhere safe: it's how you get back to them, and to Coach Tom's plan." }),
+      h("p", { style: "margin:0 0 10px;font:400 15px/1.5 var(--body)", text: "Save this link to see your results. Bookmark it or keep it somewhere safe: it's how you get back to them, and to Coach Tommy's plan." }),
       h("div", { class: "field linkfield" }, [inp]),
       h("button", { type: "button", class: "btn", style: "margin-top:10px", text: s.copied ? "Copied ✓" : "Copy link", onclick: function () {
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(copied, fallback); else fallback(); } })]);
@@ -943,7 +943,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         "Your stats, rank, belts and hero art usually take a few minutes, and always under 24 hours. They show up right here on this link."),
       linkBox(),
       h("div", { class: "hex wait", text: "?" }),
-      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Your strength, agility and endurance set your hero rank. Your tests place you on Tom's belts, with your next level-up. Then Coach Tom reads your answers and sends your plan here." })]),
+      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Your strength, agility and endurance set your hero rank. Your tests place you on Tommy's belts, with your next level-up. Then Coach Tommy reads your answers and sends your plan here." })]),
       h("p", { class: "note", text: "Want to see or delete your data? Email privacy@heromadefit.com." })];
   }
 
@@ -960,16 +960,16 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var kids = [h("div", { class: "t" }, [h("b", { text: b.name.toUpperCase() }), h("span", { text: who })]),
       h("div", { class: "beltline" }, [beltBar(b), h("div", { class: "beltname" }, [b.emoji + " " + b.belt + " Belt",
         h("small", { text: (b.animal ? b.animal + " · " : "") + "Level " + b.level + stripes(b.stripes) + (b.top ? " · top of the draft" : "") })])])];
-    kids.push(h("div", { class: "draft", text: !b.source ? "Everyone starts here, at Level 1" : b.source === "draft" ? "Placed on a draft level, for Tom to confirm" : "Placed on Tom's own tests" }));
-    if (b.maybe) kids.push(h("div", { class: "maybe", text: "You may already be Level " + b.maybe + ". Tell Coach Tom your numbers for the tests marked ○ below." }));
+    kids.push(h("div", { class: "draft", text: !b.source ? "Everyone starts here, at Level 1" : b.source === "draft" ? "Placed on a draft level, for Tommy to confirm" : "Placed on Tommy's own tests" }));
+    if (b.maybe) kids.push(h("div", { class: "maybe", text: "You may already be Level " + b.maybe + ". Tell Coach Tommy your numbers for the tests marked ○ below." }));
     if (b.next) {
       var nx = b.next, to = nx.belt_test ? nx.belt_test.toUpperCase() + " → " + nx.belt.toUpperCase() + " BELT" :
         "LEVEL " + nx.level + (nx.stripes ? " · " + nx.stripes + " STRIPE" + (nx.stripes === 1 ? "" : "S") : "");
       kids.push(h("div", { class: "levelup" }, [h("div", { class: "h", text: "▲ NEXT LEVEL-UP: " + to }),
         h("ul", {}, nx.tests.map(function (t) { return h("li", { class: t.status }, [h("span", { text: t.status === "met" ? "✓" : t.status === "not_yet" ? "▸" : "○" }), h("span", { text: t.test }),
           h("span", { class: "y", text: t.status === "not_answered" ? "not answered yet" : "yours: " + t.yours })]); })),
-        nx.belt_test ? h("div", { class: "draft", style: "margin-top:4px;color:var(--ice)", text: "Belt tests are approved by Tom: post your video in his club." }) : null,
-        nx.source === "draft" ? h("div", { class: "draft", style: "margin-top:4px", text: "Draft level, for Tom to confirm" }) : null,
+        nx.belt_test ? h("div", { class: "draft", style: "margin-top:4px;color:var(--ice)", text: "Belt tests are approved by Tommy: post your video in his club." }) : null,
+        nx.source === "draft" ? h("div", { class: "draft", style: "margin-top:4px", text: "Draft level, for Tommy to confirm" }) : null,
         nx.unclear ? h("div", { class: "draft", style: "margin-top:4px", text: "Note: " + nx.unclear + "." }) : null]));
     }
     return h("div", { class: "disc" }, kids);
@@ -998,8 +998,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     if (s.sentHere || preview) out.push(builtAround());
     if (club.belts && club.belts.length) {
       out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S BELTS" })].concat(club.belts.map(discipline), [
-        h("p", { class: "note", style: "margin-top:10px", text: "Belts are Tom's, from his Body Improvement Club courses. Levels marked draft are our best guess until Tom confirms them." })])));
-      if (club.skool_url) out.push(h("a", { class: "cta", href: club.skool_url, target: "_blank", rel: "noopener", text: "Train for your next belt in Tom's club →" }));
+        h("p", { class: "note", style: "margin-top:10px", text: "Belts are Tommy's, from his Body Improvement Club courses. Levels marked draft are our best guess until Tommy confirms them." })])));
+      if (club.skool_url) out.push(h("a", { class: "cta", href: club.skool_url, target: "_blank", rel: "noopener", text: "Train for your next belt in Tommy's club →" }));
     }
     out.push(s.avatar ? h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("img", { class: "hero-img", src: "data:image/jpeg;base64," + s.avatar, alt: "Your anime hero" }),
         h("p", { class: "note", text: "Press and hold the picture to save it." })]) :
@@ -1009,8 +1009,8 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var p = r.plan;
     out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOM'S PLAN" })].concat(p && p.text ? [
         h("div", { style: "white-space:pre-line;font:400 15px/1.55 var(--body)", text: p.text }),
-        p.sent_at ? h("p", { class: "note", style: "margin:10px 0 0", text: "From Coach Tom, " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }) + "." }) : null] :
-      [h("p", { class: "promise", style: "margin:0", text: "Coach Tom is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
+        p.sent_at ? h("p", { class: "note", style: "margin:10px 0 0", text: "From Coach Tommy, " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }) + "." }) : null] :
+      [h("p", { class: "promise", style: "margin:0", text: "Coach Tommy is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
     if (!preview && token) out.push(linkBox());
     return out;
   }
@@ -1100,7 +1100,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   function render() {
     var m = document.getElementById("main"), all = steps();
     if (s.step >= all.length) s.step = all.length - 1;
-    var kids = s.closed ? [head(null, "This link is closed", s.closed), h("p", { class: "closed-note", text: "Ask Coach Tom if you'd like a new one." })] :
+    var kids = s.closed ? [head(null, "This link is closed", s.closed), h("p", { class: "closed-note", text: "Ask Coach Tommy if you'd like a new one." })] :
       s.checking ? [head(null, "Opening your link…", "One moment.")] : s.done ? doneScreen() : screen();
     m.replaceChildren.apply(m, kids.filter(Boolean));
     nav(); bar(); footer();
