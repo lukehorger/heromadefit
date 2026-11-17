@@ -1058,11 +1058,15 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         h("p", { class: "note", text: "Press and hold the picture to save it." }), redrawBox(r)]) :
       h("div", { class: "win" }, [h("h2", { text: "YOUR HERO" }), h("div", { text: r.avatar_status === "queued" && !late() ?
         "Your hero art is being drawn. It shows up here by " + clock(readyAt()) + "." : "Your hero art is being drawn. It shows up here within 24 hours." })]));
-    // Tom's plan, once he has checked it and sent it from his dashboard (result.plan: {text, sent_at}).
-    var p = r.plan;
-    out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S PLAN" })].concat(p && p.text ? [
+    // Tom's plans, once he has checked them and sent them from his dashboard: training (result.training, from
+    // 17 Nov 2026) then nutrition (result.plan), each {text, sent_at}.
+    function part(title, p) {
+      return p && p.text ? [h("h3", { style: "margin:14px 0 6px;font:700 13px/1.3 var(--body);letter-spacing:.12em;color:var(--gold)", text: title }),
         h("div", { style: "white-space:pre-line;font:400 15px/1.55 var(--body)", text: p.text }),
-        p.sent_at ? h("p", { class: "note", style: "margin:10px 0 0", text: "From Coach Tommy, " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }) + "." }) : null] :
+        p.sent_at ? h("p", { class: "note", style: "margin:10px 0 0", text: "From Coach Tommy, " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }) + "." }) : null] : [];
+    }
+    var plans = part("TRAINING PLAN", r.training).concat(part("NUTRITION PLAN", r.plan));
+    out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S PLAN" })].concat(plans.length ? plans :
       [h("p", { class: "promise", style: "margin:0", text: "Coach Tommy is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
     if (!preview && token) out.push(linkBox());
     return out;
@@ -1150,7 +1154,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         s.redrawWas = waiting;
         if (changed || was) render();
         if (first) rerenderAtReady();
-        if (!reply.has_avatar || waiting) poll(30000); else if (!reply.result.plan) poll(120000);
+        if (!reply.has_avatar || waiting) poll(30000); else if (!reply.result.plan && !reply.result.training) poll(120000);
       } else if (reply.submitted || reply.result) { var again = !s.done; s.done = true; if (again || was) render(); if (again) rerenderAtReady(); poll(30000); }
       else if (was) render();
     }).catch(function () { if (s.checking) { s.checking = false; render(); } else if (s.done) poll(60000); });

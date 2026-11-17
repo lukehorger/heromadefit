@@ -395,7 +395,7 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
   // without a key. The key stays in the address (Tom bookmarks it) and is never shown, logged or put in a query string.
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxQ6Q1wlhdCfulUkrFy5s0O0AaOgTHzVqmrI041qGEObuh-0-LXdc3r3a2hA9jnSKrsCg/exec"; // the v2 club page's script
   var KEY = (new URLSearchParams(location.hash.slice(1))).get("k") || "";
-  var r = { loading: true, error: "", items: [], open: null, avatars: {}, plans: {}, ack: {}, busy: {}, err: {}, confirm: null, gone: [] };
+  var r = { loading: true, error: "", items: [], open: null, avatars: {}, plans: {}, tplans: {}, ack: {}, busy: {}, err: {}, confirm: null, gone: [] };
   var NAMES = { STR: "Strength", AGI: "Agility", END: "Endurance", SKL: "Skill" };
 
   // Every call is a form POST like the v2 club page, with Tom's key in the field "coach".
@@ -415,7 +415,10 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
       r.items = (reply.items || []).map(function (it) {
         var card = it && it.card;
         if (typeof card === "string") { try { card = JSON.parse(card); } catch (e) { card = null; } } // stored as card_json
-        return card && it.token ? { token: String(it.token), card: card, sent: it.sent || null, has_avatar: !!it.has_avatar } : null;
+        // sent: {plan, sent_at, training, training_sent_at} (training from 17 Nov 2026). it.sent stays the nutrition plan.
+        var s = it.sent || {};
+        return card && it.token ? { token: String(it.token), card: card, sent: s.plan ? { plan: s.plan, sent_at: s.sent_at } : null,
+          training: s.training ? { plan: s.training, sent_at: s.training_sent_at } : null, has_avatar: !!it.has_avatar } : null;
       }).filter(Boolean).sort(function (a, b) { return String(b.card.received_at || "").localeCompare(String(a.card.received_at || "")); });
       if (r.open && !find(r.open)) r.open = null;
       renderReal(); loadAvatars();
@@ -469,7 +472,8 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
     return { flagged: a.flagged === true || a.ok === false || a.ready === false || hits.length > 0, hits: hits, checked: checked, note: a.note || a.message || "" };
   }
   function status(it) {
-    if (it.sent) return ["PLAN SENT", " sent"];
+    if (it.sent && it.training) return ["PLANS SENT", " sent"];
+    if (it.sent || it.training) return ["PLAN SENT", " sent"];
     if (!it.card.nutrition_draft) return ["PLAN TO WRITE", ""];
     var a = allergy(it.card);
     return a && a.flagged ? ["CHECK ALLERGIES", " warn"] : ["PLAN TO REVIEW", ""];
@@ -503,7 +507,7 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
 
   function realList() {
     var out = [h("div", {}, [h("div", { class: "area", text: "Coach Tom" }), h("h1", { text: "Your clients" }),
-      h("p", { class: "sub", text: "Everyone who sent the assessment, newest first. Tap a client for their answers, an AI summary and a nutrition draft you can edit and send." })])];
+      h("p", { class: "sub", text: "Everyone who sent the assessment, newest first. Tap a client for their answers, an AI summary, a nutrition draft you can edit and send, and a box for their training plan." })])];
     r.gone.forEach(function (n) { out.push(h("div", { class: "ok", text: "Delete requested for " + n + ". Their answers, photo, hero and plan are removed when the Mac next checks in, usually within a few minutes." })); });
     if (r.loading && !r.items.length) return out.concat([h("div", { class: "sheet empty", text: "Loading your clients…" })]);
     if (r.error) out.push(h("div", { class: "err", text: r.error }));
@@ -584,24 +588,54 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
             h("div", { style: "display:grid;gap:10px;margin-top:12px" }, [
               it.sent ? h("p", { class: "promise", text: "Sent" + (day(it.sent.sent_at) ? " " + day(it.sent.sent_at) : "") + ". It shows on " + name(it) + "'s results link. Edit and send again to replace it." }) : null,
               ack, r.err["send" + t] ? h("div", { class: "err", text: r.err["send" + t] }) : null, sendBtn])]),
+          trainingBox(it),
           h("div", { class: "sheet" }, [h("h2", { text: "ALL ANSWERS" }), h("dl", { class: "tomrow" }, [].concat.apply([], (c.rows || []).map(function (row) {
             return [h("dt", { text: String(row[0]) }), h("dd", { class: row[2] ? "new" : null, text: row[1] == null ? "" : String(row[1]) })]; // a third value marks a v3 (gold) row
           })))]),
           h("div", { class: "sheet" }, [h("h2", { text: "DELETE" }), del])])])];
   }
 
-  function send(it) {
-    var t = it.token, text = (r.plans[t] != null ? r.plans[t] : it.sent ? it.sent.plan : it.card.nutrition_draft || "").trim();
+  // His training plan (Luke, 17 Nov 2026: "Yes, build it"): its own box and Send button, beside the nutrition plan.
+  // No AI draft: Tom writes it or pastes it in. It shows on the client's results link above the nutrition plan.
+  function trainingBox(it) {
+    var t = it.token, busy = r.busy[t], sent = it.training && it.training.plan;
+    var start = r.tplans[t] != null ? r.tplans[t] : sent || "";
+    function canSend() {
+      var v = (r.tplans[t] != null ? r.tplans[t] : start).trim();
+      return !!v && !busy && !(sent && v === String(sent).trim());
+    }
+    var box = h("textarea", { class: "plan", id: "training-" + t, maxlength: "10000", "aria-label": "Training plan for " + name(it),
+      placeholder: "Write or paste their training plan here.", oninput: function (e) { r.tplans[t] = e.target.value; btn.disabled = !canSend(); } });
+    box.value = start;
+    var btn = h("button", { type: "button", class: "btn solid", text: busy === "training" ? "Sending…" : sent ? "Send the changes to " + name(it) : "Send the training plan to " + name(it),
+      onclick: function () { send(it, "training"); } });
+    btn.disabled = !canSend();
+    return h("div", { class: "win" }, [h("h2", { text: "TRAINING PLAN" }),
+      h("p", { class: "note", style: "margin:0 0 8px", text: "Your training plan for " + name(it) + ". It shows on their results link with the nutrition plan. Nothing reaches them until you send it." }),
+      box,
+      h("div", { style: "display:grid;gap:10px;margin-top:12px" }, [
+        sent ? h("p", { class: "promise", text: "Sent" + (day(it.training.sent_at) ? " " + day(it.training.sent_at) : "") + ". Edit and send again to replace it." }) : null,
+        r.err["training" + t] ? h("div", { class: "err", text: r.err["training" + t] }) : null, btn])]);
+  }
+
+  // kind "training" sends the training plan; otherwise the nutrition plan, as before.
+  function send(it, kind) {
+    var t = it.token, training = kind === "training", errKey = (training ? "training" : "send") + t;
+    var text = (training ? (r.tplans[t] != null ? r.tplans[t] : it.training ? it.training.plan : "")
+      : (r.plans[t] != null ? r.plans[t] : it.sent ? it.sent.plan : it.card.nutrition_draft || "")).trim();
     if (!text || r.busy[t]) return;
-    if (text.length > 10000) { r.err["send" + t] = "That plan is too long (10,000 characters at most)."; renderReal(); return; }
-    r.busy[t] = "send"; delete r.err["send" + t]; renderReal();
-    call({ action: "coach_send", token: t, plan: text }).then(function (reply) {
+    if (text.length > 10000) { r.err[errKey] = "That plan is too long (10,000 characters at most)."; renderReal(); return; }
+    r.busy[t] = training ? "training" : "send"; delete r.err[errKey]; renderReal();
+    call(training ? { action: "coach_send", token: t, kind: "training", plan: text } : { action: "coach_send", token: t, plan: text }).then(function (reply) {
       delete r.busy[t];
       // The script replies {ok, sent: {plan, sent_at}}: keep its time, not the phone's.
-      if (reply && reply.ok) { it.sent = { plan: text, sent_at: (reply.sent && reply.sent.sent_at) || reply.sent_at || new Date().toISOString() }; r.plans[t] = text; }
-      else r.err["send" + t] = reply && reply.error && reply.error !== "not allowed" ? "That didn't send: " + reply.error : why(reply, "That didn't send. Please try again.");
+      if (reply && reply.ok) {
+        var done = { plan: text, sent_at: (reply.sent && reply.sent.sent_at) || reply.sent_at || new Date().toISOString() };
+        if (training) { it.training = done; r.tplans[t] = text; } else { it.sent = done; r.plans[t] = text; }
+      }
+      else r.err[errKey] = reply && reply.error && reply.error !== "not allowed" ? "That didn't send: " + reply.error : why(reply, "That didn't send. Please try again.");
       renderReal();
-    }).catch(function () { delete r.busy[t]; r.err["send" + t] = "That didn't send. Check your connection and try again."; renderReal(); });
+    }).catch(function () { delete r.busy[t]; r.err[errKey] = "That didn't send. Check your connection and try again."; renderReal(); });
   }
   function remove(it) {
     var t = it.token;
