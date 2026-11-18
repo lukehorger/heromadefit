@@ -6,6 +6,12 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <title>Coach Tom's Dashboard</title>
+<link rel="manifest" href="manifest-coach.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My clients">
+<meta name="theme-color" content="#03050b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -268,6 +274,15 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
 .btn:disabled { opacity: .45; cursor: default; }
 .btn.danger { border-color: rgba(255,85,104,.6); color: var(--warn); }
 .btn.solid { background: var(--gold); color: #1a1405; }
+.thread { display: grid; gap: 8px; max-height: 360px; overflow-y: auto; margin: 0 0 10px; padding-right: 2px; }
+.bubble { max-width: 88%; padding: 8px 11px; border: 1px solid var(--frame-dim); white-space: pre-line; font: 400 15px/1.45 var(--body); }
+.bubble.me { justify-self: end; border-color: var(--gold-dim); background: rgba(255,202,87,.06); }
+.bubble small { display: block; margin-top: 4px; font: 500 11px var(--mono); color: var(--muted); }
+textarea.msg { width: 100%; min-height: 64px; resize: vertical; background: rgba(3,5,11,.6); color: var(--text); border: 1px solid var(--frame-dim); padding: 10px; font: 400 16px/1.45 var(--body); }
+details.earlier { margin-top: 12px; border-top: 1px solid var(--frame-dim); padding-top: 10px; }
+details.earlier summary { cursor: pointer; font: 600 13px var(--mono); color: var(--ice); }
+details.earlier .old { margin-top: 10px; white-space: pre-line; font: 400 14px/1.5 var(--body); color: var(--muted); border-left: 2px solid var(--frame-dim); padding-left: 10px; }
+.status.msg { color: var(--gold); border-color: var(--gold); }
 .ok { border: 1px solid rgba(95,237,187,.5); color: var(--done); padding: 10px; font: 500 13px/1.5 var(--mono); }
 .beltlist { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; font: 500 13px/1.45 var(--mono); }
 </style>
@@ -277,6 +292,7 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
   <main id="main" aria-live="polite"></main>
   <footer id="foot">Demo of Coach Tom's dashboard · made with Hero Made Fit</footer>
 </div>
+<script src="app.js?v=20261118"></script>
 <script>
 (function () {
   "use strict";
@@ -395,7 +411,9 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
   // without a key. The key stays in the address (Tom bookmarks it) and is never shown, logged or put in a query string.
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxQ6Q1wlhdCfulUkrFy5s0O0AaOgTHzVqmrI041qGEObuh-0-LXdc3r3a2hA9jnSKrsCg/exec"; // the v2 club page's script
   var KEY = (new URLSearchParams(location.hash.slice(1))).get("k") || "";
-  var r = { loading: true, error: "", items: [], open: null, avatars: {}, plans: {}, tplans: {}, ack: {}, busy: {}, err: {}, confirm: null, gone: [] };
+  // 18 Nov 2026: a home-screen app or a notification opens the page without #k=, so this phone keeps its own copy.
+  try { if (KEY) localStorage.setItem("hmf-coach-key", KEY); else KEY = localStorage.getItem("hmf-coach-key") || ""; } catch (e) {}
+  var r = { loading: true, error: "", items: [], open: null, avatars: {}, plans: {}, tplans: {}, ack: {}, busy: {}, err: {}, confirm: null, gone: [], drafts: {} };
   var NAMES = { STR: "Strength", AGI: "Agility", END: "Endurance", SKL: "Skill" };
 
   // Every call is a form POST like the v2 club page, with Tom's key in the field "coach".
@@ -407,22 +425,26 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
     if (e === "not allowed") return "This dashboard link isn't working. Ask Luke for a new one.";
     return e || fallback;
   }
-  function load() {
-    r.loading = true; r.error = ""; renderReal();
+  // quiet: the minute-by-minute check for new messages; it doesn't flash "Loading" or redraw while he's typing.
+  function load(quiet) {
+    if (!quiet) { r.loading = true; r.error = ""; renderReal(); }
     call({ action: "coach_list" }).then(function (reply) {
       r.loading = false;
-      if (!reply || !reply.ok) { r.error = why(reply, "Your clients didn't load. Please try again."); renderReal(); return; }
+      if (!reply || !reply.ok) { if (!quiet) { r.error = why(reply, "Your clients didn't load. Please try again."); renderReal(); } return; }
       r.items = (reply.items || []).map(function (it) {
         var card = it && it.card;
         if (typeof card === "string") { try { card = JSON.parse(card); } catch (e) { card = null; } } // stored as card_json
         // sent: {plan, sent_at, training, training_sent_at} (training from 17 Nov 2026). it.sent stays the nutrition plan.
         var s = it.sent || {};
         return card && it.token ? { token: String(it.token), card: card, sent: s.plan ? { plan: s.plan, sent_at: s.sent_at } : null,
-          training: s.training ? { plan: s.training, sent_at: s.training_sent_at } : null, has_avatar: !!it.has_avatar } : null;
+          training: s.training ? { plan: s.training, sent_at: s.training_sent_at } : null, has_avatar: !!it.has_avatar,
+          earlier: Array.isArray(it.earlier) ? it.earlier : [], messages: Array.isArray(it.messages) ? it.messages : [] } : null;
       }).filter(Boolean).sort(function (a, b) { return String(b.card.received_at || "").localeCompare(String(a.card.received_at || "")); });
       if (r.open && !find(r.open)) r.open = null;
-      renderReal(); loadAvatars();
-    }).catch(function () { r.loading = false; r.error = "Couldn't reach your clients. Check your connection and try again."; renderReal(); });
+      if (r.open) seen(find(r.open));
+      if (quiet) quietRender(); else renderReal();
+      loadAvatars();
+    }).catch(function () { r.loading = false; if (!quiet) { r.error = "Couldn't reach your clients. Check your connection and try again."; renderReal(); } });
   }
   // Hero heads, one at a time. Google's web app sometimes loses a reply with a picture in it (23 Oct 2026), so retry.
   function loadAvatars() {
@@ -471,7 +493,13 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
     if (!Array.isArray(checked)) checked = [String(checked)];
     return { flagged: a.flagged === true || a.ok === false || a.ready === false || hits.length > 0, hits: hits, checked: checked, note: a.note || a.message || "" };
   }
+  // Messages (18 Nov 2026): the last one of theirs this phone has shown him, kept per client.
+  function lastSeen(it) { try { return localStorage.getItem("hmf-seen-" + it.token) || ""; } catch (e) { return ""; } }
+  function unread(it) { var s = lastSeen(it); return it.messages.filter(function (m) { return m.from === "client" && m.at > s; }).length; }
+  function seen(it) { var last = it && it.messages.length ? it.messages[it.messages.length - 1].at : ""; if (last) try { localStorage.setItem("hmf-seen-" + it.token, last); } catch (e) {} }
   function status(it) {
+    var n = unread(it);
+    if (n) return [n === 1 ? "NEW MESSAGE" : n + " NEW MESSAGES", " msg"];
     if (it.sent && it.training) return ["PLANS SENT", " sent"];
     if (it.sent || it.training) return ["PLAN SENT", " sent"];
     if (!it.card.nutrition_draft) return ["PLAN TO WRITE", ""];
@@ -517,12 +545,13 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
     if (!r.items.length) return out.concat(r.error ? [] : [h("div", { class: "sheet empty", text: "No clients yet. Your clients show up here after they send the assessment and the Mac has scored it." })]);
     out.push(h("div", { class: "clients" }, r.items.map(function (it) {
       var st = status(it);
-      return h("button", { type: "button", class: "client", onclick: function () { r.open = it.token; r.confirm = null; renderReal(); window.scrollTo(0, 0); } }, [
+      return h("button", { type: "button", class: "client", onclick: function () { r.open = it.token; r.confirm = null; seen(it); renderReal(); window.scrollTo(0, 0); } }, [
         face(it),
         h("div", { class: "who" }, [h("b", { text: name(it) }), h("span", { text: line(it) })]),
         h("span", { class: "status" + st[1], text: st[0] }),
         flagTags(it.card)]);
     })));
+    if (window.HMFApp) out.push(HMFApp.box(h, "coach", function (sub) { return call({ action: "coach_push_sub", sub: sub }); }, renderReal));
     return out;
   }
 
@@ -538,8 +567,11 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
       if (a && a.flagged && !r.ack[t] && !it.sent) return false; // a flagged draft isn't offered as ready
       return !(it.sent && v === String(sentPlan || "").trim());   // nothing new to send
     }
-    var sendBtn = h("button", { type: "button", class: "btn solid", text: busy === "send" ? "Sending…" : it.sent ? "Send the changes to " + name(it) : "Send to " + name(it), onclick: function () { send(it); } });
+    var sendBtn = h("button", { type: "button", class: "btn solid", text: busy === "send" ? "Sending…" : it.sent ? "Send as a new plan" : "Send to " + name(it), onclick: function () { send(it, "nutrition", "new"); } });
     sendBtn.disabled = !canSend();
+    var fixBtn = it.sent ? h("button", { type: "button", class: "btn", text: busy === "fix" ? "Sending…" : "Fix the current plan instead", onclick: function () { send(it, "nutrition", "fix"); } }) : null;
+    if (fixBtn) fixBtn.disabled = !canSend();
+    plan.addEventListener("input", function () { if (fixBtn) fixBtn.disabled = !canSend(); });
 
     var check = null;
     if (!c.nutrition_draft) check = h("div", { class: "check", text: "The AI draft isn't ready for this client yet; the Mac tries again on its next import. You can write the plan yourself." });
@@ -581,12 +613,14 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
             stats(c).length ? null : h("p", { class: "note", style: "margin:0", text: "No ranked stats." })]),  // no belts (Tommy, 18 Nov 2026)
           h("div", { class: "sheet" }, [h("h2", { text: "THEIR HERO" }), hero])]),
         h("div", { style: "display:grid;gap:18px" }, [
+          messageBox(it),
           h("div", { class: "win" }, [h("h2", { text: "NUTRITION DRAFT" }),
             h("p", { class: "note", style: "margin:0 0 8px", text: "Drafted by AI with your rules, and checked against their allergies. Edit anything, then send. Nothing reaches " + name(it) + " until you do." }),
             check, plan,
             h("div", { style: "display:grid;gap:10px;margin-top:12px" }, [
-              it.sent ? h("p", { class: "promise", text: "Sent" + (day(it.sent.sent_at) ? " " + day(it.sent.sent_at) : "") + ". It shows on " + name(it) + "'s results link. Edit and send again to replace it." }) : null,
-              ack, r.err["send" + t] ? h("div", { class: "err", text: r.err["send" + t] }) : null, sendBtn])]),
+              it.sent ? h("p", { class: "promise", text: "Current plan sent" + (day(it.sent.sent_at) ? " " + day(it.sent.sent_at) : "") + ". A new plan goes on top and the earlier one stays on " + name(it) + "'s page. A fix replaces the current one." }) : null,
+              ack, r.err["send" + t] ? h("div", { class: "err", text: r.err["send" + t] }) : null, sendBtn, fixBtn]),
+            earlier(it, "nutrition")]),
           trainingBox(it),
           h("div", { class: "sheet" }, [h("h2", { text: "ALL ANSWERS" }), h("dl", { class: "tomrow" }, [].concat.apply([], (c.rows || []).filter(function (row) { return !/^Belt/.test(row[0] || row.label || ""); }).map(function (row) {
             return [h("dt", { text: String(row[0]) }), h("dd", { class: row[2] ? "new" : null, text: row[1] == null ? "" : String(row[1]) })]; // a third value marks a v3 (gold) row
@@ -606,31 +640,80 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
     var box = h("textarea", { class: "plan", id: "training-" + t, maxlength: "10000", "aria-label": "Training plan for " + name(it),
       placeholder: "Write or paste their training plan here.", oninput: function (e) { r.tplans[t] = e.target.value; btn.disabled = !canSend(); } });
     box.value = start;
-    var btn = h("button", { type: "button", class: "btn solid", text: busy === "training" ? "Sending…" : sent ? "Send the changes to " + name(it) : "Send the training plan to " + name(it),
-      onclick: function () { send(it, "training"); } });
+    var btn = h("button", { type: "button", class: "btn solid", text: busy === "training" ? "Sending…" : sent ? "Send as this week's plan" : "Send the training plan to " + name(it),
+      onclick: function () { send(it, "training", "new"); } });
     btn.disabled = !canSend();
+    var fix = sent ? h("button", { type: "button", class: "btn", text: busy === "tfix" ? "Sending…" : "Fix the current plan instead", onclick: function () { send(it, "training", "fix"); } }) : null;
+    if (fix) fix.disabled = !canSend();
+    box.addEventListener("input", function () { if (fix) fix.disabled = !canSend(); });
     return h("div", { class: "win" }, [h("h2", { text: "TRAINING PLAN" }),
       h("p", { class: "note", style: "margin:0 0 8px", text: "Your training plan for " + name(it) + ". It shows on their results link with the nutrition plan. Nothing reaches them until you send it." }),
       box,
       h("div", { style: "display:grid;gap:10px;margin-top:12px" }, [
-        sent ? h("p", { class: "promise", text: "Sent" + (day(it.training.sent_at) ? " " + day(it.training.sent_at) : "") + ". Edit and send again to replace it." }) : null,
-        r.err["training" + t] ? h("div", { class: "err", text: r.err["training" + t] }) : null, btn])]);
+        sent ? h("p", { class: "promise", text: "This week's plan sent" + (day(it.training.sent_at) ? " " + day(it.training.sent_at) : "") + ". Edit it into next week's and send it as this week's plan: last week's stays on " + name(it) + "'s page. A fix replaces the current one." }) : null,
+        r.err["training" + t] ? h("div", { class: "err", text: r.err["training" + t] }) : null, btn, fix]),
+      earlier(it, "training")]);
   }
 
-  // kind "training" sends the training plan; otherwise the nutrition plan, as before.
-  function send(it, kind) {
+  // Earlier plans of one kind (18 Nov 2026), newest first, folded away.
+  function earlier(it, kind) {
+    var old = it.earlier.filter(function (p) { return p.kind === kind; });
+    if (!old.length) return null;
+    return h("details", { class: "earlier" }, [h("summary", { text: "Earlier " + (kind === "training" ? "training" : "nutrition") + " plans (" + old.length + ")" })].concat(old.map(function (p) {
+      return h("div", { class: "old" }, [h("div", { class: "note", text: "Sent " + day(p.sent_at) }), p.text]);
+    })));
+  }
+  // Messages with one client (18 Nov 2026): the thread, oldest first, and a box to reply.
+  function messageBox(it) {
+    var t = it.token, busy = r.busy["m" + t];
+    var area = h("textarea", { class: "msg", maxlength: "2000", "aria-label": "Message to " + name(it), placeholder: "Write to " + name(it) + "…",
+      oninput: function (e) { r.drafts[t] = e.target.value; btn.disabled = !e.target.value.trim() || !!busy; } });
+    area.value = r.drafts[t] || "";
+    var btn = h("button", { type: "button", class: "btn solid", text: busy ? "Sending…" : "Send message", onclick: function () { sendMessage(it); } });
+    btn.disabled = !area.value.trim() || !!busy;
+    var list = h("div", { class: "thread" }, it.messages.length ? it.messages.slice(-50).map(function (m) {
+      return h("div", { class: "bubble" + (m.from === "coach" ? " me" : "") }, [m.text, h("small", { text: (m.from === "coach" ? "You" : name(it)) + " · " + when(m.at) })]);
+    }) : [h("p", { class: "note", style: "margin:0", text: "No messages yet. " + name(it) + " can write to you from their results page, and you can write first." })]);
+    setTimeout(function () { list.scrollTop = list.scrollHeight; }, 0);
+    return h("div", { class: "win" }, [h("h2", { text: "MESSAGES" }), list, area,
+      r.err["m" + t] ? h("div", { class: "err", style: "margin-top:8px", text: r.err["m" + t] }) : null,
+      h("div", { style: "margin-top:8px" }, [btn])]);
+  }
+  function when(iso) {
+    var d = new Date(iso);
+    return isNaN(d) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + ", " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+  function sendMessage(it) {
+    var t = it.token, text = (r.drafts[t] || "").trim();
+    if (!text || r.busy["m" + t]) return;
+    r.busy["m" + t] = true; delete r.err["m" + t]; renderReal();
+    call({ action: "coach_message", token: t, text: text }).then(function (reply) {
+      delete r.busy["m" + t];
+      if (reply && reply.ok) { it.messages = reply.messages || it.messages.concat([reply.message]); r.drafts[t] = ""; seen(it); }
+      else r.err["m" + t] = why(reply, "That didn't send. Please try again.");
+      renderReal();
+    }).catch(function () { delete r.busy["m" + t]; r.err["m" + t] = "That didn't send. Check your connection and try again."; renderReal(); });
+  }
+
+  // kind "training" sends the training plan; otherwise the nutrition plan. mode "new" keeps the one it replaces
+  // on their page under Earlier plans (18 Nov 2026); "fix" replaces it, as before.
+  function send(it, kind, mode) {
+
     var t = it.token, training = kind === "training", errKey = (training ? "training" : "send") + t;
     var text = (training ? (r.tplans[t] != null ? r.tplans[t] : it.training ? it.training.plan : "")
       : (r.plans[t] != null ? r.plans[t] : it.sent ? it.sent.plan : it.card.nutrition_draft || "")).trim();
     if (!text || r.busy[t]) return;
     if (text.length > 10000) { r.err[errKey] = "That plan is too long (10,000 characters at most)."; renderReal(); return; }
-    r.busy[t] = training ? "training" : "send"; delete r.err[errKey]; renderReal();
-    call(training ? { action: "coach_send", token: t, kind: "training", plan: text } : { action: "coach_send", token: t, plan: text }).then(function (reply) {
+    var fields = training ? { action: "coach_send", token: t, kind: "training", plan: text } : { action: "coach_send", token: t, plan: text };
+    if (mode === "new") fields.mode = "new";
+    r.busy[t] = mode === "fix" ? (training ? "tfix" : "fix") : training ? "training" : "send"; delete r.err[errKey]; renderReal();
+    call(fields).then(function (reply) {
       delete r.busy[t];
       // The script replies {ok, sent: {plan, sent_at}}: keep its time, not the phone's.
       if (reply && reply.ok) {
         var done = { plan: text, sent_at: (reply.sent && reply.sent.sent_at) || reply.sent_at || new Date().toISOString() };
         if (training) { it.training = done; r.tplans[t] = text; } else { it.sent = done; r.plans[t] = text; }
+        if (Array.isArray(reply.earlier)) it.earlier = reply.earlier;
       }
       else r.err[errKey] = reply && reply.error && reply.error !== "not allowed" ? "That didn't send: " + reply.error : why(reply, "That didn't send. Please try again.");
       renderReal();
@@ -666,6 +749,12 @@ textarea.plan:focus { outline: 0; border-color: var(--gold); }
   if (KEY) {
     document.getElementById("foot").textContent = "Coach Tom's dashboard · your private link, please don't share it · made with Hero Made Fit";
     load();
+    // New messages: check every minute while the page is on screen, and right away when it comes back or a
+    // notification is tapped (18 Nov 2026).
+    setInterval(function () { if (document.visibilityState === "visible") load(true); }, 60000);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") load(true); });
+    if (window.HMFApp) { HMFApp.onRefresh(function () { load(true); });
+      HMFApp.refresh(function (sub) { return call({ action: "coach_push_sub", sub: sub }); }); }
   } else render();
 })();
 </script>

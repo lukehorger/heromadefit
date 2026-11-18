@@ -6,6 +6,12 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <title>Tommy's Assessment v3</title>
+<link rel="manifest" href="manifest-client.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coach Tommy">
+<meta name="theme-color" content="#03050b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -102,6 +108,14 @@ nav.actions button.go:disabled { background: rgba(255,202,87,.22); border-color:
 footer { margin-top: auto; padding: 14px 0 max(18px, env(safe-area-inset-bottom, 0px)); text-align: center; font: 500 11px/1.6 var(--mono); color: var(--muted); }
 footer a { color: var(--ice); }
 .preview { font: 500 12px var(--mono); color: var(--gold); border: 1px solid rgba(255,202,87,.5); padding: 8px 10px; }
+.thread { display: grid; gap: 8px; max-height: 380px; overflow-y: auto; margin: 0 0 10px; }
+.bubble { max-width: 88%; padding: 8px 11px; border: 1px solid var(--frame-dim); white-space: pre-line; font: 400 15px/1.45 var(--body); }
+.bubble.me { justify-self: end; border-color: var(--gold-dim); background: rgba(255,202,87,.06); }
+.bubble small { display: block; margin-top: 4px; font: 500 11px var(--mono); color: var(--muted); }
+textarea.msg { width: 100%; min-height: 64px; resize: vertical; background: rgba(3,5,11,.6); color: var(--text); border: 1px solid var(--frame-dim); padding: 10px; font: 400 16px/1.45 var(--body); }
+details.earlier { margin-top: 12px; border-top: 1px solid var(--frame-dim); padding-top: 10px; }
+details.earlier summary { cursor: pointer; font: 600 13px var(--mono); color: var(--ice); }
+details.earlier .old { margin-top: 10px; white-space: pre-line; font: 400 14px/1.5 var(--body); color: var(--muted); border-left: 2px solid var(--frame-dim); padding-left: 10px; }
 .promise { font: 500 13px/1.5 var(--body); color: var(--text); border-left: 2px solid var(--gold); padding: 2px 0 2px 10px; }
 /* Skill tree: a constellation like Tom's poster. */
 .tree { display: block; width: 100%; height: auto; touch-action: manipulation; }
@@ -235,6 +249,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   <footer id="foot">Made with Hero Made Fit</footer>
 </div>
 <script src="catalog.js?v=20261116-0100"></script>
+<script src="app.js?v=20261118"></script>
 <script>
 (function () {
   "use strict";
@@ -249,6 +264,12 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   function hashToken() { return (new URLSearchParams(location.hash.slice(1))).get("t") || ""; }
   var token = preview ? "" : hashToken();
   var TOKEN_KEY = "hmf-v3-token";  // the last link this device got back, so the shared link can find it again
+  // 18 Nov 2026: the home-screen app (and a tapped notification) can open without #t=; it goes to this phone's link.
+  if (!preview && !token && window.HMFApp && HMFApp.standalone()) {
+    try { token = localStorage.getItem(TOKEN_KEY) || ""; } catch (e) {}
+    if (token) history.replaceState(null, "", "#t=" + token);
+  }
+  if (!preview && token) { try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {} }
   var FULL = "Coach Tommy's assessment is full for today. Please try again tomorrow.";
   // Where the redraw message sends people (Luke, 16 Nov 2026). Privacy and deleting data stay on privacy@.
   var SUPPORT_EMAIL = "support@heromadefit.com";
@@ -1063,11 +1084,54 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         h("div", { style: "white-space:pre-line;font:400 15px/1.55 var(--body)", text: p.text }),
         p.sent_at ? h("p", { class: "note", style: "margin:10px 0 0", text: "From Coach Tommy, " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }) + "." }) : null] : [];
     }
-    var plans = part("TRAINING PLAN", r.training).concat(part("NUTRITION PLAN", r.plan));
+    // Earlier plans (18 Nov 2026): when Tommy sends a new week's plan, the one before folds away under it.
+    function older(kind) {
+      var old = (s.earlier || []).filter(function (p) { return p.kind === kind; });
+      return old.length ? [h("details", { class: "earlier" }, [h("summary", { text: "Earlier " + (kind === "training" ? "training" : "nutrition") + " plans (" + old.length + ")" })].concat(old.map(function (p) {
+        return h("div", { class: "old" }, [h("div", { class: "note", text: "From " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long" }) }), p.text]); })))] : [];
+    }
+    var plans = part("TRAINING PLAN", r.training).concat(older("training"), part("NUTRITION PLAN", r.plan), older("nutrition"));
     out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S PLAN" })].concat(plans.length ? plans :
       [h("p", { class: "promise", style: "margin:0", text: "Coach Tommy is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
+    if (!preview && token && r.v3 === true) { out.push(messageBox()); if (window.HMFApp) out.push(HMFApp.box(h, "client", function (sub) { return post({ action: "push_sub", sub: sub }); }, render)); }
     if (!preview && token) out.push(linkBox());
     return out;
+  }
+
+  // --- Messages with Coach Tommy (18 Nov 2026) ---------------------------------------------------------
+  function messageBox() {
+    var msgs = s.messages || [];
+    var area = h("textarea", { class: "msg", maxlength: "2000", "aria-label": "Message to Coach Tommy", placeholder: "Write to Coach Tommy…",
+      oninput: function (e) { s.msgDraft = e.target.value; btn.disabled = !e.target.value.trim() || !!s.msgBusy; },
+      onblur: function () { if (s.renderLater) { s.renderLater = false; setTimeout(render, 0); } } });
+    area.value = s.msgDraft || "";
+    var btn = h("button", { type: "button", class: "btn", text: s.msgBusy ? "Sending…" : "Send to Coach Tommy", onclick: sendMessage });
+    btn.disabled = !area.value.trim() || !!s.msgBusy;
+    var list = h("div", { class: "thread" }, msgs.length ? msgs.slice(-50).map(function (m) {
+      var d = new Date(m.at);
+      return h("div", { class: "bubble" + (m.from === "client" ? " me" : "") }, [m.text, h("small", { text: (m.from === "client" ? "You" : "Coach Tommy") + " · " +
+        d.toLocaleDateString([], { day: "numeric", month: "short" }) + ", " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })]);
+    }) : [h("p", { class: "note", style: "margin:0", text: "Questions about your plan? Write to Coach Tommy here. His replies show up on this page." })]);
+    setTimeout(function () { list.scrollTop = list.scrollHeight; }, 0);
+    return h("div", { class: "win" }, [h("h2", { text: "MESSAGES · COACH TOMMY" }), list, area,
+      s.msgError ? h("div", { class: "err", style: "margin-top:8px", text: s.msgError }) : null, h("div", { style: "margin-top:8px" }, [btn])]);
+  }
+  function sendMessage() {
+    var text = (s.msgDraft || "").trim();
+    if (!text || s.msgBusy) return;
+    s.msgBusy = true; s.msgError = ""; render();
+    post({ action: "message", text: text }).then(function (reply) {
+      s.msgBusy = false;
+      if (reply && reply.ok) { s.messages = reply.messages || (s.messages || []).concat([reply.message]); s.msgDraft = ""; }
+      else s.msgError = (reply && reply.error) || "That didn't send. Please try again.";
+      render();
+    }).catch(function () { s.msgBusy = false; s.msgError = "That didn't send. Check your connection and try again."; render(); });
+  }
+  // A check that lands while they're typing a message waits until they leave the box (a redraw would close the keyboard).
+  function softRender() {
+    var a = document.activeElement;
+    if (a && a.tagName === "TEXTAREA" && a.classList.contains("msg")) { s.renderLater = true; return; }
+    render();
   }
 
   // --- The one hero redraw (Luke, 15 Nov 2026) ---------------------------------------------------------
@@ -1144,15 +1208,20 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       if (reply && reply.error && !reply.ok) { s.closed = reply.error; render(); return; }
       if (!reply || !reply.ok) { if (was) render(); return; }
       if (reply.result && !reply.result.held) {
-        var first = !s.result, changed = JSON.stringify(reply.result) !== JSON.stringify(s.result);
+        var first = !s.result, changed = JSON.stringify(reply.result) !== JSON.stringify(s.result) ||
+          JSON.stringify([reply.messages, reply.earlier]) !== JSON.stringify([s.messages, s.earlier]);
         s.result = reply.result; s.done = true;
+        if (Array.isArray(reply.messages)) s.messages = reply.messages;
+        if (Array.isArray(reply.earlier)) s.earlier = reply.earlier;
         var waiting = redrawWaiting(reply.result);
         if (s.redrawWas && !waiting && (reply.result.redraw || {}).used) { s.redrawAsked = false; if (reply.has_avatar) loadAvatar(0); } // the new hero is in
         else if (reply.has_avatar && !s.avatar) loadAvatar(0);
         s.redrawWas = waiting;
-        if (changed || was) render();
+        if (changed || was) softRender();
         if (first) rerenderAtReady();
+        // After the plan is in, keep checking every minute while the page is on screen, for Tommy's messages.
         if (!reply.has_avatar || waiting) poll(30000); else if (!reply.result.plan && !reply.result.training) poll(120000);
+        else if (reply.result.v3 === true) poll(60000);
       } else if (reply.submitted || reply.result) { var again = !s.done; s.done = true; if (again || was) render(); if (again) rerenderAtReady(); poll(30000); }
       else if (was) render();
     }).catch(function () { if (s.checking) { s.checking = false; render(); } else if (s.done) poll(60000); });
@@ -1198,6 +1267,10 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   if (!C || !K) { document.getElementById("main").textContent = "This page didn't load properly. Please reload it."; return; }
   render();
   checkResult();
+  // Back on screen, or a notification tapped: check right away (18 Nov 2026).
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible" && s.done && token) checkResult(); });
+  if (window.HMFApp) { HMFApp.onRefresh(function () { if (token) checkResult(); });
+    if (token) HMFApp.refresh(function (sub) { return post({ action: "push_sub", sub: sub }); }); }
 })();
 </script>
 </body>
