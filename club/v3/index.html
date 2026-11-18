@@ -310,7 +310,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var FOOD = ["None", "Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher", "Gluten-free", "Dairy-free", "Nut allergy", "Shellfish allergy", "Other"];
   var BUDGET = ["Under $75", "$75–125", "$125–200", "Over $200", "Not sure"];
   var OUTFITS = [
-    { key: "gi", name: "Martial artist", note: "A gi with wrapped hands, in your highest belt (white if none).", ico: "🥋" },
+    { key: "gi", name: "Martial artist", note: "A gi with wrapped hands.", ico: "🥋" },
     { key: "gear", name: "Training gear", note: "A fitted top, shorts or leggings, trainers.", ico: "👟" },
     { key: "street", name: "Street hero", note: "A hoodie or bomber, joggers, trainers.", ico: "🧥" },
     { key: "knight", name: "Armoured knight", note: "Light plate armour with a cloak.", ico: "🛡️" },
@@ -363,7 +363,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var ETA = { start: 20, consent: 30, basics: 30, health: 20, recovery: 10, nemesis: 20, coaching: 10, training: 15, time: 10, gear: 15, goals: 20, strength: 30, belts: 60, cardio: 5, agility: 20,
     endurance: 20, start_cardio: 15, food: 20, budget: 10, likes: 30, hero: 15, release: 40, photo: 30, describe: 30, outfit: 15, review: 15 };
   function steps() {
-    var out = ["start", "consent", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching", "strength", "belts", "cardio", "agility"];
+    var out = ["start", "consent", "basics", "health", "recovery", "training", "time", "gear", "goals", "nemesis", "coaching", "strength", "cardio", "agility"];  // no belt tests (Tommy, 18 Nov 2026: belts confusing for now)
     if (s.cardio === "yes") out.push("endurance");
     if (s.cardio === "want") out.push("start_cardio");
     out = out.concat(["food", "budget", "likes", "hero"]);
@@ -654,7 +654,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         var nm = textIn("name", "First name or nickname", 40); nm.style.font = "700 22px var(--body)";
         var saved = !preview && !token && savedToken();
         return [preview ? h("div", { class: "preview", text: "Preview of version 3 for Luke and Tommy. Nothing you type is sent or saved." }) : null,
-          head("Coach Tommy", "Your fitness assessment", "About 5 minutes. See your stats, belts and rank, get your own anime hero, and get a plan from Coach Tommy."),
+          head("Coach Tommy", "Your fitness assessment", "About 5 minutes. See your stats and rank, get your own anime hero, and get a plan from Coach Tommy."),
           field("First name or nickname", nm),
           h("p", { class: "promise", text: "Don't know a number? Skip it. Every stats question has a skip button, and a skipped stat just doesn't count." }),
           saved ? h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--ice)", text: "Already sent yours? See your results",
@@ -888,9 +888,6 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       (s.style.Other && s.styleOther.trim() ? "\nOther: " + s.styleOther.trim() : ""), true);
     var lf = C.lifts.filter(function (l) { return parseFloat(s.lifts[l.key]) > 0; }).map(function (l) { return l.name + " " + s.lifts[l.key] + (s.metric ? " kg" : " lb"); });
     row("Strength", sk("strength", [s.pushups && s.pushups + " push-ups", s.pullups && s.pullups + " pull-ups"].concat(lifts() ? lf : []).filter(Boolean).join("\n")));
-    var bt = Object.keys(clubTests()).length;
-    var tr = BELT_GROUPS.filter(function (g) { return gateShown(g) && s.trains[g.key]; }).map(function (g) { return { weighted: "Added weight", kb: "Kettlebells", mace: "Mace" }[g.key] + ": " + s.trains[g.key]; });
-    row("Belt tests", sk("belts", (bt ? bt + " answered" : "none answered") + (tr.length ? "\n" + tr.join(" · ") : "")));
     var cardio = { yes: "Does cardio", want: "Doesn't yet, wants to start", no: "Not into cardio" }[s.cardio];
     row("Cardio", cardio + (s.cardio === "want" && !s.skipped.start_cardio ? "\nWould enjoy: " + (list(s.enjoy) || "–") + "\n20 min without stopping: " + (s.canJog || "–") : ""), true);
     var sp = s.cardio === "yes" && s.sprint ? (s.sprintDist === "100m" ? "100 m " : "40 yd ") + s.sprint + " s" : null;
@@ -950,7 +947,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     Object.keys(s.health).filter(function (k) { return k !== "None"; }).forEach(function (k) { flags.push(DOCTOR[k] ? "Check with doctor: " + k : "Injury: " + k); });
     if (s.sleep === "Under 6 h") flags.push("Short on sleep");
     if (s.stress === "High") flags.push("High stress");
-    return [h("div", { class: "preview", text: "Sample result: the layout is real, the numbers are stand-ins. The real scores, ranks and belts come from the Mac." })]
+    return [h("div", { class: "preview", text: "Sample result: the layout is real, the numbers are stand-ins. The real scores and ranks come from the Mac." })]
       .concat(resultScreen(sample), [head("Preview", "What Coach Tommy sees", "Sent to his dashboard (not really: nothing leaves this page)."),
       h("div", { class: "win" }, [h("h2", { text: "CLIENT ROW" }),
         flags.length ? h("div", { style: "margin-bottom:10px" }, flags.map(function (f) { return h("span", { class: "flag", text: f.toUpperCase() }); })) : null,
@@ -991,15 +988,16 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     if (s.result) return resultScreen(s.result);
     var r = readyAt();
     return [head(null, "Your hero is being forged",
-        r && !late() ? "Your stats and belts: by " + clock(sentAt() + STATS_MIN * 60000) + ". Your hero art: by " + clock(r) + ". Both show up right here, by themselves, if you keep this page open." :
+        r && !late() ? "Your stats: by " + clock(sentAt() + STATS_MIN * 60000) + ". Your hero art: by " + clock(r) + ". Both show up right here, by themselves, if you keep this page open." :
         r ? "Taking a little longer than usual. It can take up to 24 hours, and it shows up right here on this link." :
-        "Your stats, rank, belts and hero art usually take a few minutes, and always under 24 hours. They show up right here on this link."),
+        "Your stats, rank and hero art usually take a few minutes, and always under 24 hours. They show up right here on this link."),
       linkBox(),
       h("div", { class: "hex wait", text: "?" }),
-      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Your strength, agility and endurance set your hero rank. Your tests place you on Tommy's belts, with your next level-up. Then Coach Tommy reads your answers and sends your plan here." })]),
+      h("div", { class: "win" }, [h("h2", { text: "SYSTEM" }), h("div", { text: "Your strength, agility and endurance set your hero rank. Then Coach Tommy reads your answers and sends your plan here." })]),
       h("p", { class: "note", text: "Want to see or delete your data? Email privacy@heromadefit.com." })];
   }
 
+  var SHOW_BELTS = false;  // Tommy, 18 Nov 2026: belts are confusing for now; the Mac still works them out
   var BELT_COLOUR = { White: "#f2f2ee", Yellow: "#f2c11d", Blue: "#2f6fd6" };
   function beltBar(b) {
     if (!b.belt) return h("div", { class: "belt none", "aria-hidden": "true" });
@@ -1045,11 +1043,11 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       if (r.power != null) sys.push(h("p", { class: "note", style: "text-align:center", text: "POWER " + r.power + " · 100 = world class for your sex and age" }));
       if (r.next_rank) sys.push(h("p", { class: "note gold", style: "text-align:center", text: "NEXT RANK: " + (r.next_rank.rank === "National Level" ? "World class" : r.next_rank.rank + "-rank") + " at power " + r.next_rank.power + "." }));
     } else {
-      sys.push(h("div", { class: "rankline", text: "YOUR HERO" }), h("p", { class: "note", style: "text-align:center", text: "No stats answered, so no rank. Your belts and hero are below." }));
+      sys.push(h("div", { class: "rankline", text: "YOUR HERO" }), h("p", { class: "note", style: "text-align:center", text: "No stats answered, so no rank. Your hero is below." }));
     }
     var out = [head("Your result", r.first_name + (st.length ? ", " + (top ? "world class hero" : r.rank + "-rank hero") : ""), "Where you stand now, and your next step up."), h("div", { class: "win" }, sys)];
     if (s.sentHere || preview) out.push(builtAround());
-    if (club.belts && club.belts.length) {
+    if (SHOW_BELTS && club.belts && club.belts.length) {
       out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S BELTS" })].concat(club.belts.map(discipline), [
         h("p", { class: "note", style: "margin-top:10px", text: "Belts are Tommy's, from his Body Improvement Club courses. Levels marked draft are our best guess until Tommy confirms them." })])));
       if (club.skool_url) out.push(h("a", { class: "cta", href: club.skool_url, target: "_blank", rel: "noopener", text: "Train for your next belt in Tommy's club →" }));
