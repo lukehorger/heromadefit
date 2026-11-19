@@ -249,7 +249,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   <footer id="foot">Made with Hero Made Fit</footer>
 </div>
 <script src="catalog.js?v=20261116-0100"></script>
-<script src="app.js?v=20261118"></script>
+<script src="app.js?v=20261118b"></script>
 <script>
 (function () {
   "use strict";
@@ -1095,7 +1095,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var plans = part("TRAINING PLAN", r.training).concat(older("training"), part("NUTRITION PLAN", r.plan), older("nutrition"));
     out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S PLAN" })].concat(plans.length ? plans :
       [h("p", { class: "promise", style: "margin:0", text: "Coach Tommy is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
-    if (!preview && token && r.v3 === true) { out.push(messageBox()); if (window.HMFApp) out.push(HMFApp.box(h, "client", function (sub) { return post({ action: "push_sub", sub: sub }); }, render)); }
+    if (!preview && token && r.v3 === true) { out.push(messageBox()); if (window.HMFApp) out.push(HMFApp.box(h, "client", function (sub) { return post({ action: "push_sub", sub: sub }); }, render, !s.sentHere)); }
     if (!preview && token) out.push(linkBox());
     return out;
   }

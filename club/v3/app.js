@@ -56,7 +56,9 @@ window.HMFApp = (function () {
   }
 
   // The "Get notified" box, built with the page's own h(). who: "client" or "coach". save posts the sign-up.
-  function box(h, who, save, rerender) {
+  // fresh: false when this page's link was set after it loaded (a client who just sent the form). iOS saves the
+  // address the page loaded with, so it needs a reload first or the home screen copy opens at the start (Luke, 18 Nov).
+  function box(h, who, save, rerender, fresh) {
     var st = state(), msg = null;
     var what = who === "coach" ? "a client messages you" : "Coach Tommy messages you or sends a new plan";
     var kids = [h("h2", { text: "NOTIFICATIONS" })];
@@ -64,6 +66,7 @@ window.HMFApp = (function () {
     else if (st === "ios-install") kids.push(
       h("p", { style: "margin:0 0 8px", text: "Get a notification when " + what + "." }),
       h("ol", { style: "margin:0;padding-left:20px;line-height:1.6" }, [
+        fresh === false ? h("li", { text: "Reload this page first: pull it down from the top and let go." }) : null,
         h("li", { text: "Tap the Share button (the square with an arrow) at the bottom of Safari." }),
         h("li", { text: "Tap “Add to Home Screen”, then Add." }),
         h("li", { text: "Open it from your home screen, and turn on notifications here." })]),
