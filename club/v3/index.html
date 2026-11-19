@@ -1056,11 +1056,15 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var top = r.rank === "National Level", sys = [h("h2", { text: "SYSTEM · STATUS" })];
     if (st.length) {
       sys.push(h("div", { class: "hex", text: top ? "W" : r.rank }), h("div", { class: "rankline", text: top ? "WORLD CLASS HERO" : r.rank + "-RANK HERO" }));
+      // Tommy's "top X% of men/women aged X–X" line (18 Nov 2026), from the Mac; none below the median.
+      if (r.top && r.top.line) sys.push(h("p", { class: "gold", style: "text-align:center;margin:2px 0 10px;font:700 17px var(--body)",
+        text: r.top.line + (r.top.what === "overall" ? "" : " in " + r.top.what) }));
       var names = st.map(function (x) { return x.name; });
       if (names.length < 3) sys.push(h("p", { class: "note", style: "text-align:center;margin:4px 0 8px", text: "Ranked on " + (names.length === 2 ? names[0] + " and " + names[1] : names[0]) }));
       st.forEach(function (x) {
         var b = h("div", { class: "bar" }, [h("div")]); b.firstChild.style.width = Math.max(0, Math.min(100, x.value)) + "%";
         sys.push(h("div", { class: "stat" }, [h("b", { text: x.key }), h("span", { class: "nm", text: x.name }), h("span", { class: "rk", text: x.rank }), h("span", { class: "val", text: String(x.value) }), b,
+          x.top ? h("div", { class: "why", style: "color:var(--gold)", text: x.top }) : null,
           h("div", { class: "why", text: (x.parts || []).map(function (q) { return q.name + ": " + q.measured + (q.percentile ? " · " + q.percentile : ""); }).join("\n") }),
           x.next && x.next.length ? h("div", { class: "next" }, [h("b", { text: "▲ NEXT" }), x.next.map(function (t, i) { return i ? t.charAt(0).toLowerCase() + t.slice(1) : t; }).join(", or ")]) : null]));
       });
