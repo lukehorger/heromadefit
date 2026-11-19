@@ -263,6 +263,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var preview = (new URLSearchParams(location.search)).get("preview") === "1";
   function hashToken() { return (new URLSearchParams(location.hash.slice(1))).get("t") || ""; }
   var token = preview ? "" : hashToken();
+  var CALENDLY = "https://calendly.com/thomas-ashmanathletics/30min";  // Tommy's booking link (his, 18 Nov 2026)
   var TOKEN_KEY = "hmf-v3-token";  // the last link this device got back, so the shared link can find it again
   // 18 Nov 2026: the home-screen app (and a tapped notification) can open without #t=; it goes to this phone's link.
   if (!preview && !token && window.HMFApp && HMFApp.standalone()) {
@@ -1095,6 +1096,11 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var plans = part("TRAINING PLAN", r.training).concat(older("training"), part("NUTRITION PLAN", r.plan), older("nutrition"));
     out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S PLAN" })].concat(plans.length ? plans :
       [h("p", { class: "promise", style: "margin:0", text: "Coach Tommy is reading your answers. Your plan, with your nutrition, shows here once he sends it." })])));
+    // Weekly calls with Tommy (Luke, 18 Nov 2026: weekly until Tommy says otherwise). Calendly shows the times in the
+    // client's own time zone.
+    out.push(h("div", { class: "win" }, [h("h2", { text: "WEEKLY CALL WITH COACH TOMMY" }),
+      h("p", { style: "margin:0 0 10px", text: "Book your weekly coaching call. Pick a time that works for you, and it shows in your own time zone." }),
+      h("a", { class: "btn solid", href: CALENDLY, target: "_blank", rel: "noopener", style: "text-decoration:none", text: "Book a call" })]));
     if (!preview && token && r.v3 === true) { out.push(messageBox()); if (window.HMFApp) out.push(HMFApp.box(h, "client", function (sub) { return post({ action: "push_sub", sub: sub }); }, render, !s.sentHere)); }
     if (!preview && token) out.push(linkBox());
     return out;
