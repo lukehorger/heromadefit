@@ -710,7 +710,9 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         return [head("Equipment", "What can you train with?", "Tap everything you have at home or at your gym. Your tests and Tommy's plan only use what you have.", true),
           opts(GEAR, "gear", true)];
       case "goals":
-        var own = textIn("ownGoal", "Or write your own", 80), nt = textIn("note", "One line, optional", 160);
+        var own = textIn("ownGoal", "Or write your own", 80), nt = h("textarea", { placeholder: "Optional. Anything that helps him coach you.", maxlength: 1000, autocomplete: "off",
+          oninput: function () { s.note = nt.value; bar(); } });  // a bigger box, up to 1,000 characters (Luke, 18 Nov 2026)
+        nt.value = s.note; nt.rows = 5;
         return [head("Goals", "What do you want?", "Tap as many as you like."), many(null, GOALS, "goals"), own, withHint(field("Anything else Tommy should know?", nt))];
       case "health":
         var hn = textIn("healthNote", "e.g. old knee injury, sore on stairs", 160), doc = Object.keys(s.health).some(function (k) { return DOCTOR[k]; });
