@@ -263,7 +263,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var preview = (new URLSearchParams(location.search)).get("preview") === "1";
   function hashToken() { return (new URLSearchParams(location.hash.slice(1))).get("t") || ""; }
   var token = preview ? "" : hashToken();
-  var CALENDLY = "https://calendly.com/thomas-ashmanathletics/30min";  // Tommy's booking link (his, 18 Nov 2026)
+  var CALENDLY = "https://calendly.com/thomas-ashmanathletics/coaching-check-in";  // Tommy's coaching check-in link (he sent it on the 23 Nov 2026 call)
   var TOKEN_KEY = "hmf-v3-token";  // the last link this device got back, so the shared link can find it again
   // 18 Nov 2026: the home-screen app (and a tapped notification) can open without #t=; it goes to this phone's link.
   if (!preview && !token && window.HMFApp && HMFApp.standalone()) {
