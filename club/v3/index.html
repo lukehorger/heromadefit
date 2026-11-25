@@ -263,6 +263,9 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
   var preview = (new URLSearchParams(location.search)).get("preview") === "1";
   function hashToken() { return (new URLSearchParams(location.hash.slice(1))).get("t") || ""; }
   var token = preview ? "" : hashToken();
+  // A friend link, ?friend=1 (Luke, 25 Nov 2026): the full assessment, rank and hero, but the entry never goes to Tommy's
+  // dashboard, and the page leaves out his plan, calls and messages. The Mac decides from the saved answers (form.friend).
+  var FRIEND = /[?&]friend=1(&|$)/.test(location.search);
   var CALENDLY = "https://calendly.com/thomas-ashmanathletics/coaching-check-in";  // Tommy's coaching check-in link (he sent it on the 23 Nov 2026 call)
   var TOKEN_KEY = "hmf-v3-token";  // the last link this device got back, so the shared link can find it again
   // 18 Nov 2026: the home-screen app (and a tapped notification) can open without #t=; it goes to this phone's link.
@@ -544,6 +547,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     var photo = photoWay(), f = { page: "club-v3", consent_version: consent().version, consent_method: "web_link", first_name: s.name.trim(), adult: s.adult,
       agreed: s.collect && s.share && (photo ? s.photoAgreed : !consent().describe || s.describeAgreed), agreed_collect: s.collect, agreed_share: s.share,
       way_in: photo ? "selfie" : "describe" };
+    if (FRIEND) f.friend = true;
     if (photo) f.face_release = { signed_name: s.signedName.trim() };
     f.sex = s.sex === "Female" ? "female" : "male";
     if (s.way === "describe") f.description = Object.assign({}, s.look, { extra: cap(s.look.extra, C.extra_max || 120) });
@@ -676,7 +680,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         var nm = textIn("name", "First name or nickname", 40); nm.style.font = "700 22px var(--body)";
         var saved = !preview && !token && savedToken();
         return [preview ? h("div", { class: "preview", text: "Preview of version 3 for Luke and Tommy. Nothing you type is sent or saved." }) : null,
-          head("Coach Tommy", "Your fitness assessment", "About 5 minutes. See your stats and rank, get your own anime hero, and get a plan from Coach Tommy."),
+          head("Coach Tommy", "Your fitness assessment", FRIEND ? "About 5 minutes. See your stats and rank, and get your own anime hero." : "About 5 minutes. See your stats and rank, get your own anime hero, and get a plan from Coach Tommy."),
           field("First name or nickname", nm),
           h("p", { class: "promise", text: "Don't know a number? Skip it. Every stats question has a skip button, and a skipped stat just doesn't count." }),
           saved ? h("button", { type: "button", class: "btn", style: "border-color:var(--frame-dim);color:var(--ice)", text: "Already sent yours? See your results",
@@ -719,7 +723,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
         var hn = textIn("healthNote", "e.g. old knee injury, sore on stairs", 160), doc = Object.keys(s.health).some(function (k) { return DOCTOR[k]; });
         return [head("Health", "Injuries and health", "So Tommy can keep you safe. Tap any that apply.", true), many(null, HEALTH, "health", "None"),
           s.health.None ? null : field("Anything Tommy should know about it? (optional)", hn),
-          doc ? h("div", { class: "promise", text: "Please check with your doctor before starting a new training plan. Tommy will see this and adjust." }) : null];
+          doc ? h("div", { class: "promise", text: FRIEND ? "Please check with your doctor before starting a new training plan." : "Please check with your doctor before starting a new training plan. Tommy will see this and adjust." }) : null];
       case "recovery":
         return [head("Recovery", "Sleep and stress", "Both change how hard Tommy should push you.", true), one("Usual sleep a night", SLEEP, "sleep"), one("Stress lately", STRESS, "stress")];
       case "nemesis":
@@ -1002,7 +1006,7 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
     function copied() { s.copied = true; render(); }
     function fallback() { inp.focus(); inp.select(); try { document.execCommand("copy"); copied(); } catch (e) { s.error = "Couldn't copy. Press and hold the link to copy it."; render(); } }
     return h("div", { class: "sheet" }, [h("h2", { text: "SAVE THIS LINK" }),
-      h("p", { style: "margin:0 0 10px;font:400 15px/1.5 var(--body)", text: "Save this link to see your results. Bookmark it or keep it somewhere safe: it's how you get back to them, and to Coach Tommy's plan." }),
+      h("p", { style: "margin:0 0 10px;font:400 15px/1.5 var(--body)", text: "Save this link to see your results. Bookmark it or keep it somewhere safe: it's how you get back to them" + (FRIEND || (s.result && s.result.friend === true) ? "." : ", and to Coach Tommy's plan.") }),
       h("div", { class: "field linkfield" }, [inp]),
       h("button", { type: "button", class: "btn", style: "margin-top:10px", text: s.copied ? "Copied ✓" : "Copy link", onclick: function () {
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(copied, fallback); else fallback(); } })]);
@@ -1096,6 +1100,10 @@ button.btn-file.go { background: var(--gold); color: #1a1405; }
       var old = (s.earlier || []).filter(function (p) { return p.kind === kind; });
       return old.length ? [h("details", { class: "earlier" }, [h("summary", { text: "Earlier " + (kind === "training" ? "training" : "nutrition") + " plans (" + old.length + ")" })].concat(old.map(function (p) {
         return h("div", { class: "old" }, [h("div", { class: "note", text: "From " + new Date(p.sent_at).toLocaleDateString([], { day: "numeric", month: "long" }) }), p.text]); })))] : [];
+    }
+    if (r.friend === true) {  // a friend link: no plan, calls or messages with Tommy
+      if (!preview && token) out.push(linkBox());
+      return out;
     }
     var plans = part("TRAINING PLAN", r.training).concat(older("training"), part("NUTRITION PLAN", r.plan), older("nutrition"));
     out.push(h("div", { class: "win" }, [h("h2", { text: "COACH TOMMY'S PLAN" })].concat(plans.length ? plans :
