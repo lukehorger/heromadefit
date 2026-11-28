@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One dad, four apps · Hero Made Fit</title>
+<meta name="description" content="What's your fitness rank? Find out free in 30 seconds, ranked E to S against real people your age. Built by one dad who got tired of four fitness apps.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="What's your fitness rank? Hero Made Fit">
+<meta property="og:description" content="Ranked E to S against real people your age, like a video game. Free, in 30 seconds, no sign-up to see it.">
+<meta property="og:image" content="https://heromadefit.com/dad/img/og.jpg">
+<meta property="og:url" content="https://heromadefit.com/dad/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Ad F's page (27 Nov 2026, Luke: "Yes, build it"): the same rank check and waitlist as the main page, in the warm,
+     everyday look of the ad. Shown only to people on the ad's link (heromadefit.com/dad/?ref=ads-meta-f). */
+  :root {
+    --paper: #fbf5ea; --card: #fffdf8; --line: #ecdcc4; --ink: #2f2419; --soft: #6f5d4b;
+    --sun: #f08a3c; --sun-deep: #d9692a; --sea: #2f8f8a; --gold: #c98a12; --sky: #e8f3f2;
+    --text: var(--ink); --muted: var(--soft); --ice: var(--soft); --frame: var(--sun); --frame-dim: var(--line);
+    --done: var(--sea); --deep: #fffaf2; --void: var(--paper); --ember: var(--sun-deep);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body { margin: 0; color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif;
+         background: radial-gradient(ellipse at top, #fde3c4, transparent 55%), var(--paper); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  .display { font-family: Archivo, Inter, sans-serif; font-stretch: 125%; letter-spacing: .01em; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; }
+  .logo { font-weight: 900; font-size: 18px; letter-spacing: .16em; color: var(--ink); white-space: nowrap; }
+  .logo .fit { color: var(--sun-deep); }
+  .pill { font-size: 12px; color: var(--soft); border: 1px solid var(--line); background: var(--card); padding: 4px 10px; border-radius: 999px; }
+  .tagline { font-size: 13px; letter-spacing: .2em; text-transform: uppercase; color: var(--sun-deep); margin: 0 0 10px; font-weight: 700; }
+  .hero { display: grid; gap: 32px; align-items: start; padding: 24px 0 40px; grid-template-columns: 1.1fr .9fr; }
+  h1 { font-size: clamp(32px, 5.6vw, 56px); line-height: 1.04; margin: 0 0 14px; font-weight: 900; color: var(--ink); }
+  .lead { font-size: 18px; color: var(--soft); max-width: 34em; margin: 0; }
+  .window { position: relative; background: var(--card); border: 1px solid var(--line); padding: 18px; border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(120, 80, 30, .08); }
+  .photo { margin: 0; }
+  .photo img { width: 100%; height: auto; display: block; border-radius: 22px; box-shadow: 0 14px 40px rgba(120, 80, 30, .16); }
+  .photo figcaption { margin-top: 8px; font-size: 13px; color: var(--soft); }
+  section { padding: 34px 0; }
+  h2 { font-size: clamp(22px, 3.4vw, 30px); margin: 0 0 16px; font-weight: 900; }
+  .story { font-size: 18px; max-width: 40em; color: var(--ink); }
+  .story p { margin: 0 0 12px; }
+  .story .apps { font-weight: 600; }
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 18px; }
+  .strip figure { margin: 0; }
+  .strip img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; border-radius: 16px; }
+  .strip figcaption { font-size: 13px; color: var(--soft); margin-top: 6px; }
+  .grid3 { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+  .grid3 h3 { margin: 0 0 6px; font-size: 13px; letter-spacing: .14em; color: var(--sun-deep); text-transform: uppercase; }
+  .grid3 p { margin: 0; }
+  .honest { font-size: 17px; color: var(--soft); max-width: 40em; }
+  .honest b { color: var(--ink); }
+  form { display: grid; gap: 14px; max-width: 560px; }
+  label { font-size: 13px; letter-spacing: .06em; color: var(--soft); text-transform: uppercase; display: grid; gap: 6px; font-weight: 600; }
+  input, select { font: inherit; color: var(--ink); background: #fffaf2; border: 1px solid var(--line); padding: 12px; width: 100%; border-radius: 10px; }
+  input:focus, select:focus { outline: 2px solid var(--sun); border-color: var(--sun); }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choices label { text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--ink); font-weight: 500;
+                   display: flex; gap: 8px; align-items: center; border: 1px solid var(--line); padding: 8px 12px; border-radius: 999px; background: #fffaf2; }
+  .choices input { width: auto; }
+  button { font: inherit; font-weight: 700; letter-spacing: .12em; padding: 14px; cursor: pointer; color: #fff;
+           background: var(--sun-deep); border: 0; border-radius: 12px; }
+  button:hover { background: #c35a1e; }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--sea); outline-offset: 2px; }
+  .note { font-size: 13px; color: var(--soft); }
+  .note a, footer a { color: var(--soft); }
+  .thanks { display: none; color: var(--sea); font-weight: 600; }
+  .quick { margin-top: 20px; gap: 10px; scroll-margin-top: 16px; }
+  .quick .two { display: grid; grid-template-columns: 2fr 3fr; gap: 10px; }
+  .quick select { padding: 12px 8px; }
+  .quick .hint { margin: -2px 0 0; font-size: 13px; color: var(--soft); }
+  .quick .note { margin: 0; }
+  form[data-joined] button { opacity: .85; }
+  .check { margin-top: 20px; display: grid; gap: 12px; max-width: 560px; scroll-margin-top: 16px; }
+  .check .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+  .check .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fffaf2; }
+  .check .seg label { flex: 1; text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--ink); font-weight: 500;
+                      display: flex; justify-content: center; align-items: center; padding: 11px 6px; cursor: pointer; }
+  .check .seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .check .seg label:has(input:checked) { background: #fde3c4; color: var(--ink); box-shadow: inset 0 0 0 2px var(--sun); }
+  .check .run { display: grid; grid-template-columns: 2fr 3fr; gap: 10px; }
+  .check .hint, .check .note { margin: 0; font-size: 13px; color: var(--soft); }
+  .check .err { display: none; margin: 0; color: var(--sun-deep); font-weight: 600; }
+  .result { display: none; margin-top: 20px; max-width: 560px; scroll-margin-top: 12px; }
+  .result .top { display: flex; gap: 16px; align-items: center; }
+  .result .badge { width: 112px; height: 112px; flex: none; }
+  .result .big { font-size: 34px; font-weight: 900; line-height: 1; margin: 0; }
+  .result .power { margin: 6px 0 0; color: var(--soft); font-size: 14px; }
+  .result .vs { margin: 8px 0 0; color: var(--sea); font-weight: 700; }
+  .result .stats { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .result .stats li { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 6px; font-size: 15px; }
+  .result .stats span { color: var(--soft); font-size: 13px; text-align: right; }
+  .result .est { margin: 10px 0 0; font-size: 12px; color: var(--soft); }
+  .result .again { background: none; border: 0; padding: 0; color: var(--soft); text-decoration: underline; font-weight: 400;
+                   letter-spacing: 0; font-size: 13px; margin-top: 8px; }
+  .climb { margin-top: 18px; }
+  .climb h2 { font-size: 22px; margin: 0 0 6px; }
+  .climb p.lead2 { margin: 0 0 4px; color: var(--soft); }
+  .unlock { display: none; margin-top: 6px; }
+  .unlock h3 { margin: 0 0 6px; font-size: 13px; letter-spacing: .14em; color: var(--sun-deep); text-transform: uppercase; }
+  .unlock ul { margin: 0 0 12px; padding-left: 20px; }
+  .unlock .card { width: 100%; padding: 13px; }
+  .ico { width: 28px; height: 28px; flex: none; }
+  .nets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+  .net { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--card); border: 1px solid var(--line);
+         color: var(--ink); text-decoration: none; border-radius: 14px; }
+  .net:hover, .net:focus-visible { border-color: var(--sun); }
+  .net b { display: block; font-size: 16px; }
+  .net small { display: block; font-size: 13px; color: var(--soft); }
+  .follow { display: none; margin-top: 4px; }
+  .follow p { margin: 0; color: var(--soft); }
+  .follow .nets { grid-template-columns: repeat(2, 1fr); }
+  /* The sprite's white TikTok, Threads and YouTube shapes are recoloured for the light page. */
+  .ico-tt, .ico-th { color: var(--ink); }
+  .oops { display: none; color: var(--sun-deep); font-weight: 600; }
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  footer { padding: 30px 0 40px; font-size: 13px; color: var(--soft); border-top: 1px solid var(--line); margin-top: 20px; }
+  .joinbar { display: none; }
+  @media (max-width: 760px) {
+    .logo { font-size: 14px; letter-spacing: .12em; }
+    .pill { font-size: 11px; white-space: nowrap; padding: 4px 8px; }
+    .pill .wide { display: none; }
+    .hero, .grid3 { grid-template-columns: 1fr; }
+    .hero { padding: 6px 0 28px; gap: 20px; }
+    .hero .photo { max-width: 340px; }
+    .lead { font-size: 16px; }
+    .strip { grid-template-columns: repeat(2, 1fr); }
+    .nets { grid-template-columns: repeat(2, 1fr); }
+    .joinbar { display: block; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 20;
+               padding: 15px 0; text-align: center; font-weight: 900; letter-spacing: .12em; text-decoration: none; border-radius: 14px;
+               color: #fff; background: var(--sun-deep); box-shadow: 0 8px 24px rgba(160, 80, 20, .35);
+               transform: translateY(160%); transition: transform .25s; }
+    .joinbar.on { transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .joinbar { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-ig" viewBox="0 0 24 24"><defs><linearGradient id="ig-grad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".3" stop-color="#fa7e1e"/><stop offset=".55" stop-color="#d62976"/><stop offset=".8" stop-color="#962fbf"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs><path fill="url(#ig-grad)" d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></symbol><symbol id="i-tt" viewBox="0 0 24 24"><path fill="currentColor" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></symbol><symbol id="i-yt" viewBox="0 0 24 24"><path fill="#fff" d="M9.545 15.568V8.432L15.818 12z"/><path fill="#ff0000" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></symbol><symbol id="i-th" viewBox="0 0 24 24"><path fill="currentColor" d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></symbol></svg>
+  <header>
+    <span class="logo display">HERO MADE <span class="fit">FIT</span></span>
+    <span class="pill"><span class="wide">Waitlist open · </span>iPhone first, Android next</span>
+  </header>
+
+  <div class="hero">
+    <div>
+      <p class="tagline display">One dad, four apps</p>
+      <h1 class="display">What's your fitness rank? Find out in 30 seconds.</h1>
+      <p class="lead">Ranked E to S against real people your age, like a video game. Free, and no sign-up needed to see it.</p>
+      <form id="check" class="check window" aria-label="Find your hero rank" novalidate>
+        <div class="row">
+          <div class="seg" role="radiogroup" aria-label="Compare me with">
+            <label><input type="radio" name="sex" value="male" required> Man</label>
+            <label><input type="radio" name="sex" value="female"> Woman</label>
+          </div>
+          <input type="number" name="age" inputmode="numeric" min="18" max="100" placeholder="Your age" aria-label="Your age">
+        </div>
+        <div class="row">
+          <label>Push-ups in a row <input type="number" name="pushups" inputmode="numeric" min="0" max="200" placeholder="e.g. 20"></label>
+          <label>Strict pull-ups <input type="number" name="pullups" inputmode="numeric" min="0" max="100" placeholder="e.g. 5"></label>
+        </div>
+        <label>Your run time
+          <div class="run">
+            <select name="distance" aria-label="Distance">
+              <option value="1_mile">Mile</option>
+              <option value="5k">5K</option>
+            </select>
+            <input type="text" name="time" inputmode="decimal" placeholder="min:sec, e.g. 9:30" aria-label="Run time, minutes and seconds" autocomplete="off">
+          </div>
+        </label>
+        <p class="hint">Fill in any you know. Your best guess for today is fine.</p>
+        <button type="submit" class="display">SHOW MY RANK</button>
+        <p class="err" role="alert"></p>
+        <p class="note">Your numbers stay on your phone. We don't send or save them.</p>
+      </form>
+
+      <div class="result window" id="result" aria-live="polite">
+        <div class="top">
+          <img class="badge" id="r-badge" alt="">
+          <div>
+            <p class="big display" id="r-rank"></p>
+            <p class="power" id="r-power"></p>
+          </div>
+        </div>
+        <p class="vs" id="r-vs"></p>
+        <ul class="stats" id="r-stats"></ul>
+        <p class="est">A starting estimate from researched norms by age and sex, scored the same way as in the app. In the app you re-test every four weeks.</p>
+        <button type="button" class="again" id="r-again">Change my numbers</button>
+
+      <form id="join" class="signup quick climb" aria-label="Join the waitlist">
+        <h2 class="display" id="climb-title">Now climb it.</h2>
+        <p class="lead2" id="climb-lead">Join the waitlist to see exactly what gets you to the next rank, get your rank card, and be first in when the app opens.</p>
+        <label>Email <input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label>
+        <div class="two">
+          <select name="phone" aria-label="Your phone (optional)">
+            <option value="">Your phone</option>
+            <option>iPhone</option>
+            <option>Android</option>
+          </select>
+          <select name="price" aria-label="What would you pay for it? (optional)">
+            <option value="">What would you pay?</option>
+            <option>Only if it's free</option>
+            <option>$5 a month</option>
+            <option>$10 a month</option>
+            <option>$15+ a month</option>
+          </select>
+        </div>
+        <p class="hint">Only your email is needed. Phone and price are optional.</p>
+        <input type="hidden" name="source" value="direct">
+        <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        <button type="submit" class="display">JOIN THE WAITLIST</button>
+        <p class="thanks">You're on the list. We'll email you when the app opens.</p>
+        <div class="unlock" id="unlock">
+          <h3 id="u-title"></h3>
+          <ul id="u-steps"></ul>
+          <button type="button" class="card display" id="u-card">SAVE MY RANK CARD</button>
+        </div>
+        <p class="oops">That didn't go through. Check your connection and try again.</p>
+        <p class="note">Hero Made Fit emails only: build updates, early access, the launch, and invites to our community or a short chat. Never sold or shared. Unsubscribe anytime. Only your email, phone and price answer are sent, never your rank or numbers. <a href="../privacy.html">Privacy</a></p>
+      </form>
+      </div>
+    </div>
+    <figure class="photo">
+      <img src="img/hero-run.jpg" alt="Drawing of Luke jogging by a canal in Honolulu, pushing his smiling baby daughter in a stroller, with a +40 XP card and a Rank C badge" width="800" height="1000">
+      <figcaption>Luke and his daughter on a stroller run, drawn for Hero Made Fit. In the app, every workout counts toward your rank.</figcaption>
+    </figure>
+  </div>
+
+  <section>
+    <h2 class="display">Why one dad built this</h2>
+    <div class="story">
+      <p>I'm a dad with a one-year-old, doing my best to stay fit… with four fitness apps.</p>
+      <p class="apps">Strava and Garmin for running. Hevy for lifting. Apple Notes for judo. Too many apps.</p>
+      <p>So I built one app that coaches you and ranks you against people your age, like a video game.</p>
+    </div>
+    <div class="strip">
+      <figure><img src="img/phone.jpg" alt="Luke with his daughter on his hip and a coffee, his phone buzzing with notifications" loading="lazy"><figcaption>Every app wants a word.</figcaption></figure>
+      <figure><img src="img/tug.jpg" alt="Cartoon of Luke pulled in four directions by four phones" loading="lazy"><figcaption>Pulled four ways.</figcaption></figure>
+      <figure><img src="img/pushups.jpg" alt="Luke doing a push-up while his baby daughter claps in front of him" loading="lazy"><figcaption>Training around real life.</figcaption></figure>
+      <figure><img src="img/night.jpg" alt="Luke at the kitchen table late at night with a laptop and a baby monitor" loading="lazy"><figcaption>Built after bedtime.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid3">
+      <div class="window"><h3>Your honest rank</h3><p>E to S, set by how you compare with real people your age, with a re-test every four weeks. You don't level up for opening the app.</p></div>
+      <div class="window"><h3>One place for it all</h3><p>Runs, lifts and martial arts in one log, so your rank reflects everything you do, not just one sport.</p></div>
+      <div class="window"><h3>A coach for busy weeks</h3><p>Weekly targets that fit around work and family, and a clear next step to your next rank.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="display">Full disclosure</h2>
+    <p class="honest"><b>I'm one dad, not a big company.</b> AI helps me build this, and every rank is scored from researched norms by age and sex, the same way in the app as on this page.<br><span class="note">Luke, founder</span></p>
+  </section>
+
+  <section id="waitlist">
+    <h2 class="display">Join the waitlist</h2>
+    <p class="note" style="margin:-8px 0 14px">Haven't checked your rank yet? <a href="#check">It's at the top, and free.</a></p>
+    <form id="form" class="window signup">
+      <label>Email <input type="email" name="email" required placeholder="you@example.com" autocomplete="email"></label>
+      <label>How do you train?
+        <div class="choices">
+          <label><input type="checkbox" name="training" value="lifting"> Lifting</label>
+          <label><input type="checkbox" name="training" value="running"> Running</label>
+          <label><input type="checkbox" name="training" value="martial arts"> Martial arts</label>
+          <label><input type="checkbox" name="training" value="other"> Other</label>
+        </div>
+      </label>
+      <label>What phone do you use? (optional)
+        <div class="choices">
+          <label><input type="radio" name="phone" value="iPhone"> iPhone</label>
+          <label><input type="radio" name="phone" value="Android"> Android</label>
+        </div>
+      </label>
+      <label>What do you use today? <input type="text" name="current_apps" placeholder="Hevy, Strava, Apple Fitness, nothing..."></label>
+      <label>What would you pay for it? (optional)
+        <select name="price">
+          <option value="">Choose one</option>
+          <option>Only if it's free</option>
+          <option>$5 a month</option>
+          <option>$10 a month</option>
+          <option>$15+ a month</option>
+        </select>
+      </label>
+      <input type="hidden" name="source" value="direct">
+        <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <button type="submit" class="display">JOIN THE WAITLIST</button>
+      <p class="thanks">You're on the list. We'll email you when the app opens.</p>
+      <div class="follow"><p>While you wait, follow the build:</p><div class="nets"><a class="net" href="https://www.instagram.com/heromadefit/" target="_blank" rel="noopener"><svg class="ico ico-ig" aria-hidden="true"><use href="#i-ig"/></svg><span><b>Instagram</b><small>@heromadefit</small></span></a><a class="net" href="https://www.tiktok.com/@heromadefit" target="_blank" rel="noopener"><svg class="ico ico-tt" aria-hidden="true"><use href="#i-tt"/></svg><span><b>TikTok</b><small>@heromadefit</small></span></a><a class="net" href="https://www.youtube.com/@HeroMadeFit" target="_blank" rel="noopener"><svg class="ico ico-yt" aria-hidden="true"><use href="#i-yt"/></svg><span><b>YouTube</b><small>@heromadefit</small></span></a><a class="net" href="https://www.threads.com/@heromadefit" target="_blank" rel="noopener"><svg class="ico ico-th" aria-hidden="true"><use href="#i-th"/></svg><span><b>Threads</b><small>@heromadefit</small></span></a></div></div>
+      <p class="oops">That didn't go through. Check your connection and try again.</p>
+      <p class="note">Hero Made Fit emails only: build updates, early access, the launch, and invites to our community or a short chat. Never sold or shared. Unsubscribe anytime. <a href="../privacy.html">Privacy</a></p>
+    </form>
+  </section>
+
+  <footer>Not affiliated with Strava, Garmin, Hevy or Apple. © 2026 Hero Made Labs · <a href="../privacy.html">Privacy</a> · <a href="../health-data.html">Consumer Health Data Privacy Policy</a></footer>
+</div>
+<a class="joinbar display" id="joinbar" href="#check">FIND MY RANK</a>
+<script src="../rank.js"></script>
+<script>
+  // Waitlist form endpoint.
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyX83Ryu58CiiIqLsA4dRBuer61dut4snrgFtH9TzAk1MEh_GkYId4fkrXN_4Pn4cGW/exec';
+  // Where the visitor came from (?ref=...), so each channel's signups are counted apart.
+  const ref = new URLSearchParams(location.search).get('ref');
+  const forms = [...document.querySelectorAll('form.signup')];
+  const source = ref && /^[a-z0-9-]{1,32}$/i.test(ref) ? ref.toLowerCase() : 'direct';
+  forms.forEach(f => { f.elements.source.value = source; });
+  // Count this visit once per browser per day, by source only; the date of the last count stays on this device.
+  (() => {
+    const today = new Date().toLocaleDateString('en-CA');  // the visitor's own date, YYYY-MM-DD
+    try { if (localStorage.getItem('hmf-counted') === today) return; localStorage.setItem('hmf-counted', today); } catch (_) {}
+    const body = new URLSearchParams({ visit: '1', source });
+    fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body, keepalive: true }).catch(() => {});
+  })();
+  // The phone join bar: shown once both forms are off screen, and gone after joining. It leads back to the top form.
+  // Before a rank is shown it says FIND MY RANK and leads to the check; after, JOIN THE WAITLIST and leads to that form.
+  const watched = [document.getElementById('check'), ...forms];
+  const bar = document.getElementById('joinbar'), seen = new Map(watched.map(f => [f, f.id === 'check']));
+  const updateBar = () => bar.classList.toggle('on', ![...seen.values()].some(Boolean) && !forms[0].dataset.joined);
+  if ('IntersectionObserver' in window)
+    watched.forEach(f => new IntersectionObserver(([e]) => { seen.set(f, e.isIntersecting); updateBar(); }).observe(f));
+
+  // --- The instant rank check. Scored here by rank.js (the app's own scoring); the answers never leave the page. ---
+  const check = document.getElementById('check'), result = document.getElementById('result');
+  const BADGE = { E: 'E', D: 'D', C: 'C', B: 'B', A: 'A', S: 'S', 'National Level': 'N' };
+  const COLOUR = { E: '#e08f5e', D: '#b2e3ff', C: '#5fedbb', B: '#4dbaff', A: '#bf80ff', S: '#ffca57', 'National Level': '#ff6b6b' };
+  const ON_LIGHT = { E: '#b85a22', D: '#2a76ad', C: '#16865f', B: '#2257b5', A: '#7b45c4', S: '#a87505', 'National Level': '#c93a3a' };
+  const rankName = r => r === 'National Level' ? 'National Level' : 'Rank ' + r;
+  let last = null;  // {answers, out}: kept in this page only, for the unlock and the card
+
+  function parseTime(text, distance) {
+    const t = text.trim().replace(/[.,;]/, ':');
+    if (!t) return null;
+    const m = t.match(/^(\d{1,3})(?::(\d{1,2}))?$/);
+    if (!m || (m[2] !== undefined && +m[2] > 59)) return NaN;
+    const s = +m[1] * 60 + (m[2] ? +m[2] : 0);
+    const [lo, hi] = distance === '5k' ? [12 * 60, 120 * 60] : [3 * 60 + 30, 40 * 60];
+    return s >= lo && s <= hi ? s : NaN;
+  }
+  function count(input, max) {
+    if (input.value.trim() === '') return null;
+    const n = Number(input.value);
+    return Number.isInteger(n) && n >= 0 && n <= max ? n : NaN;
+  }
+
+  check.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = check.elements, err = check.querySelector('.err');
+    const say = (msg) => { err.textContent = msg; err.style.display = 'block'; };
+    err.style.display = 'none';
+    const sex = f.sex.value, age = Number(f.age.value);
+    if (!sex) return say('Choose man or woman, so you are compared with the right group.');
+    if (!f.age.value || !Number.isInteger(age)) return say('Add your age.');
+    if (age < 18) return say('The rank check is for adults (18 and over) for now.');
+    if (age > 100) return say('Check your age.');
+    const pushups = count(f.pushups, 200), pullups = count(f.pullups, 100), seconds = parseTime(f.time.value, f.distance.value);
+    if (Number.isNaN(pushups)) return say('Push-ups: a whole number, like 20.');
+    if (Number.isNaN(pullups)) return say('Pull-ups: a whole number, like 5.');
+    if (Number.isNaN(seconds)) return say(f.distance.value === '5k' ? 'Run time: minutes and seconds, like 28:30.' : 'Run time: minutes and seconds, like 9:30.');
+    if (pushups == null && pullups == null && seconds == null) return say('Fill in at least one: push-ups, pull-ups or a run time.');
+    const answers = { sex, age };
+    if (pushups != null) answers.pushups = pushups;
+    if (pullups != null) answers.pullups = pullups;
+    if (seconds != null) answers.run = { distance: f.distance.value, seconds };
+    const out = HeroRank.score(answers);
+    last = { answers, out };
+    document.getElementById('r-badge').src = '../img/ranks/rank-' + BADGE[out.rank] + '.png';
+    document.getElementById('r-badge').alt = rankName(out.rank) + ' badge';
+    const big = document.getElementById('r-rank');
+    big.textContent = rankName(out.rank).toUpperCase();
+    big.style.color = ON_LIGHT[out.rank];  // darker rank colours, readable on this page's light background
+    document.getElementById('r-power').textContent = 'Power ' + out.power + ' · compared with ' + out.group;
+    document.getElementById('r-vs').textContent = out.top
+      ? out.top + '.'
+      : 'About half of people your age start at E. That is what the climb is for.';
+    document.getElementById('r-stats').innerHTML = '';
+    out.stats.forEach(s => {
+      const li = document.createElement('li'), b = document.createElement('b'), sp = document.createElement('span');
+      b.textContent = s.name + ' ' + s.value + ' · ' + (s.rank === 'National Level' ? 'National' : s.rank);
+      sp.textContent = s.top ? s.top.replace(/ of (men|women) aged .*/, '') : 'below the middle for now';
+      li.append(b, sp);
+      document.getElementById('r-stats').append(li);
+    });
+    const missing = [];
+    if (!out.stats.some(s => s.key === 'STR')) missing.push('push-ups or pull-ups for a Strength score');
+    if (!out.stats.some(s => s.key === 'END')) missing.push('a run time for an Endurance score');
+    if (missing.length) {
+      const li = document.createElement('li'), sp = document.createElement('span');
+      sp.textContent = 'Add ' + missing.join(' and ') + '.';
+      sp.style.textAlign = 'left';
+      li.append(sp);
+      document.getElementById('r-stats').append(li);
+    }
+    document.getElementById('climb-title').textContent = out.next ? 'Now climb to ' + rankName(out.next.rank) + '.' : 'Now keep it.';
+    check.style.display = 'none';
+    result.style.display = 'block';
+    bar.textContent = 'JOIN THE WAITLIST';
+    bar.href = '#join';
+    if (forms[0].dataset.joined) showUnlock();
+    if (document.activeElement) document.activeElement.blur();
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('r-again').addEventListener('click', () => {
+    result.style.display = 'none';
+    check.style.display = 'grid';
+    bar.textContent = 'FIND MY RANK';
+    bar.href = '#check';
+    check.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // After joining: what gets them to the next rank, and their rank card.
+  function showUnlock() {
+    if (!last) return;
+    const { answers, out } = last, ways = HeroRank.nextSteps(answers), ul = document.getElementById('u-steps');
+    ul.innerHTML = '';
+    const add = t => { const li = document.createElement('li'); li.textContent = t; ul.append(li); };
+    if (!out.next) {
+      document.getElementById('u-title').textContent = 'You are already at the top';
+      add('Keep it with a re-test every four weeks in the app.');
+    } else {
+      document.getElementById('u-title').textContent = 'Your path to ' + rankName(out.next.rank);
+      if (ways.mix) add('A bit better at each: ' + ways.mix + '.');
+      ways.single.forEach(t => add(ways.mix ? 'Or on its own: ' + t[0].toLowerCase() + t.slice(1) + '.' : t + '.'));
+      if (!ways.mix && !ways.single.length) add('Add another test above. One test alone can only take you so far.');
+      add('In the app, every workout counts toward it, and you re-test every four weeks.');
+    }
+    document.getElementById('unlock').style.display = 'block';
+    document.querySelector('#join .thanks').textContent = "You're on the list. We'll email you when the app opens.";
+  }
+
+  function roundRect(ctx, x, y, w, h) { ctx.beginPath(); ctx.rect(x, y, w, h); ctx.stroke(); }
+  async function rankCard() {
+    const { out } = last, W = 1080, H = 1350, c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    try { await document.fonts.ready; } catch (_) {}
+    const g = ctx.createRadialGradient(W / 2, 0, 50, W / 2, 0, 1100);
+    g.addColorStop(0, '#0e2a4a'); g.addColorStop(1, '#03050b');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(77,186,255,.5)'; ctx.lineWidth = 3; roundRect(ctx, 40, 40, W - 80, H - 80);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#b2e3ff'; ctx.font = '900 44px Archivo, Inter, sans-serif';
+    ctx.fillText('HERO MADE FIT', W / 2, 140);
+    // The badge already on screen; if it hasn't loaded yet, wait up to 3 s for it (img.decode() can stall).
+    const img = document.getElementById('r-badge');
+    if (!(img.complete && img.naturalWidth))
+      await new Promise(r => { img.addEventListener('load', r, { once: true }); img.addEventListener('error', r, { once: true }); setTimeout(r, 3000); });
+    if (img.complete && img.naturalWidth) ctx.drawImage(img, W / 2 - 230, 200, 460, 460);
+    ctx.fillStyle = COLOUR[out.rank]; ctx.font = '900 96px Archivo, Inter, sans-serif';
+    ctx.fillText(rankName(out.rank).toUpperCase(), W / 2, 770);
+    ctx.fillStyle = '#e1edff'; ctx.font = '600 44px Inter, sans-serif';
+    ctx.fillText('Power ' + out.power, W / 2, 850);
+    ctx.fillStyle = '#5fedbb'; ctx.font = '600 42px Inter, sans-serif';
+    ctx.fillText(out.top || 'Compared with ' + out.group, W / 2, 930);
+    ctx.fillStyle = '#7e94b7'; ctx.font = '500 36px Inter, sans-serif';
+    ctx.fillText(out.stats.map(s => s.name + ' ' + (s.rank === 'National Level' ? 'National' : s.rank)).join('  ·  '), W / 2, 1010);
+    ctx.fillStyle = '#ffca57'; ctx.font = '900 48px Archivo, Inter, sans-serif';
+    ctx.fillText("WHAT'S YOURS?", W / 2, 1150);
+    ctx.fillStyle = '#e1edff'; ctx.font = '600 40px Inter, sans-serif';
+    ctx.fillText('heromadefit.com', W / 2, 1220);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    const file = new File([blob], 'hero-rank.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'My hero rank' }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'hero-rank.png';
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  document.getElementById('u-card').addEventListener('click', () => { if (last) rankCard(); });
+  forms.forEach(f => f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target, button = form.querySelector('button');
+    if (form.dataset.joined) return;
+    const thanks = form.querySelector('.thanks'), oops = form.querySelector('.oops');
+    oops.style.display = 'none';
+    button.disabled = true;
+    try {
+      if (ENDPOINT) {
+        // A form-encoded body is a "simple" request, so the browser sends it without a CORS preflight.
+        // Apps Script answers with a redirect the page can't read (an opaque response), so a request that
+        // doesn't throw counts as sent; the script itself validates and stores the row.
+        await fetch(ENDPOINT, { method: 'POST', mode: 'no-cors', body: new URLSearchParams(new FormData(form)) });
+      }
+      thanks.style.display = 'block';
+      const follow = form.querySelector('.follow');
+      if (follow) follow.style.display = 'block';
+      // On a phone the button sits at the bottom of the screen, so the thank-you would land below the fold:
+      // say it on the button too, close the keyboard and bring the message into view.
+      // Both forms say so, so nobody signs up twice.
+      forms.forEach(f => { f.dataset.joined = '1'; const b = f.querySelector('button[type=submit]'); b.textContent = "YOU'RE ON THE LIST ✓"; b.disabled = true; });
+      document.getElementById('joinbar').classList.remove('on');
+      if (form.id === 'join') showUnlock();
+      if (document.activeElement) document.activeElement.blur();
+      thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (_) {
+      oops.style.display = 'block';
+      button.disabled = false;
+    }
+  }));
+</script>
+</body>
+</html>
